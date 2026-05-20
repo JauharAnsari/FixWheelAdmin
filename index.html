@@ -521,6 +521,34 @@
 
     .badge.done::before { background: #4ade80; }
 
+    .status-select {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-1);
+      border-radius: 4px;
+      padding: 4px 24px 4px 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23a1a1aa" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>');
+      background-repeat: no-repeat;
+      background-position: right 6px center;
+      background-size: 12px;
+      transition: all 0.2s;
+      max-width: 140px;
+      text-overflow: ellipsis;
+    }
+    .status-select:hover {
+      border-color: var(--border-hi);
+    }
+    .status-select option {
+      background: var(--surface-2);
+      color: var(--text-1);
+    }
+
     /* Action button */
     .btn-action {
       background: transparent;
@@ -556,6 +584,22 @@
     .btn-complete:hover {
       background: var(--red);
       color: #fff;
+    }
+
+    .btn-edit-price {
+      background: none;
+      border: none;
+      color: var(--text-3);
+      cursor: pointer;
+      padding: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s;
+    }
+
+    .btn-edit-price:hover {
+      color: var(--red) !important;
     }
 
     /* ─── Empty State ─── */
@@ -713,9 +757,15 @@
         <input type="text" id="pending-vehicle-filter" placeholder="Vehicle Name..." oninput="if(window.allBookings) renderDashboard(window.allBookings)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 120px;">
         <select id="pending-status-filter" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none;">
           <option value="all">All Status</option>
-          <option value="waiting">Waiting</option>
-          <option value="accepted">Accepted / Assigned</option>
-          <option value="en-route">En Route</option>
+          <option value="Pending">Pending</option>
+          <option value="In Progress - Mechanic on the way">In Progress - Mechanic on the way</option>
+          <option value="Customer Not Response">Customer Not Response</option>
+          <option value="Service Started">Service Started</option>
+          <option value="Cancel - spare parts">Cancel - spare parts</option>
+          <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+          <option value="Customer cancel - rate high">Customer cancel - rate high</option>
+          <option value="Disputed - customer">Disputed - customer</option>
+          <option value="Disputed - Mechanic">Disputed - Mechanic</option>
         </select>
         <span class="count-badge" id="pending-header-count">0 orders</span>
       </div>
@@ -733,6 +783,7 @@
             <th>Slot</th>
             <th>Mechanic</th>
             <th>Status</th>
+            <th>Order Status</th>
             <th>Amount</th>
             <th>Action</th>
           </tr>
@@ -766,6 +817,7 @@
             <th>Completed At</th>
             <th>Mechanic</th>
             <th>Status</th>
+            <th>Order Status</th>
             <th>Amount</th>
             <th>Action</th>
           </tr>
@@ -886,7 +938,7 @@
       let visiblePendingCount = 0;
 
       bookings.forEach(order => {
-        const isCompleted = order.status?.toLowerCase() === 'completed';
+        const isCompleted = order.order_status?.toLowerCase() === 'completed - payment received' || order.status?.toLowerCase() === 'completed';
         const row = createOrderRow(order, isCompleted);
         
         if (isCompleted) {
@@ -901,8 +953,8 @@
              (order.customerName || '').toLowerCase().includes(searchTerm) || 
              (order.bookingRef || order.id || '').toLowerCase().includes(searchTerm);
           
-          const s = getStatusClass(order.status);
-          const matchStatus = statusFilter === 'all' || s === statusFilter;
+          const currentStatus = order.order_status || order.status || 'Pending';
+          const matchStatus = statusFilter === 'all' || currentStatus.toLowerCase() === statusFilter.toLowerCase();
 
           const matchCity = cityFilter === '' || (order.address || '').toLowerCase().includes(cityFilter);
           const matchVehicle = vehicleFilter === '' || (order.bikeModel || '').toLowerCase().includes(vehicleFilter) || (order.bikeType || '').toLowerCase().includes(vehicleFilter);
@@ -928,10 +980,36 @@
     }
 
     function createOrderRow(order, isCompleted) {
-      const statusClass = getStatusClass(order.status);
+      const originalStatusClass = getStatusClass(order.status);
+      const currentStatus = order.order_status || 'Pending';
       const timeDisplay = isCompleted 
         ? new Date(order.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
         : (order.preferredSlot || 'Anytime');
+
+      const statusOptions = [
+        "Pending",
+        "In Progress - Mechanic on the way",
+        "Customer Not Response",
+        "Service Started",
+        "Cancel - spare parts",
+        "Cancel - mechanic not available",
+        "Customer cancel - rate high",
+        "Completed - Payment received",
+        "Disputed - customer",
+        "Disputed - Mechanic"
+      ];
+      
+      const uniqueIdentifier = order.bookingRef ? order.bookingRef : order.id;
+      const idColumn = order.bookingRef ? 'bookingRef' : 'id';
+      
+      let statusDropdownHtml = `<select class="status-select" onchange="updateOrderStatus('${uniqueIdentifier}', this.value, '${idColumn}')">`;
+      if (!statusOptions.includes(currentStatus)) {
+        statusDropdownHtml += `<option value="${currentStatus}" hidden selected>${currentStatus}</option>`;
+      }
+      statusOptions.forEach(opt => {
+        statusDropdownHtml += `<option value="${opt}" ${opt === currentStatus ? 'selected' : ''}>${opt}</option>`;
+      });
+      statusDropdownHtml += `</select>`;
 
       return `
         <tr>
@@ -955,14 +1033,25 @@
               }
             </div>
           </td>
-          <td><span class="badge ${statusClass}">${order.status || 'Pending'}</span></td>
-          <td><span class="price">₹${(order.price || 0).toLocaleString()}</span></td>
+          <td><span class="badge ${originalStatusClass}">${order.status || 'Pending'}</span></td>
+          <td>${statusDropdownHtml}</td>
+          <td>
+            <div class="price-container" style="display:flex; align-items:center; gap:8px;">
+              <span class="price">₹${(order.price || 0).toLocaleString()}</span>
+              <button class="btn-edit-price" onclick="enablePriceEdit(this, '${uniqueIdentifier}', ${order.price || 0}, '${idColumn}')" style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:2px; display:flex; align-items:center; justify-content:center; transition:color 0.15s;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+            </div>
+          </td>
           <td>
             ${isCompleted 
               ? `<button class="btn-action">View</button>`
               : (order.status?.toLowerCase() === 'pending' || !order.status)
-                ? `<button class="btn-complete" onclick="updateOrderStatus('${order.id}', 'Accepted')">Accept</button>`
-                : `<button class="btn-complete" onclick="updateOrderStatus('${order.id}', 'Completed')">Mark Done</button>`
+                ? `<button class="btn-complete" onclick="updateOrderStatus('${uniqueIdentifier}', 'Completed', '${idColumn}', 'status')">Accept</button>`
+                : `<button class="btn-complete" onclick="updateOrderStatus('${uniqueIdentifier}', 'Completed', '${idColumn}', 'status')">Mark Done</button>`
             }
           </td>
         </tr>
@@ -977,13 +1066,13 @@
       return 'waiting';
     }
 
-    async function updateOrderStatus(id, newStatus) {
-      console.log(`Updating order ${id} to status: ${newStatus}`);
+    async function updateOrderStatus(id, newStatus, column = 'id', updateColumn = 'order_status') {
+      console.log(`Updating order ${id} via ${column} to ${updateColumn}: ${newStatus}`);
       
       const { data, error } = await supabaseClient
         .from('Booking')
-        .update({ status: newStatus })
-        .eq('id', id)
+        .update({ [updateColumn]: newStatus })
+        .eq(column, id)
         .select();
 
       if (error) {
@@ -991,6 +1080,51 @@
         alert('Update Failed: ' + error.message + '\n\nCheck if RLS policies allow updates.');
       } else {
         console.log('Update successful:', data);
+        fetchBookings();
+      }
+    }
+
+    function enablePriceEdit(btn, orderId, currentPrice, column = 'id') {
+      const container = btn.parentElement;
+      container.innerHTML = `
+        <div style="display:flex; align-items:center; gap:4px;">
+          <span style="font-family:var(--mono); color:var(--text-1); font-size:13px;">₹</span>
+          <input type="number" class="edit-price-input" value="${currentPrice}" style="width:70px; background:var(--surface-3); border:1px solid var(--red); color:var(--text-1); border-radius:4px; padding:2px 4px; font-family:var(--mono); font-size:12px; outline:none;" />
+          <button onclick="savePrice('${orderId}', this, '${column}')" style="background:var(--red-glow); border:1px solid var(--red-dim); color:var(--red); border-radius:4px; padding:2px 6px; font-family:var(--mono); font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+            ✓
+          </button>
+          <button onclick="fetchBookings()" style="background:var(--surface); border:1px solid var(--border); color:var(--text-3); border-radius:4px; padding:2px 6px; font-family:var(--mono); font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+            ✕
+          </button>
+        </div>
+      `;
+      container.querySelector('.edit-price-input').focus();
+    }
+
+    async function savePrice(orderId, btn, column = 'id') {
+      const input = btn.parentElement.querySelector('.edit-price-input');
+      const newPrice = parseFloat(input.value);
+
+      if (isNaN(newPrice) || newPrice < 0) {
+        alert('Please enter a valid amount.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = '...';
+
+      const { data, error } = await supabaseClient
+        .from('Booking')
+        .update({ price: newPrice })
+        .eq(column, orderId)
+        .select();
+
+      if (error) {
+        console.error('Supabase Update Price Error:', error);
+        alert('Update Failed: ' + error.message);
+        fetchBookings();
+      } else {
+        console.log('Price updated successfully:', data);
         fetchBookings();
       }
     }
