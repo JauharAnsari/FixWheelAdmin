@@ -645,8 +645,8 @@
       <em>/ Admin</em>
     </div>
     <div class="topbar-nav" style="display:flex; gap:24px; margin-left:40px; margin-right:auto;">
-      <a href="index.html" style="color:var(--text-1); text-decoration:none; font-size:14px; font-weight:600; border-bottom: 2px solid var(--red); padding-bottom: 4px;">Orders</a>
-      <a href="partners.html" style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Partners</a>
+      <a href="index.html" style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Orders</a>
+      <a href="partners.html" style="color:var(--text-1); text-decoration:none; font-size:14px; font-weight:600; border-bottom: 2px solid var(--red); padding-bottom: 4px;">Partners</a>
     </div>
     <div class="topbar-right">
       <button id="theme-toggle" class="btn-action" style="display:flex; align-items:center; gap:6px;">
@@ -663,120 +663,55 @@
   <!-- ─── Stats ─── -->
   <div class="stats-row">
     <div class="stat-cell">
-      <div class="stat-label">Total Orders Today</div>
+      <div class="stat-label">Total Partners</div>
       <div id="stat-total-count" class="stat-value white">0</div>
-      <div class="stat-sub">Updated just now</div>
-    </div>
-    <div class="stat-cell" onclick="switchTab('pending')">
-      <div class="stat-label">Pending</div>
-      <div id="stat-pending-count" class="stat-value red">0</div>
-      <div class="stat-sub" id="stat-unassigned-count">0 unassigned</div>
-    </div>
-    <div class="stat-cell" onclick="switchTab('completed')">
-      <div class="stat-label">Completed</div>
-      <div id="stat-completed-count" class="stat-value green">0</div>
-      <div class="stat-sub" id="stat-avg-time">avg. -- min/job</div>
+      <div class="stat-sub">Registered garages</div>
     </div>
     <div class="stat-cell">
-      <div class="stat-label">Revenue Today</div>
-      <div id="stat-revenue" class="stat-value white">₹0</div>
-      <div class="stat-sub">from completed jobs</div>
+      <div class="stat-label">Active Partners</div>
+      <div id="stat-active-count" class="stat-value green">0</div>
+      <div class="stat-sub">Currently active</div>
     </div>
   </div>
 
   <!-- ─── Main ─── -->
   <main class="main">
-
-    <div class="tabs-container">
-      <button class="tab-trigger active" onclick="switchTab('pending')">
-        <span class="section-tag pending" style="margin: 0; padding: 2px 6px;">●</span>
-        Pending Orders
-        <span class="tab-count" id="pending-tab-count">0</span>
-      </button>
-      <button class="tab-trigger" onclick="switchTab('completed')">
-        <span class="section-tag completed" style="margin: 0; padding: 2px 6px;">✓</span>
-        Completed Orders
-        <span class="tab-count" id="completed-tab-count">0</span>
-      </button>
-    </div>
-
-    <!-- PENDING ORDERS -->
-    <div id="pending-section" class="order-section active">
+    <div id="partners-section" class="order-section active">
       <div class="section-header">
-      <div class="section-title">
-        <span class="section-tag pending">● Pending</span>
-        <h2>Pending Orders</h2>
+        <div class="section-title">
+          <span class="section-tag pending">● Partners</span>
+          <h2>FixWheel Partners</h2>
+        </div>
+        <div style="display:flex; gap: 10px; align-items:center;">
+          <input type="text" id="partner-search" placeholder="Search Garage or Owner Name..." oninput="if(window.allPartners) renderDashboard(window.allPartners)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 220px;">
+          <select id="partner-status-filter" onchange="if(window.allPartners) renderDashboard(window.allPartners)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none;">
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          <span class="count-badge" id="partner-header-count">0 partners</span>
+        </div>
       </div>
-      <div style="display:flex; gap: 10px; align-items:center; flex-wrap: wrap;">
-        <input type="text" id="pending-search" placeholder="Search customer or ID..." oninput="if(window.allBookings) renderDashboard(window.allBookings)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 150px;">
-        <input type="text" id="pending-city-filter" placeholder="City..." oninput="if(window.allBookings) renderDashboard(window.allBookings)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 100px;">
-        <input type="text" id="pending-vehicle-filter" placeholder="Vehicle Name..." oninput="if(window.allBookings) renderDashboard(window.allBookings)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 120px;">
-        <select id="pending-status-filter" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none;">
-          <option value="all">All Status</option>
-          <option value="waiting">Waiting</option>
-          <option value="accepted">Accepted / Assigned</option>
-          <option value="en-route">En Route</option>
-        </select>
-        <span class="count-badge" id="pending-header-count">0 orders</span>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Partner Ref</th>
+              <th>Garage Name</th>
+              <th>Owner Name</th>
+              <th>Phone</th>
+              <th>Vehicle Type</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="partner-table-body">
+            <!-- Data will be loaded from Supabase -->
+          </tbody>
+        </table>
       </div>
     </div>
-
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Order ID</th>
-            <th>Customer</th>
-            <th>Bike</th>
-            <th>Service</th>
-            <th>Location</th>
-            <th>Slot</th>
-            <th>Mechanic</th>
-            <th>Status</th>
-            <th>Amount</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="pending-table-body">
-          <!-- Data will be loaded from Supabase -->
-        </tbody>
-      </table>
-    </div>
-    </div> <!-- End Pending Section -->
-
-    <!-- COMPLETED ORDERS -->
-    <div id="completed-section" class="order-section">
-      <div class="section-header">
-      <div class="section-title">
-        <span class="section-tag completed">✓ Done</span>
-        <h2>Completed Orders</h2>
-      </div>
-      <span class="count-badge" id="completed-header-count">0 completed today</span>
-    </div>
-
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Order ID</th>
-            <th>Customer</th>
-            <th>Bike</th>
-            <th>Service</th>
-            <th>Location</th>
-            <th>Completed At</th>
-            <th>Mechanic</th>
-            <th>Status</th>
-            <th>Amount</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="completed-table-body">
-          <!-- Data will be loaded from Supabase -->
-        </tbody>
-      </table>
-    </div>
-    </div> <!-- End Completed Section -->
-
   </main>
 
   <!-- ─── Footer ─── -->
@@ -829,180 +764,82 @@
       updateThemeIcon();
     });
 
-    // Tab switching logic
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-trigger').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.getAttribute('onclick').includes(`'${tabId}'`)) {
-          btn.classList.add('active');
-        }
-      });
-
-      document.querySelectorAll('.order-section').forEach(section => {
-        section.classList.remove('active');
-      });
-      const targetSection = document.getElementById(tabId + '-section');
-      if (targetSection) targetSection.classList.add('active');
-
-      const tabs = document.querySelector('.tabs-container');
-      if (tabs) {
-        const topPos = tabs.getBoundingClientRect().top + window.pageYOffset - 100;
-        window.scrollTo({ top: topPos, behavior: 'smooth' });
-      }
-    }
-
-    // Fetch and Render Bookings
-    async function fetchBookings() {
-      const { data: bookings, error } = await supabaseClient
-        .from('Booking')
-        .select('*')
-        .order('createdAt', { ascending: false });
+    // Fetch and Render Partners
+    async function fetchPartners() {
+      const { data: partners, error } = await supabaseClient
+        .from('Partner')
+        .select('*');
 
       if (error) {
-        console.error('Error fetching bookings:', error);
+        console.error('Error fetching partners:', error);
         return;
       }
 
-      window.allBookings = bookings;
-      renderDashboard(bookings);
+      window.allPartners = partners;
+      renderDashboard(partners);
     }
 
-    function renderDashboard(bookings) {
-      const pendingTable = document.getElementById('pending-table-body');
-      const completedTable = document.getElementById('completed-table-body');
+    function renderDashboard(partners) {
+      const partnerTable = document.getElementById('partner-table-body');
       
-      const searchTerm = (document.getElementById('pending-search')?.value || '').toLowerCase();
-      const statusFilter = (document.getElementById('pending-status-filter')?.value || 'all');
-      const cityFilter = (document.getElementById('pending-city-filter')?.value || '').toLowerCase();
-      const vehicleFilter = (document.getElementById('pending-vehicle-filter')?.value || '').toLowerCase();
+      const searchTerm = (document.getElementById('partner-search')?.value || '').toLowerCase();
+      const statusFilter = (document.getElementById('partner-status-filter')?.value || 'all');
 
-      pendingTable.innerHTML = '';
-      completedTable.innerHTML = '';
+      partnerTable.innerHTML = '';
 
-      let pendingCount = 0;
-      let completedCount = 0;
-      let totalRevenue = 0;
-      let unassignedCount = 0;
-      let visiblePendingCount = 0;
+      let totalCount = partners.length;
+      let activeCount = 0;
+      let visibleCount = 0;
 
-      bookings.forEach(order => {
-        const isCompleted = order.status?.toLowerCase() === 'completed';
-        const row = createOrderRow(order, isCompleted);
+      partners.forEach(p => {
+        const isActive = p.status?.toLowerCase() === 'active';
+        if (isActive) activeCount++;
+
+        const matchSearch = searchTerm === '' || 
+           (p.garageName || '').toLowerCase().includes(searchTerm) || 
+           (p.ownerName || '').toLowerCase().includes(searchTerm) ||
+           (p.partnerRef || '').toLowerCase().includes(searchTerm);
         
-        if (isCompleted) {
-          completedTable.innerHTML += row;
-          completedCount++;
-          totalRevenue += (order.price || 0);
-        } else {
-          pendingCount++;
-          if (!order.mechanic) unassignedCount++;
+        const matchStatus = statusFilter === 'all' || (p.status || '').toLowerCase() === statusFilter;
 
-          const matchSearch = searchTerm === '' || 
-             (order.customerName || '').toLowerCase().includes(searchTerm) || 
-             (order.bookingRef || order.id || '').toLowerCase().includes(searchTerm);
-          
-          const s = getStatusClass(order.status);
-          const matchStatus = statusFilter === 'all' || s === statusFilter;
-
-          const matchCity = cityFilter === '' || (order.address || '').toLowerCase().includes(cityFilter);
-          const matchVehicle = vehicleFilter === '' || (order.bikeModel || '').toLowerCase().includes(vehicleFilter) || (order.bikeType || '').toLowerCase().includes(vehicleFilter);
-          
-          if (matchSearch && matchStatus && matchCity && matchVehicle) {
-            pendingTable.innerHTML += row;
-            visiblePendingCount++;
-          }
+        if (matchSearch && matchStatus) {
+          partnerTable.innerHTML += createPartnerRow(p);
+          visibleCount++;
         }
       });
 
       // Update Stats
-      document.getElementById('stat-total-count').textContent = bookings.length;
-      document.getElementById('stat-pending-count').textContent = pendingCount;
-      document.getElementById('stat-completed-count').textContent = completedCount;
-      document.getElementById('stat-revenue').textContent = `₹${totalRevenue.toLocaleString()}`;
-      document.getElementById('stat-unassigned-count').textContent = `${unassignedCount} unassigned`;
-      
-      document.getElementById('pending-tab-count').textContent = pendingCount;
-      document.getElementById('completed-tab-count').textContent = completedCount;
-      document.getElementById('pending-header-count').textContent = `${visiblePendingCount} visible`;
-      document.getElementById('completed-header-count').textContent = `${completedCount} completed today`;
+      document.getElementById('stat-total-count').textContent = totalCount;
+      document.getElementById('stat-active-count').textContent = activeCount;
+      document.getElementById('partner-header-count').textContent = `${visibleCount} visible`;
     }
 
-    function createOrderRow(order, isCompleted) {
-      const statusClass = getStatusClass(order.status);
-      const timeDisplay = isCompleted 
-        ? new Date(order.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
-        : (order.preferredSlot || 'Anytime');
-
+    function createPartnerRow(p) {
+      const statusClass = (p.status || '').toLowerCase() === 'active' ? 'done' : 'waiting';
+      
       return `
         <tr>
-          <td><span class="order-id">#${order.bookingRef || order.id.slice(0, 7)}</span></td>
+          <td><span class="order-id">${p.partnerRef || 'N/A'}</span></td>
+          <td><div class="customer-name">${p.garageName || 'Unknown'}</div></td>
+          <td><div class="customer-phone" style="font-size: 13px; color: var(--text-1); font-family: var(--sans);">${p.ownerName || 'Unknown'}</div></td>
+          <td><span class="price">${p.phone || 'N/A'}</span></td>
+          <td><span class="service-pill">${p.vehicleType || 'N/A'}</span></td>
+          <td><span class="badge ${statusClass}">${p.status || 'Unknown'}</span></td>
           <td>
-            <div class="customer-name">${order.customerName || 'Unknown'}</div>
-            <div class="customer-phone">${order.phone || ''}</div>
-          </td>
-          <td>
-            <div class="bike-model">${order.bikeModel || ''}</div>
-            <div class="bike-brand">${order.bikeType || ''}</div>
-          </td>
-          <td><span class="service-pill">${order.package || 'Service'}</span></td>
-          <td><span class="location-text">${order.address || 'N/A'}</span></td>
-          <td><span class="time-text">${timeDisplay}</span></td>
-          <td>
-            <div class="mechanic-cell">
-              ${order.mechanic 
-                ? `<div class="mech-avatar blue">${order.mechanic.slice(0,2).toUpperCase()}</div><span class="mech-name">${order.mechanic}</span>`
-                : `<div class="mech-avatar unassigned">—</div><span class="mech-unassigned">Unassigned</span>`
-              }
-            </div>
-          </td>
-          <td><span class="badge ${statusClass}">${order.status || 'Pending'}</span></td>
-          <td><span class="price">₹${(order.price || 0).toLocaleString()}</span></td>
-          <td>
-            ${isCompleted 
-              ? `<button class="btn-action">View</button>`
-              : (order.status?.toLowerCase() === 'pending' || !order.status)
-                ? `<button class="btn-complete" onclick="updateOrderStatus('${order.id}', 'Accepted')">Accept</button>`
-                : `<button class="btn-complete" onclick="updateOrderStatus('${order.id}', 'Completed')">Mark Done</button>`
-            }
+            <button class="btn-action" onclick="alert('View photos for ${p.garageName}')">View</button>
           </td>
         </tr>
       `;
     }
 
-    function getStatusClass(status) {
-      const s = status?.toLowerCase();
-      if (s === 'completed') return 'done';
-      if (s === 'en-route') return 'en-route';
-      if (s === 'assigned' || s === 'accepted') return 'accepted';
-      return 'waiting';
-    }
-
-    async function updateOrderStatus(id, newStatus) {
-      console.log(`Updating order ${id} to status: ${newStatus}`);
-      
-      const { data, error } = await supabaseClient
-        .from('Booking')
-        .update({ status: newStatus })
-        .eq('id', id)
-        .select();
-
-      if (error) {
-        console.error('Supabase Update Error:', error);
-        alert('Update Failed: ' + error.message + '\n\nCheck if RLS policies allow updates.');
-      } else {
-        console.log('Update successful:', data);
-        fetchBookings();
-      }
-    }
-
     // Initial fetch
-    fetchBookings();
+    fetchPartners();
 
     // Subscribe to changes for real-time updates
     supabaseClient
       .channel('schema-db-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'Booking' }, () => {
-        fetchBookings();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'Partner' }, () => {
+        fetchPartners();
       })
       .subscribe();
   </script>
