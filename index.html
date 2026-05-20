@@ -787,9 +787,10 @@
             <th>Bike</th>
             <th>Service</th>
             <th>Location</th>
+            <th>City</th>
             <th>Slot</th>
             <th>Mechanic</th>
-            <th>Status</th>
+            <th style="display:none;">Status</th>
             <th>Order Status</th>
             <th>Amount</th>
             <th>Final Amount</th>
@@ -822,9 +823,10 @@
             <th>Bike</th>
             <th>Service</th>
             <th>Location</th>
+            <th>City</th>
             <th>Completed At</th>
             <th>Mechanic</th>
-            <th>Status</th>
+            <th style="display:none;">Status</th>
             <th>Order Status</th>
             <th>Amount</th>
             <th>Final Amount</th>
@@ -1022,6 +1024,16 @@
 
       const computedFinalAmount = order.Final_Amount ? order.Final_Amount : (order.price || 0);
 
+      let city = 'N/A';
+      if (order.address) {
+        const parts = order.address.split(',');
+        if (parts.length > 1) {
+          city = parts[parts.length - 2].trim();
+        } else {
+          city = order.address;
+        }
+      }
+
       return `
         <tr>
           <td><span class="order-id">#${order.bookingRef || order.id.slice(0, 7)}</span></td>
@@ -1035,6 +1047,7 @@
           </td>
           <td><span class="service-pill">${order.package || 'Service'}</span></td>
           <td><span class="location-text">${order.address || 'N/A'}</span></td>
+          <td><span class="location-text" style="color: var(--text-1); font-weight: 600;">${city}</span></td>
           <td><span class="time-text">${timeDisplay}</span></td>
           <td>
             <div class="mechanic-cell">
@@ -1044,7 +1057,7 @@
               }
             </div>
           </td>
-          <td><span class="badge ${originalStatusClass}">${order.status || 'Pending'}</span></td>
+          <td style="display:none;"><span class="badge ${originalStatusClass}">${order.status || 'Pending'}</span></td>
           <td>${statusDropdownHtml}</td>
           <td>
             <div class="price-container" style="display:flex; align-items:center; gap:8px;">
