@@ -360,7 +360,8 @@
     .table-wrap {
       border: 1px solid var(--border);
       border-radius: 10px;
-      overflow: hidden;
+      overflow-x: auto;
+      overflow-y: hidden;
     }
 
     table {
@@ -382,6 +383,7 @@
       text-transform: uppercase;
       color: var(--text-3);
       font-weight: 500;
+      white-space: nowrap;
     }
 
     thead th:first-child { padding-left: 24px; }
@@ -790,6 +792,7 @@
             <th>Status</th>
             <th>Order Status</th>
             <th>Amount</th>
+            <th>Final Amount</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -824,6 +827,7 @@
             <th>Status</th>
             <th>Order Status</th>
             <th>Amount</th>
+            <th>Final Amount</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -1016,6 +1020,8 @@
       });
       statusDropdownHtml += `</select>`;
 
+      const computedFinalAmount = order.Final_Amount ? order.Final_Amount : (order.price || 0);
+
       return `
         <tr>
           <td><span class="order-id">#${order.bookingRef || order.id.slice(0, 7)}</span></td>
@@ -1043,12 +1049,17 @@
           <td>
             <div class="price-container" style="display:flex; align-items:center; gap:8px;">
               <span class="price">₹${(order.price || 0).toLocaleString()}</span>
-              <button class="btn-edit-price" onclick="enablePriceEdit(this, '${uniqueIdentifier}', ${order.price || 0}, '${idColumn}')" style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:2px; display:flex; align-items:center; justify-content:center; transition:color 0.15s;">
+            </div>
+          </td>
+          <td>
+            <div class="final-price-container" style="display:flex; align-items:center; gap:8px;">
+              <span class="price">₹${computedFinalAmount.toLocaleString()}</span>
+              ${!isCompleted ? `<button class="btn-edit-price" onclick="enableFinalAmountEdit(this, '${uniqueIdentifier}', ${computedFinalAmount}, '${idColumn}')" style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:2px; display:flex; align-items:center; justify-content:center; transition:color 0.15s;">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                   <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                 </svg>
-              </button>
+              </button>` : ''}
             </div>
           </td>
           <td>
@@ -1085,6 +1096,51 @@
         alert('Update Failed: ' + error.message + '\n\nCheck if RLS policies allow updates.');
       } else {
         console.log('Update successful:', data);
+        fetchBookings();
+      }
+    }
+
+    function enableFinalAmountEdit(btn, orderId, currentAmount, column = 'id') {
+      const container = btn.parentElement;
+      container.innerHTML = `
+        <div style="display:flex; align-items:center; gap:4px;">
+          <span style="font-family:var(--mono); color:var(--text-1); font-size:13px;">₹</span>
+          <input type="number" class="edit-final-amount-input" value="${currentAmount}" style="width:70px; background:var(--surface-3); border:1px solid var(--red); color:var(--text-1); border-radius:4px; padding:2px 4px; font-family:var(--mono); font-size:12px; outline:none;" />
+          <button onclick="saveFinalAmount('${orderId}', this, '${column}')" style="background:var(--red-glow); border:1px solid var(--red-dim); color:var(--red); border-radius:4px; padding:2px 6px; font-family:var(--mono); font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+            ✓
+          </button>
+          <button onclick="fetchBookings()" style="background:var(--surface); border:1px solid var(--border); color:var(--text-3); border-radius:4px; padding:2px 6px; font-family:var(--mono); font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+            ✕
+          </button>
+        </div>
+      `;
+      container.querySelector('.edit-final-amount-input').focus();
+    }
+
+    async function saveFinalAmount(orderId, btn, column = 'id') {
+      const input = btn.parentElement.querySelector('.edit-final-amount-input');
+      const newAmount = parseFloat(input.value);
+
+      if (isNaN(newAmount) || newAmount < 0) {
+        alert('Please enter a valid amount.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = '...';
+
+      const { data, error } = await supabaseClient
+        .from('Booking')
+        .update({ Final_Amount: newAmount })
+        .eq(column, orderId)
+        .select();
+
+      if (error) {
+        console.error('Supabase Update Final Amount Error:', error);
+        alert('Update Failed: ' + error.message);
+        fetchBookings();
+      } else {
+        console.log('Final Amount updated successfully:', data);
         fetchBookings();
       }
     }
