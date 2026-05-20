@@ -2,6 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <script>
+    if (sessionStorage.getItem('fixwheel_admin_logged_in') !== 'true' && localStorage.getItem('fixwheel_admin_logged_in') !== 'true') {
+      window.location.replace('login.html');
+    }
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>FixWheel — Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">

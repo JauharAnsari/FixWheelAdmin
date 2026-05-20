@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
   <script>
-    // Authentication guard - must be run before rendering to prevent FOUC
     if (sessionStorage.getItem('fixwheel_admin_logged_in') !== 'true' && localStorage.getItem('fixwheel_admin_logged_in') !== 'true') {
       window.location.replace('login.html');
     }
