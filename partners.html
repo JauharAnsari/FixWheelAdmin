@@ -839,10 +839,18 @@
           <td><span class="service-pill">${p.vehicleType || 'N/A'}</span></td>
           <td><span class="badge ${statusClass}">${p.status || 'Unknown'}</span></td>
           <td>
-            <button class="btn-action" onclick="alert('View photos for ${p.garageName}')">View</button>
+            <button class="btn-action" onclick="viewLicensePhoto('${p.licensePhoto || ''}', '${(p.garageName || 'Unknown').replace(/'/g, "\\'")}')">View</button>
           </td>
         </tr>
       `;
+    }
+
+    function viewLicensePhoto(url, name) {
+      if (url && url !== 'null' && url !== 'undefined') {
+        window.open(url, '_blank');
+      } else {
+        alert('No license photo available for ' + name);
+      }
     }
 
     // Logout logic
