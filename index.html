@@ -698,7 +698,6 @@
     <div class="topbar-nav" style="display:flex; gap:24px; margin-left:40px; margin-right:auto;">
       <a href="index.html" style="color:var(--text-1); text-decoration:none; font-size:14px; font-weight:600; border-bottom: 2px solid var(--red); padding-bottom: 4px;">Orders</a>
       <a href="partners.html" style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Partners</a>
-      <a href="active_partners.html" style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Active Partners</a>
     </div>
     <div class="topbar-right">
       <button id="theme-toggle" class="btn-action" style="display:flex; align-items:center; gap:6px;">
@@ -796,6 +795,7 @@
             <th>Order Status</th>
             <th>Amount</th>
             <th>Final Amount</th>
+            <th>Remark</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -833,6 +833,7 @@
             <th>Order Status</th>
             <th>Amount</th>
             <th>Final Amount</th>
+            <th>Remark</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -1084,6 +1085,12 @@
             </div>
           </td>
           <td>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <textarea id="remark-${uniqueIdentifier}" class="remark-input" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 4px 8px; border-radius: 4px; font-family: var(--mono); font-size: 11px; outline: none; width: 120px; resize: vertical; min-height: 28px;" placeholder="Add remark...">${order.Remarks || ''}</textarea>
+              <button class="btn-action" onclick="updateOrderRemark('${uniqueIdentifier}', document.getElementById('remark-${uniqueIdentifier}').value, '${idColumn}')" style="padding: 2px 8px; font-size: 10px; align-self: flex-end;">Save</button>
+            </div>
+          </td>
+          <td>
             ${isCompleted 
               ? `<button class="btn-action">View</button>`
               : (currentStatus === 'Completed - Payment received')
@@ -1118,6 +1125,23 @@
       } else {
         console.log('Update successful:', data);
         fetchBookings();
+      }
+    }
+
+    async function updateOrderRemark(id, newRemark, column = 'id') {
+      const btn = document.activeElement;
+      if(btn) btn.disabled = true;
+      const { error } = await supabaseClient
+        .from('Booking')
+        .update({ Remarks: newRemark })
+        .eq(column, id);
+
+      if(btn) btn.disabled = false;
+      if (error) {
+        console.error('Error saving remark:', error);
+        alert('Failed to save remark.');
+      } else {
+        console.log('Remark saved successfully.');
       }
     }
 

@@ -652,7 +652,6 @@
     <div class="topbar-nav" style="display:flex; gap:24px; margin-left:40px; margin-right:auto;">
       <a href="index.html" style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Orders</a>
       <a href="partners.html" style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Partners</a>
-      <a href="active_partners.html" style="color:var(--text-1); text-decoration:none; font-size:14px; font-weight:600; border-bottom: 2px solid var(--red); padding-bottom: 4px;">Active Partners</a>
     </div>
     <div class="topbar-right">
       <button id="theme-toggle" class="btn-action" style="display:flex; align-items:center; gap:6px;">
@@ -676,7 +675,7 @@
 
   <!-- ─── Stats ─── -->
   <div class="stats-row">
-    <div class="stat-cell">
+    <div class="stat-cell" onclick="window.location.href='partners.html'">
       <div class="stat-label">Total Partners</div>
       <div id="stat-total-count" class="stat-value white">0</div>
       <div class="stat-sub">Registered garages</div>
