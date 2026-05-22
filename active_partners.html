@@ -8,7 +8,7 @@
   </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FixWheel — Admin Dashboard</title>
+  <title>FixWheel — Active Partners</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
@@ -651,8 +651,8 @@
     </div>
     <div class="topbar-nav" style="display:flex; gap:24px; margin-left:40px; margin-right:auto;">
       <a href="index.html" style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Orders</a>
-      <a href="partners.html" style="color:var(--text-1); text-decoration:none; font-size:14px; font-weight:600; border-bottom: 2px solid var(--red); padding-bottom: 4px;">Partners</a>
-      <a href="active_partners.html" style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Active Partners</a>
+      <a href="partners.html" style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Partners</a>
+      <a href="active_partners.html" style="color:var(--text-1); text-decoration:none; font-size:14px; font-weight:600; border-bottom: 2px solid var(--red); padding-bottom: 4px;">Active Partners</a>
     </div>
     <div class="topbar-right">
       <button id="theme-toggle" class="btn-action" style="display:flex; align-items:center; gap:6px;">
@@ -694,15 +694,10 @@
       <div class="section-header">
         <div class="section-title">
           <span class="section-tag pending">● Partners</span>
-          <h2>FixWheel Partners</h2>
+          <h2>Active Partners</h2>
         </div>
         <div style="display:flex; gap: 10px; align-items:center;">
           <input type="text" id="partner-search" placeholder="Search Garage or Owner Name..." oninput="if(window.allPartners) renderDashboard(window.allPartners)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 220px;">
-          <select id="partner-status-filter" onchange="if(window.allPartners) renderDashboard(window.allPartners)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none;">
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
           <span class="count-badge" id="partner-header-count">0 partners</span>
         </div>
       </div>
@@ -798,7 +793,6 @@
       const partnerTable = document.getElementById('partner-table-body');
       
       const searchTerm = (document.getElementById('partner-search')?.value || '').toLowerCase();
-      const statusFilter = (document.getElementById('partner-status-filter')?.value || 'all');
 
       partnerTable.innerHTML = '';
 
@@ -808,7 +802,7 @@
 
       partners.forEach(p => {
         const statusValue = p.partner_status || p.status || 'Pending- OnBoarding';
-        const isActive = statusValue.toLowerCase().includes('active') && !statusValue.toLowerCase().includes('deactivate');
+        const isActive = statusValue === 'Active - Working with FixWheel';
         if (isActive) activeCount++;
 
         const matchSearch = searchTerm === '' || 
@@ -816,12 +810,7 @@
            (p.ownerName || '').toLowerCase().includes(searchTerm) ||
            (p.partnerRef || '').toLowerCase().includes(searchTerm);
         
-        let matchStatus = true;
-        if (statusFilter === 'active') {
-          matchStatus = isActive;
-        } else if (statusFilter === 'inactive') {
-          matchStatus = !isActive;
-        }
+        let matchStatus = isActive;
 
         if (matchSearch && matchStatus) {
           partnerTable.innerHTML += createPartnerRow(p);
