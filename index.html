@@ -952,7 +952,7 @@
       let visiblePendingCount = 0;
 
       bookings.forEach(order => {
-        const isCompleted = order.order_status?.toLowerCase() === 'completed - payment received' || order.status?.toLowerCase() === 'completed';
+        const isCompleted = order.status?.toLowerCase() === 'completed';
         const row = createOrderRow(order, isCompleted);
         
         if (isCompleted) {
@@ -1086,9 +1086,9 @@
           <td>
             ${isCompleted 
               ? `<button class="btn-action">View</button>`
-              : (order.status?.toLowerCase() === 'pending' || !order.status)
+              : (currentStatus === 'Completed - Payment received')
                 ? `<button class="btn-complete" onclick="updateOrderStatus('${uniqueIdentifier}', 'Completed', '${idColumn}', 'status')">Accept</button>`
-                : `<button class="btn-complete" onclick="updateOrderStatus('${uniqueIdentifier}', 'Completed', '${idColumn}', 'status')">Mark Done</button>`
+                : ``
             }
           </td>
         </tr>
