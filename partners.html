@@ -805,7 +805,8 @@
       let visibleCount = 0;
 
       partners.forEach(p => {
-        const isActive = p.status?.toLowerCase() === 'active';
+        const statusValue = p.partner_status || p.status || 'Pending- OnBoarding';
+        const isActive = statusValue.toLowerCase().includes('active') && !statusValue.toLowerCase().includes('deactivate');
         if (isActive) activeCount++;
 
         const matchSearch = searchTerm === '' || 
@@ -813,7 +814,12 @@
            (p.ownerName || '').toLowerCase().includes(searchTerm) ||
            (p.partnerRef || '').toLowerCase().includes(searchTerm);
         
-        const matchStatus = statusFilter === 'all' || (p.status || '').toLowerCase() === statusFilter;
+        let matchStatus = true;
+        if (statusFilter === 'active') {
+          matchStatus = isActive;
+        } else if (statusFilter === 'inactive') {
+          matchStatus = !isActive;
+        }
 
         if (matchSearch && matchStatus) {
           partnerTable.innerHTML += createPartnerRow(p);
@@ -828,7 +834,8 @@
     }
 
     function createPartnerRow(p) {
-      const statusClass = (p.status || '').toLowerCase() === 'active' ? 'done' : 'waiting';
+      const currentStatus = p.partner_status || p.status || 'Pending- OnBoarding';
+      const statusClass = currentStatus.toLowerCase().includes('active') && !currentStatus.toLowerCase().includes('deactivate') ? 'done' : 'waiting';
       
       return `
         <tr>
@@ -837,12 +844,31 @@
           <td><div class="customer-phone" style="font-size: 13px; color: var(--text-1); font-family: var(--sans);">${p.ownerName || 'Unknown'}</div></td>
           <td><span class="price">${p.phone || 'N/A'}</span></td>
           <td><span class="service-pill">${p.vehicleType || 'N/A'}</span></td>
-          <td><span class="badge ${statusClass}">${p.status || 'Unknown'}</span></td>
+          <td>
+            <select class="status-dropdown badge ${statusClass}" onchange="updatePartnerStatus('${p.id}', this.value)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 4px 8px; border-radius: 4px; font-family: var(--mono); font-size: 11px; outline: none; cursor: pointer;">
+              <option value="Active - Working with FixWheel" ${currentStatus === 'Active - Working with FixWheel' ? 'selected' : ''}>Active - Working with FixWheel</option>
+              <option value="Deactivate-Dispute of Money" ${currentStatus === 'Deactivate-Dispute of Money' ? 'selected' : ''}>Deactivate-Dispute of Money</option>
+              <option value="Pending- OnBoarding" ${currentStatus === 'Pending- OnBoarding' ? 'selected' : ''}>Pending- OnBoarding</option>
+              <option value="Deactivate - Other Reasons" ${currentStatus === 'Deactivate - Other Reasons' ? 'selected' : ''}>Deactivate - Other Reasons</option>
+            </select>
+          </td>
           <td>
             <button class="btn-action" onclick="viewLicensePhoto('${p.licensePhoto || ''}', '${(p.garageName || 'Unknown').replace(/'/g, "\\'")}')">View</button>
           </td>
         </tr>
       `;
+    }
+
+    async function updatePartnerStatus(partnerId, newStatus) {
+      const { error } = await supabaseClient
+        .from('Partner')
+        .update({ partner_status: newStatus })
+        .eq('id', partnerId);
+
+      if (error) {
+        console.error('Error updating partner status:', error);
+        alert('Failed to update status.');
+      }
     }
 
     function viewLicensePhoto(url, name) {
