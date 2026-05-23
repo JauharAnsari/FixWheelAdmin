@@ -715,6 +715,7 @@
               <th>Owner Name</th>
               <th>Phone</th>
               <th>Vehicle Type</th>
+              <th>City</th>
               <th>Status</th>
               <th>License</th>
               <th>Garage</th>
@@ -845,6 +846,7 @@
           <td><div class="customer-phone" style="font-size: 13px; color: var(--text-1); font-family: var(--sans);">${p.ownerName || 'Unknown'}</div></td>
           <td><span class="price">${p.phone || 'N/A'}</span></td>
           <td><span class="service-pill">${p.vehicleType || 'N/A'}</span></td>
+          <td><div class="customer-phone" style="font-size: 13px; color: var(--text-1); font-family: var(--sans);">${p.city || 'N/A'}</div></td>
           <td>
             <select class="status-dropdown badge ${statusClass}" onchange="updatePartnerStatus('${p.id}', this.value)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 4px 8px; border-radius: 4px; font-family: var(--mono); font-size: 11px; outline: none; cursor: pointer;">
               <option value="Pending- OnBoarding" ${currentStatus === 'Pending- OnBoarding' ? 'selected' : ''}>Pending- OnBoarding</option>
