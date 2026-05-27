@@ -699,7 +699,6 @@
           <input type="text" id="partner-search" placeholder="Search Garage or Owner Name..." oninput="if(window.allPartners) renderDashboard(window.allPartners)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 220px;">
           <select id="partner-status-filter" onchange="if(window.allPartners) renderDashboard(window.allPartners)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none;">
             <option value="all">All Status</option>
-            <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
           <span class="count-badge" id="partner-header-count">0 partners</span>
@@ -810,6 +809,9 @@
         const statusValue = p.partner_status || p.status || 'Pending- OnBoarding';
         const isActive = statusValue.toLowerCase().includes('active') && !statusValue.toLowerCase().includes('deactivate');
         if (isActive) activeCount++;
+
+        // Exclude active partners from showing in this table
+        if (isActive) return;
 
         const matchSearch = searchTerm === '' || 
            (p.garageName || '').toLowerCase().includes(searchTerm) || 
