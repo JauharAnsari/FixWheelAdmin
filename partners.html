@@ -685,6 +685,11 @@
       <div id="stat-active-count" class="stat-value green">0</div>
       <div class="stat-sub">Currently active</div>
     </div>
+    <div class="stat-cell" onclick="window.location.href='dublicate_partners.html'">
+      <div class="stat-label">Dublicate Partners</div>
+      <div id="stat-duplicate-count" class="stat-value red">0</div>
+      <div class="stat-sub">Dublicate accounts</div>
+    </div>
   </div>
 
   <!-- ─── Main ─── -->
@@ -802,17 +807,21 @@
 
       partnerTable.innerHTML = '';
 
-      let totalCount = partners.length;
+      let totalCount = 0;
       let activeCount = 0;
+      let duplicateCount = 0;
       let visibleCount = 0;
 
       partners.forEach(p => {
         const statusValue = p.partner_status || p.status || 'Pending- OnBoarding';
         const isActive = statusValue.toLowerCase().includes('active') && !statusValue.toLowerCase().includes('deactivate');
+        const isDuplicate = statusValue === 'Dublicate Partner';
         if (isActive) activeCount++;
+        if (isDuplicate) duplicateCount++;
+        else totalCount++;
 
-        // Exclude active partners from showing in this table
-        if (isActive) return;
+        // Exclude active and duplicate partners from showing in this table
+        if (isActive || isDuplicate) return;
 
         const matchSearch = searchTerm === '' || 
            (p.garageName || '').toLowerCase().includes(searchTerm) || 
@@ -835,6 +844,7 @@
       // Update Stats
       document.getElementById('stat-total-count').textContent = totalCount;
       document.getElementById('stat-active-count').textContent = activeCount;
+      document.getElementById('stat-duplicate-count').textContent = duplicateCount;
       document.getElementById('partner-header-count').textContent = `${visibleCount} visible`;
     }
 
@@ -857,6 +867,7 @@
               <option value="Active - Working with FixWheel" ${currentStatus === 'Active - Working with FixWheel' ? 'selected' : ''}>Active - Working with FixWheel</option>
               <option value="Deactivate-Dispute of Money" ${currentStatus === 'Deactivate-Dispute of Money' ? 'selected' : ''}>Deactivate-Dispute of Money</option>
               <option value="Deactivate - Other Reasons" ${currentStatus === 'Deactivate - Other Reasons' ? 'selected' : ''}>Deactivate - Other Reasons</option>
+              <option value="Dublicate Partner" ${currentStatus === 'Dublicate Partner' ? 'selected' : ''}>Dublicate Partner</option>
             </select>
           </td>
           <td>
