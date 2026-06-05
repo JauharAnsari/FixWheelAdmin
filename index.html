@@ -983,7 +983,7 @@
         if (isCompleted) {
           completedTable.innerHTML += row;
           completedCount++;
-          totalRevenue += (order.price || 0);
+          totalRevenue += (order.Final_Amount || order.price || 0);
         } else {
           pendingCount++;
           if (!order.mechanic) unassignedCount++;
