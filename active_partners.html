@@ -360,7 +360,7 @@
     .table-wrap {
       border: 1px solid var(--border);
       border-radius: 10px;
-      overflow: hidden;
+      overflow-x: auto;
     }
 
     table {
@@ -715,10 +715,12 @@
               <th>Owner Name</th>
               <th>Phone</th>
               <th>Vehicle Type</th>
+              <th>Address</th>
               <th>City</th>
               <th>Status</th>
               <th>License</th>
               <th>Garage</th>
+              <th>Remark</th>
             </tr>
           </thead>
           <tbody id="partner-table-body">
@@ -845,6 +847,7 @@
           <td><div class="customer-phone" style="font-size: 13px; color: var(--text-1); font-family: var(--sans);">${p.ownerName || 'Unknown'}</div></td>
           <td><span class="price">${p.phone || 'N/A'}</span></td>
           <td><span class="service-pill">${p.vehicleType || 'N/A'}</span></td>
+          <td><div class="location-text">${p.address || 'N/A'}</div></td>
           <td><div class="customer-phone" style="font-size: 13px; color: var(--text-1); font-family: var(--sans);">${p.city || 'N/A'}</div></td>
           <td>
             <select class="status-dropdown badge ${statusClass}" onchange="updatePartnerStatus('${p.id}', this.value)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 4px 8px; border-radius: 4px; font-family: var(--mono); font-size: 11px; outline: none; cursor: pointer;">
@@ -861,6 +864,9 @@
           <td>
             <button class="btn-action" onclick="viewGaragePhoto(this.getAttribute('data-photos'), this.getAttribute('data-name'))" data-photos="${(Array.isArray(p.garagePhotos) ? p.garagePhotos.join(',') : p.garagePhotos || '').replace(/"/g, '&quot;')}" data-name="${(p.garageName || 'Unknown').replace(/"/g, '&quot;')}">View</button>
           </td>
+          <td>
+            <textarea onchange="updatePartnerRemark('${p.id}', this.value)" placeholder="Add remark..." style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 8px; border-radius: 4px; font-family: var(--sans); font-size: 12px; outline: none; width: 160px; height: 50px; resize: vertical; overflow-y: auto; transition: border 0.2s;" onfocus="this.style.borderColor='var(--text-3)'" onblur="this.style.borderColor='var(--border)'">${(p.Remarks || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+          </td>
         </tr>
       `;
     }
@@ -874,6 +880,18 @@
       if (error) {
         console.error('Error updating partner status:', error);
         alert('Failed to update status.');
+      }
+    }
+
+    async function updatePartnerRemark(partnerId, newRemark) {
+      const { error } = await supabaseClient
+        .from('Partner')
+        .update({ Remarks: newRemark })
+        .eq('id', partnerId);
+
+      if (error) {
+        console.error('Error updating remark:', error);
+        alert('Failed to update remark.');
       }
     }
 

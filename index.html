@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <script>
@@ -7,60 +8,66 @@
       window.location.replace('login.html');
     }
   </script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FixWheel — Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap"
+    rel="stylesheet">
 
   <style>
-    *, *::before, *::after {
+    *,
+    *::before,
+    *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
 
     :root {
-      --bg:        #0a0a0a;
-      --surface:   #141414;
+      --bg: #0a0a0a;
+      --surface: #141414;
       --surface-2: #1e1e1e;
       --surface-3: #262626;
-      --border:    #2a2a2a;
+      --border: #2a2a2a;
       --border-hi: #3f3f3f;
-      --red:       #ef4444;
-      --red-dim:   #991b1b;
-      --red-glow:  rgba(239, 68, 68, 0.15);
-      --green:     #22c55e;
+      --red: #ef4444;
+      --red-dim: #991b1b;
+      --red-glow: rgba(239, 68, 68, 0.15);
+      --green: #22c55e;
       --green-dim: #166534;
-      --green-glow:rgba(34, 197, 94, 0.15);
-      --text-1:    #ffffff;
-      --text-2:    #a1a1aa;
-      --text-3:    #71717a;
+      --green-glow: rgba(34, 197, 94, 0.15);
+      --text-1: #ffffff;
+      --text-2: #a1a1aa;
+      --text-3: #71717a;
       --topbar-bg: rgba(10, 10, 10, 0.85);
-      --mono:      'DM Mono', monospace;
-      --sans:      'Syne', sans-serif;
+      --mono: 'DM Mono', monospace;
+      --sans: 'Syne', sans-serif;
     }
 
     [data-theme="light"] {
-      --bg:        #f3f4f6;
-      --surface:   #ffffff;
+      --bg: #f3f4f6;
+      --surface: #ffffff;
       --surface-2: #f9fafb;
       --surface-3: #f3f4f6;
-      --border:    #e5e7eb;
+      --border: #e5e7eb;
       --border-hi: #d1d5db;
-      --red:       #ef4444;
-      --red-dim:   #fca5a5;
-      --red-glow:  rgba(239, 68, 68, 0.15);
-      --green:     #22c55e;
+      --red: #ef4444;
+      --red-dim: #fca5a5;
+      --red-glow: rgba(239, 68, 68, 0.15);
+      --green: #22c55e;
       --green-dim: #86efac;
-      --green-glow:rgba(34, 197, 94, 0.15);
-      --text-1:    #111827;
-      --text-2:    #4b5563;
-      --text-3:    #6b7280;
+      --green-glow: rgba(34, 197, 94, 0.15);
+      --text-1: #111827;
+      --text-2: #4b5563;
+      --text-3: #6b7280;
       --topbar-bg: rgba(255, 255, 255, 0.85);
     }
 
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
       background: var(--bg);
@@ -101,7 +108,11 @@
       justify-content: center;
     }
 
-    .brand-icon svg { width: 16px; height: 16px; fill: #fff; }
+    .brand-icon svg {
+      width: 16px;
+      height: 16px;
+      fill: #fff;
+    }
 
     .topbar-brand span {
       font-weight: 700;
@@ -146,8 +157,15 @@
     }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
     }
 
     .admin-chip {
@@ -186,7 +204,9 @@
     .stat-cell::after {
       content: '';
       position: absolute;
-      bottom: 0; left: 0; right: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
       height: 2px;
       background: var(--red);
       transform: scaleX(0);
@@ -194,7 +214,9 @@
       transition: transform 0.4s ease;
     }
 
-    .stat-cell:hover::after { transform: scaleX(1); }
+    .stat-cell:hover::after {
+      transform: scaleX(1);
+    }
 
     .stat-label {
       font-family: var(--mono);
@@ -212,9 +234,17 @@
       line-height: 1;
     }
 
-    .stat-value.red { color: var(--red); }
-    .stat-value.green { color: #4ade80; }
-    .stat-value.white { color: var(--text-1); }
+    .stat-value.red {
+      color: var(--red);
+    }
+
+    .stat-value.green {
+      color: #4ade80;
+    }
+
+    .stat-value.white {
+      color: var(--text-1);
+    }
 
     .stat-sub {
       font-family: var(--mono);
@@ -240,7 +270,8 @@
       width: fit-content;
       margin-bottom: 40px;
       position: sticky;
-      top: 80px; /* Below topbar */
+      top: 80px;
+      /* Below topbar */
       z-index: 90;
       backdrop-filter: blur(10px);
     }
@@ -263,13 +294,13 @@
     .tab-trigger.active {
       background: var(--surface-2);
       color: var(--text-1);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       border: 1px solid var(--border-hi);
     }
 
     .tab-trigger:not(.active):hover {
       color: var(--text-2);
-      background: rgba(255,255,255,0.03);
+      background: rgba(255, 255, 255, 0.03);
     }
 
     .tab-count {
@@ -298,8 +329,15 @@
     }
 
     @keyframes sectionFade {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* ─── Section Header ─── */
@@ -386,7 +424,9 @@
       white-space: nowrap;
     }
 
-    thead th:first-child { padding-left: 24px; }
+    thead th:first-child {
+      padding-left: 24px;
+    }
 
     tbody tr {
       border-bottom: 1px solid var(--border);
@@ -396,12 +436,24 @@
     }
 
     @keyframes rowIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: var(--surface-3); }
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: var(--surface-3);
+    }
 
     tbody td {
       padding: 16px 20px;
@@ -409,7 +461,9 @@
       vertical-align: middle;
     }
 
-    tbody td:first-child { padding-left: 24px; }
+    tbody td:first-child {
+      padding-left: 24px;
+    }
 
     .order-id {
       font-family: var(--mono);
@@ -453,11 +507,13 @@
       font-family: var(--mono);
       text-transform: capitalize;
     }
+
     .source-pill.website {
       color: #60a5fa;
       border-color: rgba(59, 130, 246, 0.25);
       background: rgba(59, 130, 246, 0.1);
     }
+
     .source-pill.app {
       color: #4ade80;
       border-color: var(--green-dim);
@@ -524,15 +580,22 @@
       border: 1px solid rgba(234, 179, 8, 0.25);
     }
 
-    .badge.waiting::before { background: #facc15; animation: pulse 1.5s infinite; }
+    .badge.waiting::before {
+      background: #facc15;
+      animation: pulse 1.5s infinite;
+    }
 
-    .badge.assigned, .badge.accepted {
+    .badge.assigned,
+    .badge.accepted {
       background: rgba(59, 130, 246, 0.1);
       color: #60a5fa;
       border: 1px solid rgba(59, 130, 246, 0.25);
     }
 
-    .badge.assigned::before, .badge.accepted::before { background: #60a5fa; }
+    .badge.assigned::before,
+    .badge.accepted::before {
+      background: #60a5fa;
+    }
 
     .badge.en-route {
       background: rgba(249, 115, 22, 0.1);
@@ -540,7 +603,10 @@
       border: 1px solid rgba(249, 115, 22, 0.25);
     }
 
-    .badge.en-route::before { background: #fb923c; animation: pulse 1s infinite; }
+    .badge.en-route::before {
+      background: #fb923c;
+      animation: pulse 1s infinite;
+    }
 
     .badge.done {
       background: var(--green-glow);
@@ -548,7 +614,9 @@
       border: 1px solid var(--green-dim);
     }
 
-    .badge.done::before { background: #4ade80; }
+    .badge.done::before {
+      background: #4ade80;
+    }
 
     .status-select {
       background: var(--surface-2);
@@ -570,9 +638,11 @@
       max-width: 140px;
       text-overflow: ellipsis;
     }
+
     .status-select:hover {
       border-color: var(--border-hi);
     }
+
     .status-select option {
       background: var(--surface-2);
       color: var(--text-1);
@@ -669,13 +739,40 @@
       flex-shrink: 0;
     }
 
-    .mech-avatar.red { background: var(--red-glow); color: var(--red); border: 1px solid var(--red-dim); }
-    .mech-avatar.blue { background: rgba(59,130,246,0.1); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
-    .mech-avatar.orange { background: rgba(249,115,22,0.1); color: #fb923c; border: 1px solid rgba(249,115,22,0.25); }
-    .mech-avatar.unassigned { background: var(--surface); color: var(--text-3); border: 1px solid var(--border); }
+    .mech-avatar.red {
+      background: var(--red-glow);
+      color: var(--red);
+      border: 1px solid var(--red-dim);
+    }
 
-    .mech-name { font-size: 12.5px; color: var(--text-1); }
-    .mech-unassigned { font-size: 12px; color: var(--text-3); font-family: var(--mono); }
+    .mech-avatar.blue {
+      background: rgba(59, 130, 246, 0.1);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.25);
+    }
+
+    .mech-avatar.orange {
+      background: rgba(249, 115, 22, 0.1);
+      color: #fb923c;
+      border: 1px solid rgba(249, 115, 22, 0.25);
+    }
+
+    .mech-avatar.unassigned {
+      background: var(--surface);
+      color: var(--text-3);
+      border: 1px solid var(--border);
+    }
+
+    .mech-name {
+      font-size: 12.5px;
+      color: var(--text-1);
+    }
+
+    .mech-unassigned {
+      font-size: 12px;
+      color: var(--text-3);
+      font-family: var(--mono);
+    }
 
     /* ─── Footer ─── */
     footer {
@@ -693,37 +790,61 @@
       letter-spacing: 0.05em;
     }
 
-    footer span { color: var(--red); }
+    footer span {
+      color: var(--red);
+    }
 
     /* ─── Animations stagger ─── */
-    tbody tr:nth-child(1) { animation-delay: 0.05s; }
-    tbody tr:nth-child(2) { animation-delay: 0.10s; }
-    tbody tr:nth-child(3) { animation-delay: 0.15s; }
-    tbody tr:nth-child(4) { animation-delay: 0.20s; }
-    tbody tr:nth-child(5) { animation-delay: 0.25s; }
-    tbody tr:nth-child(6) { animation-delay: 0.30s; }
+    tbody tr:nth-child(1) {
+      animation-delay: 0.05s;
+    }
+
+    tbody tr:nth-child(2) {
+      animation-delay: 0.10s;
+    }
+
+    tbody tr:nth-child(3) {
+      animation-delay: 0.15s;
+    }
+
+    tbody tr:nth-child(4) {
+      animation-delay: 0.20s;
+    }
+
+    tbody tr:nth-child(5) {
+      animation-delay: 0.25s;
+    }
+
+    tbody tr:nth-child(6) {
+      animation-delay: 0.30s;
+    }
   </style>
   <script>
     const savedTheme = localStorage.getItem('theme') || 'dark';
     if (savedTheme === 'light') document.documentElement.setAttribute('data-theme', 'light');
   </script>
 </head>
+
 <body>
 
   <!-- ─── Topbar ─── -->
   <header class="topbar">
     <div class="topbar-brand">
-      <img src="fixwheel_icon.png" alt="FixWheel Logo" style="width: 32px; height: 32px; object-fit: contain; border-radius: 6px;">
+      <img src="fixwheel_icon.png" alt="FixWheel Logo"
+        style="width: 32px; height: 32px; object-fit: contain; border-radius: 6px;">
       <span>FixWheel</span>
       <em>/ Admin</em>
     </div>
     <div class="topbar-nav" style="display:flex; gap:24px; margin-left:40px; margin-right:auto;">
-      <a href="index.html" style="color:var(--text-1); text-decoration:none; font-size:14px; font-weight:600; border-bottom: 2px solid var(--red); padding-bottom: 4px;">Orders</a>
-      <a href="partners.html" style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Partners</a>
+      <a href="index.html"
+        style="color:var(--text-1); text-decoration:none; font-size:14px; font-weight:600; border-bottom: 2px solid var(--red); padding-bottom: 4px;">Orders</a>
+      <a href="partners.html"
+        style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Partners</a>
     </div>
     <div class="topbar-right">
       <button id="theme-toggle" class="btn-action" style="display:flex; align-items:center; gap:6px;">
-        <svg id="theme-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg id="theme-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <!-- Icon updated dynamically via JS -->
         </svg>
         <span id="theme-text">Theme</span>
@@ -776,96 +897,103 @@
     <!-- PENDING ORDERS -->
     <div id="pending-section" class="order-section active">
       <div class="section-header">
-      <div class="section-title">
-        <span class="section-tag pending">● Pending</span>
-        <h2>Pending Orders</h2>
+        <div class="section-title">
+          <span class="section-tag pending">● Pending</span>
+          <h2>Pending Orders</h2>
+        </div>
+        <div style="display:flex; gap: 10px; align-items:center; flex-wrap: wrap;">
+          <input type="text" id="pending-search" placeholder="Search customer or ID..."
+            oninput="if(window.allBookings) renderDashboard(window.allBookings)"
+            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 150px;">
+          <input type="text" id="pending-city-filter" placeholder="City..."
+            oninput="if(window.allBookings) renderDashboard(window.allBookings)"
+            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 100px;">
+          <input type="text" id="pending-vehicle-filter" placeholder="Vehicle Name..."
+            oninput="if(window.allBookings) renderDashboard(window.allBookings)"
+            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 120px;">
+          <select id="pending-status-filter" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
+            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none;">
+            <option value="all">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress - Mechanic on the way">In Progress - Mechanic on the way</option>
+            <option value="Customer Not Response">Customer Not Response</option>
+            <option value="Service Started">Service Started</option>
+            <option value="Cancel - spare parts">Cancel - spare parts</option>
+            <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+            <option value="Customer cancel - rate high">Customer cancel - rate high</option>
+            <option value="Disputed - customer">Disputed - customer</option>
+            <option value="Disputed - Mechanic">Disputed - Mechanic</option>
+          </select>
+          <span class="count-badge" id="pending-header-count">0 orders</span>
+        </div>
       </div>
-      <div style="display:flex; gap: 10px; align-items:center; flex-wrap: wrap;">
-        <input type="text" id="pending-search" placeholder="Search customer or ID..." oninput="if(window.allBookings) renderDashboard(window.allBookings)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 150px;">
-        <input type="text" id="pending-city-filter" placeholder="City..." oninput="if(window.allBookings) renderDashboard(window.allBookings)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 100px;">
-        <input type="text" id="pending-vehicle-filter" placeholder="Vehicle Name..." oninput="if(window.allBookings) renderDashboard(window.allBookings)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 120px;">
-        <select id="pending-status-filter" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none;">
-          <option value="all">All Status</option>
-          <option value="Pending">Pending</option>
-          <option value="In Progress - Mechanic on the way">In Progress - Mechanic on the way</option>
-          <option value="Customer Not Response">Customer Not Response</option>
-          <option value="Service Started">Service Started</option>
-          <option value="Cancel - spare parts">Cancel - spare parts</option>
-          <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
-          <option value="Customer cancel - rate high">Customer cancel - rate high</option>
-          <option value="Disputed - customer">Disputed - customer</option>
-          <option value="Disputed - Mechanic">Disputed - Mechanic</option>
-        </select>
-        <span class="count-badge" id="pending-header-count">0 orders</span>
-      </div>
-    </div>
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Order ID</th>
-            <th>Date</th>
-            <th>Customer</th>
-            <th>Bike</th>
-            <th>Service</th>
-            <th>Source</th>
-            <th>Location</th>
-            <th>City</th>
-            <th>Slot</th>
-            <th>Mechanic</th>
-            <th style="display:none;">Status</th>
-            <th>Order Status</th>
-            <th>Amount</th>
-            <th>Final Amount</th>
-            <th>Remark</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="pending-table-body">
-          <!-- Data will be loaded from Supabase -->
-        </tbody>
-      </table>
-    </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Bike</th>
+              <th>Service</th>
+              <th>Source</th>
+              <th>Location</th>
+              <th>City</th>
+              <th>Slot</th>
+              <th>Mechanic</th>
+              <th style="display:none;">Status</th>
+              <th>Order Status</th>
+              <th>Amount</th>
+              <th>Final Amount</th>
+              <th>Remark</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="pending-table-body">
+            <!-- Data will be loaded from Supabase -->
+          </tbody>
+        </table>
+      </div>
     </div> <!-- End Pending Section -->
 
     <!-- COMPLETED ORDERS -->
     <div id="completed-section" class="order-section">
       <div class="section-header">
-      <div class="section-title">
-        <span class="section-tag completed">✓ Done</span>
-        <h2>Completed Orders</h2>
+        <div class="section-title">
+          <span class="section-tag completed">✓ Done</span>
+          <h2>Completed Orders</h2>
+        </div>
+        <span class="count-badge" id="completed-header-count">0 completed today</span>
       </div>
-      <span class="count-badge" id="completed-header-count">0 completed today</span>
-    </div>
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Order ID</th>
-            <th>Date</th>
-            <th>Customer</th>
-            <th>Bike</th>
-            <th>Service</th>
-            <th>Source</th>
-            <th>Location</th>
-            <th>City</th>
-            <th>Completed At</th>
-            <th>Mechanic</th>
-            <th style="display:none;">Status</th>
-            <th>Order Status</th>
-            <th>Amount</th>
-            <th>Final Amount</th>
-            <th>Remark</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="completed-table-body">
-          <!-- Data will be loaded from Supabase -->
-        </tbody>
-      </table>
-    </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Bike</th>
+              <th>Service</th>
+              <th>Source</th>
+              <th>Location</th>
+              <th>City</th>
+              <th>Completed At</th>
+              <th>Mechanic</th>
+              <th style="display:none;">Status</th>
+              <th>Order Status</th>
+              <th>Amount</th>
+              <th>Final Amount</th>
+              <th>Remark</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="completed-table-body">
+            <!-- Data will be loaded from Supabase -->
+          </tbody>
+        </table>
+      </div>
     </div> <!-- End Completed Section -->
 
   </main>
@@ -905,9 +1033,9 @@
         themeText.textContent = 'Light';
       }
     }
-    
+
     updateThemeIcon(); // init
-    
+
     themeToggleBtn.addEventListener('click', () => {
       const currentTheme = document.documentElement.getAttribute('data-theme');
       if (currentTheme === 'light') {
@@ -942,15 +1070,21 @@
       }
     }
 
-    // Fetch and Render Bookings
+    // Fetch Partners and Bookings
     async function fetchBookings() {
-      const { data: bookings, error } = await supabaseClient
-        .from('Booking')
-        .select('*')
-        .order('createdAt', { ascending: false });
+      const [{ data: partners, error: partnersError }, { data: bookings, error: bookingsError }] = await Promise.all([
+        supabaseClient.from('Partner').select('*'),
+        supabaseClient.from('Booking').select('*').order('createdAt', { ascending: false })
+      ]);
 
-      if (error) {
-        console.error('Error fetching bookings:', error);
+      if (partnersError) {
+        console.error('Error fetching partners:', partnersError);
+      } else {
+        window.activeMechanics = partners.filter(p => (p.partner_status === 'Active - Working with FixWheel' || p.status === 'Active - Working with FixWheel'));
+      }
+
+      if (bookingsError) {
+        console.error('Error fetching bookings:', bookingsError);
         return;
       }
 
@@ -961,7 +1095,7 @@
     function renderDashboard(bookings) {
       const pendingTable = document.getElementById('pending-table-body');
       const completedTable = document.getElementById('completed-table-body');
-      
+
       const searchTerm = (document.getElementById('pending-search')?.value || '').toLowerCase();
       const statusFilter = (document.getElementById('pending-status-filter')?.value || 'all');
       const cityFilter = (document.getElementById('pending-city-filter')?.value || '').toLowerCase();
@@ -979,25 +1113,25 @@
       bookings.forEach(order => {
         const isCompleted = order.status?.toLowerCase() === 'completed';
         const row = createOrderRow(order, isCompleted);
-        
+
         if (isCompleted) {
           completedTable.innerHTML += row;
           completedCount++;
           totalRevenue += (order.Final_Amount || order.price || 0);
         } else {
           pendingCount++;
-          if (!order.mechanic) unassignedCount++;
+          if (!order['Assign Mechanic']) unassignedCount++;
 
-          const matchSearch = searchTerm === '' || 
-             (order.customerName || '').toLowerCase().includes(searchTerm) || 
-             (order.bookingRef || order.id || '').toLowerCase().includes(searchTerm);
-          
+          const matchSearch = searchTerm === '' ||
+            (order.customerName || '').toLowerCase().includes(searchTerm) ||
+            (order.bookingRef || order.id || '').toLowerCase().includes(searchTerm);
+
           const currentStatus = order.order_status || order.status || 'Pending';
           const matchStatus = statusFilter === 'all' || currentStatus.toLowerCase() === statusFilter.toLowerCase();
 
           const matchCity = cityFilter === '' || (order.address || '').toLowerCase().includes(cityFilter);
           const matchVehicle = vehicleFilter === '' || (order.bikeModel || '').toLowerCase().includes(vehicleFilter) || (order.bikeType || '').toLowerCase().includes(vehicleFilter);
-          
+
           if (matchSearch && matchStatus && matchCity && matchVehicle) {
             pendingTable.innerHTML += row;
             visiblePendingCount++;
@@ -1011,7 +1145,7 @@
       document.getElementById('stat-completed-count').textContent = completedCount;
       document.getElementById('stat-revenue').textContent = `₹${totalRevenue.toLocaleString()}`;
       document.getElementById('stat-unassigned-count').textContent = `${unassignedCount} unassigned`;
-      
+
       document.getElementById('pending-tab-count').textContent = pendingCount;
       document.getElementById('completed-tab-count').textContent = completedCount;
       document.getElementById('pending-header-count').textContent = `${visiblePendingCount} visible`;
@@ -1021,7 +1155,7 @@
     function createOrderRow(order, isCompleted) {
       const originalStatusClass = getStatusClass(order.status);
       const currentStatus = order.order_status || 'Pending';
-      const timeDisplay = isCompleted 
+      const timeDisplay = isCompleted
         ? new Date(order.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
         : (order.preferredSlot || 'Anytime');
 
@@ -1037,10 +1171,10 @@
         "Disputed - customer",
         "Disputed - Mechanic"
       ];
-      
+
       const uniqueIdentifier = order.bookingRef ? order.bookingRef : order.id;
       const idColumn = order.bookingRef ? 'bookingRef' : 'id';
-      
+
       let statusDropdownHtml = `<select class="status-select" onchange="updateOrderStatus('${uniqueIdentifier}', this.value, '${idColumn}')">`;
       if (!statusOptions.includes(currentStatus)) {
         statusDropdownHtml += `<option value="${currentStatus}" hidden selected>${currentStatus}</option>`;
@@ -1062,7 +1196,7 @@
         }
       }
 
-      const dateDisplay = order.createdAt 
+      const dateDisplay = order.createdAt
         ? new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
         : 'N/A';
 
@@ -1085,10 +1219,15 @@
           <td><span class="time-text">${timeDisplay}</span></td>
           <td>
             <div class="mechanic-cell">
-              ${order.mechanic 
-                ? `<div class="mech-avatar blue">${order.mechanic.slice(0,2).toUpperCase()}</div><span class="mech-name">${order.mechanic}</span>`
-                : `<div class="mech-avatar unassigned">—</div><span class="mech-unassigned">Unassigned</span>`
-              }
+              <select class="status-select" style="max-width: 150px; font-weight: 500; ${!order['Assign Mechanic'] ? 'color: var(--text-3);' : 'color: #60a5fa; border-color: rgba(59, 130, 246, 0.25); background-color: rgba(59, 130, 246, 0.1);'}" onchange="updateMechanic('${uniqueIdentifier}', this.value, '${idColumn}')">
+                <option value="" style="color: var(--text-1); background: var(--surface-2);" ${!order['Assign Mechanic'] ? 'selected' : ''}>Unassigned</option>
+                ${(window.activeMechanics || []).map(m => {
+                  const mechName = m.garageName || m.ownerName || 'Unknown';
+                  return `<option value="${mechName}" style="color: var(--text-1); background: var(--surface-2);" ${order['Assign Mechanic'] === mechName ? 'selected' : ''}>${mechName}</option>`;
+                }).join('')}
+                ${order['Assign Mechanic'] && !(window.activeMechanics || []).find(m => (m.garageName || m.ownerName || 'Unknown') === order['Assign Mechanic']) 
+                  ? `<option value="${order['Assign Mechanic']}" style="color: var(--text-1); background: var(--surface-2);" selected hidden>${order['Assign Mechanic']}</option>` : ''}
+              </select>
             </div>
           </td>
           <td style="display:none;"><span class="badge ${originalStatusClass}">${order.status || 'Pending'}</span></td>
@@ -1116,12 +1255,12 @@
             </div>
           </td>
           <td>
-            ${isCompleted 
-              ? `<button class="btn-action">View</button>`
-              : (currentStatus === 'Completed - Payment received')
-                ? `<button class="btn-complete" onclick="updateOrderStatus('${uniqueIdentifier}', 'Completed', '${idColumn}', 'status')">Accept</button>`
-                : ``
-            }
+            ${isCompleted
+          ? `<button class="btn-action">View</button>`
+          : (currentStatus === 'Completed - Payment received')
+            ? `<button class="btn-complete" onclick="updateOrderStatus('${uniqueIdentifier}', 'Completed', '${idColumn}', 'status')">Accept</button>`
+            : ``
+        }
           </td>
         </tr>
       `;
@@ -1135,9 +1274,26 @@
       return 'waiting';
     }
 
+    async function updateMechanic(id, mechanicName, column = 'id') {
+      const updateData = { 'Assign Mechanic': mechanicName || null };
+      const { error } = await supabaseClient
+        .from('Booking')
+        .update(updateData)
+        .eq(column, id);
+      
+      if (error) {
+        console.error('Error updating mechanic:', error);
+        alert('Failed to assign mechanic: ' + error.message);
+        fetchBookings();
+      } else {
+        console.log('Mechanic assigned successfully.');
+        fetchBookings();
+      }
+    }
+
     async function updateOrderStatus(id, newStatus, column = 'id', updateColumn = 'order_status') {
       console.log(`Updating order ${id} via ${column} to ${updateColumn}: ${newStatus}`);
-      
+
       const { data, error } = await supabaseClient
         .from('Booking')
         .update({ [updateColumn]: newStatus })
@@ -1155,13 +1311,13 @@
 
     async function updateOrderRemark(id, newRemark, column = 'id') {
       const btn = document.activeElement;
-      if(btn) btn.disabled = true;
+      if (btn) btn.disabled = true;
       const { error } = await supabaseClient
         .from('Booking')
         .update({ Remarks: newRemark })
         .eq(column, id);
 
-      if(btn) btn.disabled = false;
+      if (btn) btn.disabled = false;
       if (error) {
         console.error('Error saving remark:', error);
         alert('Failed to save remark.');
@@ -1272,4 +1428,5 @@
       .subscribe();
   </script>
 </body>
+
 </html>
