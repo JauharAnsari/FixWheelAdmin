@@ -654,6 +654,14 @@
       <a href="partners.html" style="color:var(--text-1); text-decoration:none; font-size:14px; font-weight:600; border-bottom: 2px solid var(--red); padding-bottom: 4px;">Partners</a>
     </div>
     <div class="topbar-right">
+      <button id="download-csv" class="btn-action" style="display:flex; align-items:center; gap:6px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Download CSV</span>
+      </button>
       <button id="theme-toggle" class="btn-action" style="display:flex; align-items:center; gap:6px;">
         <svg id="theme-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <!-- Icon updated dynamically via JS -->
@@ -783,6 +791,53 @@
         localStorage.setItem('theme', 'light');
       }
       updateThemeIcon();
+    });
+
+    // CSV Download logic
+    document.getElementById('download-csv').addEventListener('click', () => {
+      const rows = document.querySelectorAll('#partner-table-body tr');
+      if (rows.length === 0) {
+        alert('No data to download');
+        return;
+      }
+      
+      let csvContent = "Partner Ref,Garage Name,Owner Name,Phone,Vehicle Type,Address,City,Status,Remark\n";
+      
+      rows.forEach(tr => {
+        const ref = `"${tr.children[0].innerText.trim().replace(/"/g, '""')}"`;
+        const garage = `"${tr.children[1].innerText.trim().replace(/"/g, '""')}"`;
+        const owner = `"${tr.children[2].innerText.trim().replace(/"/g, '""')}"`;
+        const phone = `"${tr.children[3].innerText.trim().replace(/"/g, '""')}"`;
+        const vehicle = `"${tr.children[4].innerText.trim().replace(/"/g, '""')}"`;
+        const address = `"${tr.children[5].innerText.trim().replace(/"/g, '""')}"`;
+        const city = `"${tr.children[6].innerText.trim().replace(/"/g, '""')}"`;
+        
+        const statusSelect = tr.children[7].querySelector('select');
+        const status = statusSelect ? `"${statusSelect.value.replace(/"/g, '""')}"` : '""';
+        
+        const remarkArea = tr.children[10].querySelector('textarea');
+        const remark = remarkArea ? `"${remarkArea.value.replace(/"/g, '""')}"` : '""';
+        
+        csvContent += [ref, garage, owner, phone, vehicle, address, city, status, remark].join(',') + "\n";
+      });
+      
+      const now = new Date();
+      const timestamp = now.getFullYear().toString() + 
+        String(now.getMonth() + 1).padStart(2, '0') + 
+        String(now.getDate()).padStart(2, '0') + "_" + 
+        String(now.getHours()).padStart(2, '0') + 
+        String(now.getMinutes()).padStart(2, '0') + 
+        String(now.getSeconds()).padStart(2, '0');
+        
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `partners_data_${timestamp}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     });
 
     // Fetch and Render Partners
