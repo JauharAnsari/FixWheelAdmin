@@ -669,7 +669,7 @@
           setTimeout(() => {
             loginCard.classList.add('success-exit');
             setTimeout(() => {
-              window.location.replace('index.html');
+              window.location.replace('home.html');
             }, 300);
           }, 600);
 
@@ -691,7 +691,7 @@
 
     // If already logged in, skip login page
     if (sessionStorage.getItem('fixwheel_admin_logged_in') === 'true' || localStorage.getItem('fixwheel_admin_logged_in') === 'true') {
-      window.location.replace('index.html');
+      window.location.replace('home.html');
     }
   </script>
 </body>

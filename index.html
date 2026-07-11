@@ -836,12 +836,22 @@
       <em>/ Admin</em>
     </div>
     <div class="topbar-nav" style="display:flex; gap:24px; margin-left:40px; margin-right:auto;">
+      <a href="home.html"
+        style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Home</a>
       <a href="index.html"
         style="color:var(--text-1); text-decoration:none; font-size:14px; font-weight:600; border-bottom: 2px solid var(--red); padding-bottom: 4px;">Orders</a>
       <a href="partners.html"
         style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Partners</a>
     </div>
     <div class="topbar-right">
+      <button id="download-csv" class="btn-action" style="display:flex; align-items:center; gap:6px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Download CSV</span>
+      </button>
       <button id="theme-toggle" class="btn-action" style="display:flex; align-items:center; gap:6px;">
         <svg id="theme-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1046,6 +1056,53 @@
         localStorage.setItem('theme', 'light');
       }
       updateThemeIcon();
+    });
+
+    // CSV Download logic
+    document.getElementById('download-csv').addEventListener('click', () => {
+      if (!window.allBookings || window.allBookings.length === 0) {
+        alert('No data to download');
+        return;
+      }
+      
+      let csvContent = "\uFEFFOrder ID,Date,Customer Name,Phone,Vehicle,Service,Source,Address,Slot,Mechanic,Order Status,Amount,Final Amount,Remark\r\n";
+      
+      window.allBookings.forEach(order => {
+        const orderId = `"${(order.bookingRef || order.id || '').toString().replace(/"/g, '""')}"`;
+        const date = `"${order.createdAt ? new Date(order.createdAt).toLocaleString('en-IN').replace(/"/g, '""') : ''}"`;
+        const customer = `"${(order.customerName || '').toString().replace(/"/g, '""')}"`;
+        const phone = `"${(order.phone || '').toString().replace(/"/g, '""')}"`;
+        const vehicle = `"${((order.bikeModel || '') + ' ' + (order.bikeType || '')).trim().replace(/"/g, '""')}"`;
+        const service = `"${(order.package || '').toString().replace(/"/g, '""')}"`;
+        const source = `"${(order.source || '').toString().replace(/"/g, '""')}"`;
+        const address = `"${(order.address || '').toString().replace(/"/g, '""')}"`;
+        const slot = `"${(order.preferredSlot || '').toString().replace(/"/g, '""')}"`;
+        const mechanic = `"${(order['Assign Mechanic'] || '').toString().replace(/"/g, '""')}"`;
+        const orderStatus = `"${(order.order_status || order.status || '').toString().replace(/"/g, '""')}"`;
+        const amount = `"${(order.price || 0).toString().replace(/"/g, '""')}"`;
+        const finalAmount = `"${(order.Final_Amount || order.price || 0).toString().replace(/"/g, '""')}"`;
+        const remark = `"${(order.Remarks || '').toString().replace(/"/g, '""')}"`;
+        
+        csvContent += [orderId, date, customer, phone, vehicle, service, source, address, slot, mechanic, orderStatus, amount, finalAmount, remark].join(',') + "\r\n";
+      });
+      
+      const now = new Date();
+      const timestamp = now.getFullYear().toString() + 
+        String(now.getMonth() + 1).padStart(2, '0') + 
+        String(now.getDate()).padStart(2, '0') + "_" + 
+        String(now.getHours()).padStart(2, '0') + 
+        String(now.getMinutes()).padStart(2, '0') + 
+        String(now.getSeconds()).padStart(2, '0');
+        
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `orders_data_${timestamp}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     });
 
     // Tab switching logic
