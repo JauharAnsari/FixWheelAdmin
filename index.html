@@ -867,7 +867,7 @@
   <!-- ─── Stats ─── -->
   <div class="stats-row">
     <div class="stat-cell">
-      <div class="stat-label">Total Orders Today</div>
+      <div class="stat-label">Total Orders</div>
       <div id="stat-total-count" class="stat-value white">0</div>
       <div class="stat-sub">Updated just now</div>
     </div>
@@ -901,6 +901,11 @@
         <span class="section-tag completed" style="margin: 0; padding: 2px 6px;">✓</span>
         Completed Orders
         <span class="tab-count" id="completed-tab-count">0</span>
+      </button>
+      <button class="tab-trigger" onclick="switchTab('total')">
+        <span class="section-tag" style="margin: 0; padding: 2px 6px; background: var(--surface-3); color: var(--text-1);">∑</span>
+        Total Orders
+        <span class="tab-count" id="total-tab-count">0</span>
       </button>
     </div>
 
@@ -1006,6 +1011,45 @@
       </div>
     </div> <!-- End Completed Section -->
 
+    <!-- TOTAL ORDERS -->
+    <div id="total-section" class="order-section">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="section-tag" style="background: var(--surface-3); color: var(--text-1);">∑ All</span>
+          <h2>Total Orders</h2>
+        </div>
+        <span class="count-badge" id="total-header-count">0 total orders</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Bike</th>
+              <th>Service</th>
+              <th>Source</th>
+              <th>Location</th>
+              <th>City</th>
+              <th>Time/Completed At</th>
+              <th>Mechanic</th>
+              <th style="display:none;">Status</th>
+              <th>Order Status</th>
+              <th>Amount</th>
+              <th>Final Amount</th>
+              <th>Remark</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="total-table-body">
+            <!-- Data will be loaded from Supabase -->
+          </tbody>
+        </table>
+      </div>
+    </div> <!-- End Total Section -->
+
   </main>
 
   <!-- ─── Footer ─── -->
@@ -1069,7 +1113,8 @@
       
       window.allBookings.forEach(order => {
         const orderId = `"${(order.bookingRef || order.id || '').toString().replace(/"/g, '""')}"`;
-        const date = `"${order.createdAt ? new Date(order.createdAt).toLocaleString('en-IN').replace(/"/g, '""') : ''}"`;
+        const dateStr = order.createdAt ? (order.createdAt.endsWith('Z') || order.createdAt.includes('+') ? order.createdAt : order.createdAt + 'Z') : null;
+        const date = `"${dateStr ? new Date(dateStr).toLocaleString('en-IN').replace(/"/g, '""') : ''}"`;
         const customer = `"${(order.customerName || '').toString().replace(/"/g, '""')}"`;
         const phone = `"${(order.phone || '').toString().replace(/"/g, '""')}"`;
         const vehicle = `"${((order.bikeModel || '') + ' ' + (order.bikeType || '')).trim().replace(/"/g, '""')}"`;
@@ -1152,6 +1197,7 @@
     function renderDashboard(bookings) {
       const pendingTable = document.getElementById('pending-table-body');
       const completedTable = document.getElementById('completed-table-body');
+      const totalTable = document.getElementById('total-table-body');
 
       const searchTerm = (document.getElementById('pending-search')?.value || '').toLowerCase();
       const statusFilter = (document.getElementById('pending-status-filter')?.value || 'all');
@@ -1160,9 +1206,11 @@
 
       pendingTable.innerHTML = '';
       completedTable.innerHTML = '';
+      if (totalTable) totalTable.innerHTML = '';
 
       let pendingCount = 0;
       let completedCount = 0;
+      let totalCount = 0;
       let totalRevenue = 0;
       let unassignedCount = 0;
       let visiblePendingCount = 0;
@@ -1170,6 +1218,11 @@
       bookings.forEach(order => {
         const isCompleted = order.status?.toLowerCase() === 'completed';
         const row = createOrderRow(order, isCompleted);
+
+        if (totalTable) {
+          totalTable.innerHTML += row;
+          totalCount++;
+        }
 
         if (isCompleted) {
           completedTable.innerHTML += row;
@@ -1205,15 +1258,23 @@
 
       document.getElementById('pending-tab-count').textContent = pendingCount;
       document.getElementById('completed-tab-count').textContent = completedCount;
+      
+      const totalTabCount = document.getElementById('total-tab-count');
+      if (totalTabCount) totalTabCount.textContent = totalCount;
+      
       document.getElementById('pending-header-count').textContent = `${visiblePendingCount} visible`;
       document.getElementById('completed-header-count').textContent = `${completedCount} completed today`;
+      
+      const totalHeaderCount = document.getElementById('total-header-count');
+      if (totalHeaderCount) totalHeaderCount.textContent = `${totalCount} total orders`;
     }
 
     function createOrderRow(order, isCompleted) {
       const originalStatusClass = getStatusClass(order.status);
       const currentStatus = order.order_status || 'Pending';
+      const createdAtZ = order.createdAt ? (order.createdAt.endsWith('Z') || order.createdAt.includes('+') ? order.createdAt : order.createdAt + 'Z') : null;
       const timeDisplay = isCompleted
-        ? new Date(order.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+        ? (createdAtZ ? new Date(createdAtZ).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '')
         : (order.preferredSlot || 'Anytime');
 
       const statusOptions = [
@@ -1253,8 +1314,8 @@
         }
       }
 
-      const dateDisplay = order.createdAt
-        ? new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      const dateDisplay = createdAtZ
+        ? new Date(createdAtZ).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
         : 'N/A';
 
       return `

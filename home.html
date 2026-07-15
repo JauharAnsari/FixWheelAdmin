@@ -541,7 +541,8 @@
 
       // Process Bookings
       bookings.forEach(b => {
-        const d = new Date(b.createdAt);
+        const createdAtStr = b.createdAt ? (b.createdAt.endsWith('Z') || b.createdAt.includes('+') ? b.createdAt : b.createdAt + 'Z') : null;
+        const d = new Date(createdAtStr || Date.now());
         const bDate = new Date(d);
         bDate.setHours(0, 0, 0, 0);
         
