@@ -840,7 +840,7 @@
         style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Home</a>
       <a href="index.html"
         style="color:var(--text-1); text-decoration:none; font-size:14px; font-weight:600; border-bottom: 2px solid var(--red); padding-bottom: 4px;">Orders</a>
-      <a href="partners.html"
+      <a href="active_partners.html"
         style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Partners</a>
     </div>
     <div class="topbar-right">
@@ -920,9 +920,16 @@
           <input type="text" id="pending-search" placeholder="Search customer or ID..."
             oninput="if(window.allBookings) renderDashboard(window.allBookings)"
             style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 150px;">
-          <input type="text" id="pending-city-filter" placeholder="City..."
-            oninput="if(window.allBookings) renderDashboard(window.allBookings)"
+          <select id="pending-city-filter" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
             style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 100px;">
+            <option value="">All Cities</option>
+            <option value="Delhi">Delhi</option>
+            <option value="New Delhi">New Delhi</option>
+            <option value="Gurgaon">Gurgaon</option>
+            <option value="Faridabad">Faridabad</option>
+            <option value="Noida">Noida</option>
+            <option value="Ghaziabad">Ghaziabad</option>
+          </select>
           <input type="text" id="pending-vehicle-filter" placeholder="Vehicle Name..."
             oninput="if(window.allBookings) renderDashboard(window.allBookings)"
             style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 120px;">
