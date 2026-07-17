@@ -12,6 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <style>
     *, *::before, *::after {
@@ -68,6 +69,74 @@
       font-family: var(--sans);
       min-height: 100vh;
       overflow-x: hidden;
+    }
+
+    /* ─── Map Modal ─── */
+    .map-modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .map-modal-overlay.active {
+      display: flex;
+      opacity: 1;
+    }
+    .map-modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 90%;
+      max-width: 1000px;
+      height: 80vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+    .map-modal-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .map-modal-header h3 {
+      font-size: 18px;
+    }
+    .close-map-btn {
+      background: none;
+      border: none;
+      color: var(--text-2);
+      cursor: pointer;
+      font-size: 24px;
+    }
+    .close-map-btn:hover {
+      color: var(--text-1);
+    }
+    #active-partners-map {
+      width: 100%;
+      height: 100%;
+      background: var(--surface-2);
+    }
+    .map-loading {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: var(--surface-2);
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-family: var(--mono);
+      z-index: 1000;
+      display: none;
     }
 
     /* ─── Topbar ─── */
@@ -699,6 +768,11 @@
       <div id="stat-duplicate-count" class="stat-value red">0</div>
       <div class="stat-sub">Dublicate accounts</div>
     </div>
+    <div class="stat-cell" onclick="openActivePartnerMap()">
+      <div class="stat-label">Active Partner Location</div>
+      <div id="stat-map-icon" class="stat-value white">📍</div>
+      <div class="stat-sub">View on Map</div>
+    </div>
   </div>
 
   <!-- ─── Main ─── -->
@@ -1016,6 +1090,123 @@
         fetchPartners();
       })
       .subscribe();
+
+    // Map Logic
+    let partnerMap = null;
+    let mapMarkers = [];
+
+    async function openActivePartnerMap() {
+      document.getElementById('mapModalOverlay').classList.add('active');
+      
+      if (!partnerMap) {
+        partnerMap = L.map('active-partners-map').setView([20.5937, 78.9629], 5); // Default center India
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '© OpenStreetMap'
+        }).addTo(partnerMap);
+      }
+
+      // Ensure the map renders correctly within the modal
+      setTimeout(() => {
+        partnerMap.invalidateSize();
+      }, 100);
+      
+      // Clear old markers
+      mapMarkers.forEach(m => partnerMap.removeLayer(m));
+      mapMarkers = [];
+      
+      if (!window.allPartners) return;
+      
+      const activePartners = window.allPartners.filter(p => {
+        const statusValue = p.partner_status || p.status || '';
+        return statusValue.toLowerCase().includes('active') && !statusValue.toLowerCase().includes('deactivate');
+      });
+      
+      if (activePartners.length === 0) {
+        alert("No active partners found.");
+        return;
+      }
+      
+      document.getElementById('mapLoadingIndicator').style.display = 'block';
+      
+      // We process addresses sequentially to respect Nominatim API rate limit (1 req/sec)
+      for (let i = 0; i < activePartners.length; i++) {
+        // If modal was closed during loading, stop
+        if (!document.getElementById('mapModalOverlay').classList.contains('active')) break;
+        
+        const p = activePartners[i];
+        let addressToGeocode = p.address;
+        if (addressToGeocode && p.city && !addressToGeocode.toLowerCase().includes(p.city.toLowerCase())) {
+            addressToGeocode += ", " + p.city;
+        } else if (!addressToGeocode) {
+            addressToGeocode = p.city;
+        }
+        
+        if (addressToGeocode) {
+          try {
+            document.getElementById('mapLoadingIndicator').innerText = `Loading pin ${i+1} of ${activePartners.length}...`;
+            let response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressToGeocode)}`);
+            let data = await response.json();
+            
+            // Fallback to just city if full address fails
+            if ((!data || data.length === 0) && p.city && addressToGeocode !== p.city) {
+              await new Promise(resolve => setTimeout(resolve, 1100)); // wait before fallback
+              response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(p.city)}`);
+              data = await response.json();
+            }
+            
+            if (data && data.length > 0) {
+              // Add a tiny random offset to prevent exact overlaps (so multiple pins at same city are visible)
+              const latOffset = (Math.random() - 0.5) * 0.002;
+              const lonOffset = (Math.random() - 0.5) * 0.002;
+              const lat = parseFloat(data[0].lat) + latOffset;
+              const lon = parseFloat(data[0].lon) + lonOffset;
+              
+              const marker = L.marker([lat, lon]).addTo(partnerMap);
+              marker.bindPopup(`<b>${p.garageName || 'Unknown'}</b><br>${p.ownerName || ''}<br>${p.phone || ''}<br><small>${p.address || p.city}</small>`);
+              mapMarkers.push(marker);
+              
+              if (i === 0 || mapMarkers.length === 1) {
+                  partnerMap.setView([lat, lon], 6);
+              }
+            } else {
+              console.warn("Could not geocode:", addressToGeocode);
+            }
+          } catch(e) {
+            console.error('Error geocoding address:', e);
+          }
+          // Delay to respect Nominatim API rate limit (1 request/sec)
+          await new Promise(resolve => setTimeout(resolve, 1100));
+        }
+      }
+      
+      document.getElementById('mapLoadingIndicator').style.display = 'none';
+      if (mapMarkers.length > 0) {
+          const group = new L.featureGroup(mapMarkers);
+          partnerMap.fitBounds(group.getBounds().pad(0.1));
+      }
+    }
+
+    function closeActivePartnerMap() {
+      document.getElementById('mapModalOverlay').classList.remove('active');
+    }
   </script>
+
+  <!-- Map Modal -->
+  <div class="map-modal-overlay" id="mapModalOverlay">
+    <div class="map-modal">
+      <div class="map-modal-header">
+        <h3>Active Partner Locations</h3>
+        <button class="close-map-btn" onclick="closeActivePartnerMap()">×</button>
+      </div>
+      <div style="position:relative; flex:1;">
+        <div id="active-partners-map"></div>
+        <div class="map-loading" id="mapLoadingIndicator">Loading pins...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </body>
 </html>

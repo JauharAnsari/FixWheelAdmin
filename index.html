@@ -902,6 +902,11 @@
         Completed Orders
         <span class="tab-count" id="completed-tab-count">0</span>
       </button>
+      <button class="tab-trigger" onclick="switchTab('cancelled')">
+        <span class="section-tag" style="margin: 0; padding: 2px 6px; background: var(--red-glow); color: var(--red);">✗</span>
+        Cancel Orders
+        <span class="tab-count" id="cancelled-tab-count">0</span>
+      </button>
       <button class="tab-trigger" onclick="switchTab('total')">
         <span class="section-tag" style="margin: 0; padding: 2px 6px; background: var(--surface-3); color: var(--text-1);">∑</span>
         Total Orders
@@ -946,6 +951,8 @@
             <option value="Disputed - customer">Disputed - customer</option>
             <option value="Disputed - Mechanic">Disputed - Mechanic</option>
           </select>
+          <input type="date" id="pending-date-filter" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
+            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
           <span class="count-badge" id="pending-header-count">0 orders</span>
         </div>
       </div>
@@ -969,7 +976,7 @@
               <th>Amount</th>
               <th>Final Amount</th>
               <th>Remark</th>
-              <th>Action</th>
+              <th>Settlement</th>
             </tr>
           </thead>
           <tbody id="pending-table-body">
@@ -1008,7 +1015,7 @@
               <th>Amount</th>
               <th>Final Amount</th>
               <th>Remark</th>
-              <th>Action</th>
+              <th>Settlement</th>
             </tr>
           </thead>
           <tbody id="completed-table-body">
@@ -1018,6 +1025,45 @@
       </div>
     </div> <!-- End Completed Section -->
 
+    <!-- CANCELLED ORDERS -->
+    <div id="cancelled-section" class="order-section">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="section-tag" style="background: var(--red-glow); color: var(--red);">✗ Cancelled</span>
+          <h2>Cancel Orders</h2>
+        </div>
+        <span class="count-badge" id="cancelled-header-count">0 cancelled</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Bike</th>
+              <th>Service</th>
+              <th>Source</th>
+              <th>Location</th>
+              <th>City</th>
+              <th>Time</th>
+              <th>Mechanic</th>
+              <th style="display:none;">Status</th>
+              <th>Order Status</th>
+              <th>Amount</th>
+              <th>Final Amount</th>
+              <th>Remark</th>
+              <th>Settlement</th>
+            </tr>
+          </thead>
+          <tbody id="cancelled-table-body">
+            <!-- Data will be loaded from Supabase -->
+          </tbody>
+        </table>
+      </div>
+    </div> <!-- End Cancelled Section -->
+
     <!-- TOTAL ORDERS -->
     <div id="total-section" class="order-section">
       <div class="section-header">
@@ -1025,7 +1071,11 @@
           <span class="section-tag" style="background: var(--surface-3); color: var(--text-1);">∑ All</span>
           <h2>Total Orders</h2>
         </div>
-        <span class="count-badge" id="total-header-count">0 total orders</span>
+        <div style="display:flex; gap: 10px; align-items:center;">
+          <input type="date" id="total-date-filter" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
+            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
+          <span class="count-badge" id="total-header-count">0 total orders</span>
+        </div>
       </div>
 
       <div class="table-wrap">
@@ -1047,7 +1097,7 @@
               <th>Amount</th>
               <th>Final Amount</th>
               <th>Remark</th>
-              <th>Action</th>
+              <th>Settlement</th>
             </tr>
           </thead>
           <tbody id="total-table-body">
@@ -1204,29 +1254,48 @@
     function renderDashboard(bookings) {
       const pendingTable = document.getElementById('pending-table-body');
       const completedTable = document.getElementById('completed-table-body');
+      const cancelledTable = document.getElementById('cancelled-table-body');
       const totalTable = document.getElementById('total-table-body');
 
       const searchTerm = (document.getElementById('pending-search')?.value || '').toLowerCase();
       const statusFilter = (document.getElementById('pending-status-filter')?.value || 'all');
       const cityFilter = (document.getElementById('pending-city-filter')?.value || '').toLowerCase();
       const vehicleFilter = (document.getElementById('pending-vehicle-filter')?.value || '').toLowerCase();
+      const pendingDateFilter = document.getElementById('pending-date-filter')?.value || '';
+      const totalDateFilter = document.getElementById('total-date-filter')?.value || '';
 
       pendingTable.innerHTML = '';
       completedTable.innerHTML = '';
+      if (cancelledTable) cancelledTable.innerHTML = '';
       if (totalTable) totalTable.innerHTML = '';
 
       let pendingCount = 0;
       let completedCount = 0;
+      let cancelledCount = 0;
       let totalCount = 0;
       let totalRevenue = 0;
       let unassignedCount = 0;
       let visiblePendingCount = 0;
 
       bookings.forEach(order => {
-        const isCompleted = order.status?.toLowerCase() === 'completed';
-        const row = createOrderRow(order, isCompleted);
+        let orderDateFormatted = '';
+        if (order.createdAt) {
+           const dateStr = order.createdAt.endsWith('Z') || order.createdAt.includes('+') ? order.createdAt : order.createdAt + 'Z';
+           const d = new Date(dateStr);
+           if (!isNaN(d)) {
+             const yyyy = d.getFullYear();
+             const mm = String(d.getMonth() + 1).padStart(2, '0');
+             const dd = String(d.getDate()).padStart(2, '0');
+             orderDateFormatted = `${yyyy}-${mm}-${dd}`;
+           }
+        }
 
-        if (totalTable) {
+        const isCompleted = order.status?.toLowerCase() === 'completed' || order.order_status?.toLowerCase() === 'completed';
+        const isCancelled = (order.order_status || order.status || '').toLowerCase().includes('cancel');
+        const row = createOrderRow(order, isCompleted || isCancelled);
+
+        const matchTotalDate = !totalDateFilter || orderDateFormatted === totalDateFilter;
+        if (totalTable && matchTotalDate) {
           totalTable.innerHTML += row;
           totalCount++;
         }
@@ -1235,6 +1304,11 @@
           completedTable.innerHTML += row;
           completedCount++;
           totalRevenue += (order.Final_Amount || order.price || 0);
+        } else if (isCancelled) {
+          if (cancelledTable) {
+            cancelledTable.innerHTML += row;
+            cancelledCount++;
+          }
         } else {
           pendingCount++;
           if (!order['Assign Mechanic']) unassignedCount++;
@@ -1248,8 +1322,9 @@
 
           const matchCity = cityFilter === '' || (order.address || '').toLowerCase().includes(cityFilter);
           const matchVehicle = vehicleFilter === '' || (order.bikeModel || '').toLowerCase().includes(vehicleFilter) || (order.bikeType || '').toLowerCase().includes(vehicleFilter);
+          const matchPendingDate = !pendingDateFilter || orderDateFormatted === pendingDateFilter;
 
-          if (matchSearch && matchStatus && matchCity && matchVehicle) {
+          if (matchSearch && matchStatus && matchCity && matchVehicle && matchPendingDate) {
             pendingTable.innerHTML += row;
             visiblePendingCount++;
           }
@@ -1266,11 +1341,17 @@
       document.getElementById('pending-tab-count').textContent = pendingCount;
       document.getElementById('completed-tab-count').textContent = completedCount;
       
+      const cancelledTabCount = document.getElementById('cancelled-tab-count');
+      if (cancelledTabCount) cancelledTabCount.textContent = cancelledCount;
+      
       const totalTabCount = document.getElementById('total-tab-count');
       if (totalTabCount) totalTabCount.textContent = totalCount;
       
       document.getElementById('pending-header-count').textContent = `${visiblePendingCount} visible`;
       document.getElementById('completed-header-count').textContent = `${completedCount} completed today`;
+      
+      const cancelledHeaderCount = document.getElementById('cancelled-header-count');
+      if (cancelledHeaderCount) cancelledHeaderCount.textContent = `${cancelledCount} cancelled`;
       
       const totalHeaderCount = document.getElementById('total-header-count');
       if (totalHeaderCount) totalHeaderCount.textContent = `${totalCount} total orders`;
@@ -1380,12 +1461,11 @@
             </div>
           </td>
           <td>
-            ${isCompleted
-          ? `<button class="btn-action">View</button>`
-          : (currentStatus === 'Completed - Payment received')
-            ? `<button class="btn-complete" onclick="updateOrderStatus('${uniqueIdentifier}', 'Completed', '${idColumn}', 'status')">Accept</button>`
-            : ``
-        }
+            <select class="status-select" style="max-width: 150px; font-weight: 500; color: var(--text-1); background: var(--surface-2);" onchange="updateSettlement('${uniqueIdentifier}', this.value, '${idColumn}')">
+              <option value="None" ${!order.settlement || order.settlement === 'None' ? 'selected' : ''}>None</option>
+              <option value="Give Money To Customer" ${order.settlement === 'Give Money To Customer' ? 'selected' : ''}>Give Money To Customer</option>
+              <option value="Take Money From Customer" ${order.settlement === 'Take Money From Customer' ? 'selected' : ''}>Take Money From Customer</option>
+            </select>
           </td>
         </tr>
       `;
@@ -1397,6 +1477,24 @@
       if (s === 'en-route') return 'en-route';
       if (s === 'assigned' || s === 'accepted') return 'accepted';
       return 'waiting';
+    }
+
+    async function updateSettlement(id, newSettlement, column = 'id') {
+      console.log(`Updating settlement for ${id} via ${column} to: ${newSettlement}`);
+
+      const { data, error } = await supabaseClient
+        .from('Booking')
+        .update({ settlement: newSettlement })
+        .eq(column, id)
+        .select();
+
+      if (error) {
+        console.error('Supabase Update Settlement Error:', error);
+        alert('Update Failed: ' + error.message);
+      } else {
+        console.log('Settlement update successful:', data);
+        fetchBookings();
+      }
     }
 
     async function updateMechanic(id, mechanicName, column = 'id') {
