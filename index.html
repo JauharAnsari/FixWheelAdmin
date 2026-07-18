@@ -1462,9 +1462,8 @@
           </td>
           <td>
             <select class="status-select" style="max-width: 150px; font-weight: 500; color: var(--text-1); background: var(--surface-2);" onchange="updateSettlement('${uniqueIdentifier}', this.value, '${idColumn}')">
-              <option value="None" ${!order.settlement || order.settlement === 'None' ? 'selected' : ''}>None</option>
-              <option value="Give Money To Customer" ${order.settlement === 'Give Money To Customer' ? 'selected' : ''}>Give Money To Customer</option>
-              <option value="Take Money From Customer" ${order.settlement === 'Take Money From Customer' ? 'selected' : ''}>Take Money From Customer</option>
+              <option value="Pending" ${!order.settlement || order.settlement === 'Pending' ? 'selected' : ''}>Pending</option>
+              <option value="Done" ${order.settlement === 'Done' ? 'selected' : ''}>Done</option>
             </select>
           </td>
         </tr>
