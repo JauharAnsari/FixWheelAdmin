@@ -1320,7 +1320,7 @@
           const currentStatus = order.order_status || order.status || 'Pending';
           const matchStatus = statusFilter === 'all' || currentStatus.toLowerCase() === statusFilter.toLowerCase();
 
-          const matchCity = cityFilter === '' || (order.address || '').toLowerCase().includes(cityFilter);
+          const matchCity = cityFilter === '' || (order.city || '').toLowerCase().includes(cityFilter);
           const matchVehicle = vehicleFilter === '' || (order.bikeModel || '').toLowerCase().includes(vehicleFilter) || (order.bikeType || '').toLowerCase().includes(vehicleFilter);
           const matchPendingDate = !pendingDateFilter || orderDateFormatted === pendingDateFilter;
 
@@ -1392,15 +1392,7 @@
 
       const computedFinalAmount = order.Final_Amount ? order.Final_Amount : (order.price || 0);
 
-      let city = 'N/A';
-      if (order.address) {
-        const parts = order.address.split(',');
-        if (parts.length > 1) {
-          city = parts[parts.length - 2].trim();
-        } else {
-          city = order.address;
-        }
-      }
+      let city = order.city || 'N/A';
 
       const dateDisplay = createdAtZ
         ? new Date(createdAtZ).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
