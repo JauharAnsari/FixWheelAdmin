@@ -1291,7 +1291,7 @@
         }
 
         const isCompleted = (order.order_status || order.status || '').toLowerCase().includes('completed');
-        const isCancelled = (order.order_status || order.status || '').toLowerCase().includes('cancel');
+        const isCancelled = (order.order_status || order.status || '').toLowerCase().includes('cancel') || (order.order_status || order.status || '').toLowerCase() === 'test order';
         const row = createOrderRow(order, isCompleted || isCancelled);
 
         const matchTotalDate = !totalDateFilter || orderDateFormatted === totalDateFilter;
@@ -1376,7 +1376,8 @@
         "Customer cancel - rate high",
         "Completed - Payment received",
         "Disputed - customer",
-        "Disputed - Mechanic"
+        "Disputed - Mechanic",
+        "Test Order"
       ];
 
       const uniqueIdentifier = order.bookingRef ? order.bookingRef : order.id;
