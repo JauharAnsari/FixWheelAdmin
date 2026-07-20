@@ -547,7 +547,7 @@
         bDate.setHours(0, 0, 0, 0);
         
         const isToday = bDate.getTime() === today.getTime();
-        const isCompleted = b.status?.toLowerCase() === 'completed';
+        const isCompleted = (b.order_status || b.status || '').toLowerCase().includes('completed');
         const isCanceled = (b.order_status || b.status || '').toLowerCase().includes('cancel');
         
         const amount = b.Final_Amount || b.price || 0;
