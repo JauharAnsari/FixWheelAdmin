@@ -1290,7 +1290,7 @@
            }
         }
 
-        const isCompleted = order.status?.toLowerCase() === 'completed' || order.order_status?.toLowerCase() === 'completed';
+        const isCompleted = (order.order_status || order.status || '').toLowerCase().includes('completed');
         const isCancelled = (order.order_status || order.status || '').toLowerCase().includes('cancel');
         const row = createOrderRow(order, isCompleted || isCancelled);
 
@@ -1372,6 +1372,7 @@
         "Service Started",
         "Cancel - spare parts",
         "Cancel - mechanic not available",
+        "Customer cancel",
         "Customer cancel - rate high",
         "Completed - Payment received",
         "Disputed - customer",
