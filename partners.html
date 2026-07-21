@@ -1073,6 +1073,54 @@
       }
     }
 
+    // Download CSV logic
+    const downloadCsvBtn = document.getElementById('download-csv');
+    if (downloadCsvBtn) {
+      downloadCsvBtn.addEventListener('click', () => {
+        if (!window.allPartners) return;
+        
+        const activePartners = window.allPartners.filter(p => {
+          const statusValue = p.partner_status || p.status || '';
+          return statusValue.toLowerCase().includes('active') && !statusValue.toLowerCase().includes('deactivate');
+        });
+
+        if (activePartners.length === 0) {
+          alert('No active partners found to download.');
+          return;
+        }
+
+        const headers = ['Partner Ref', 'Garage Name', 'Owner Name', 'Phone', 'Vehicle Type', 'Address', 'City', 'Status', 'Remarks'];
+        const csvRows = [headers.join(',')];
+
+        activePartners.forEach(p => {
+          const statusValue = p.partner_status || p.status || 'Pending- OnBoarding';
+          const row = [
+            `"${p.partnerRef || ''}"`,
+            `"${(p.garageName || '').replace(/"/g, '""')}"`,
+            `"${(p.ownerName || '').replace(/"/g, '""')}"`,
+            `"${p.phone || ''}"`,
+            `"${p.vehicleType || ''}"`,
+            `"${(p.address || '').replace(/"/g, '""')}"`,
+            `"${p.city || ''}"`,
+            `"${statusValue}"`,
+            `"${(p.Remarks || '').replace(/"/g, '""')}"`
+          ];
+          csvRows.push(row.join(','));
+        });
+
+        const csvContent = csvRows.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'active_partners.csv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    }
+
     // Logout logic
     document.getElementById('logout-btn').addEventListener('click', () => {
       sessionStorage.removeItem('fixwheel_admin_logged_in');
