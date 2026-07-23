@@ -12,8 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
+  <script defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAEQRGnTAghj_yh4h9VVGHCDH7IdRZOvDE"></script>
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
@@ -1082,25 +1081,21 @@
     // Map Logic
     let partnerMap = null;
     let mapMarkers = [];
+    let geocoder = null;
 
     async function openActivePartnerMap() {
       document.getElementById('mapModalOverlay').classList.add('active');
       
       if (!partnerMap) {
-        partnerMap = L.map('active-partners-map').setView([20.5937, 78.9629], 5); // Default center India
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '© OpenStreetMap'
-        }).addTo(partnerMap);
+        partnerMap = new google.maps.Map(document.getElementById('active-partners-map'), {
+          center: { lat: 20.5937, lng: 78.9629 }, // Default center India
+          zoom: 5,
+        });
+        geocoder = new google.maps.Geocoder();
       }
-
-      // Ensure the map renders correctly within the modal
-      setTimeout(() => {
-        partnerMap.invalidateSize();
-      }, 100);
       
       // Clear old markers
-      mapMarkers.forEach(m => partnerMap.removeLayer(m));
+      mapMarkers.forEach(m => m.setMap(null));
       mapMarkers = [];
       
       if (!window.allPartners) return;
@@ -1116,13 +1111,49 @@
       }
       
       document.getElementById('mapLoadingIndicator').style.display = 'block';
-      
-      // We process addresses sequentially to respect Nominatim API rate limit (1 req/sec)
+      const bounds = new google.maps.LatLngBounds();
+      let infoWindow = new google.maps.InfoWindow();
+
+      function addMarker(lat, lng, popupContent, isFirst) {
+        const latOffset = (Math.random() - 0.5) * 0.002;
+        const lngOffset = (Math.random() - 0.5) * 0.002;
+        const position = { lat: lat + latOffset, lng: lng + lngOffset };
+
+        const marker = new google.maps.Marker({
+          position: position,
+          map: partnerMap,
+        });
+
+        marker.addListener('click', () => {
+          infoWindow.setContent(popupContent);
+          infoWindow.open(partnerMap, marker);
+        });
+
+        mapMarkers.push(marker);
+        bounds.extend(position);
+        
+        if (isFirst) {
+            partnerMap.setCenter(position);
+            partnerMap.setZoom(6);
+        }
+      }
+
       for (let i = 0; i < activePartners.length; i++) {
         // If modal was closed during loading, stop
         if (!document.getElementById('mapModalOverlay').classList.contains('active')) break;
         
         const p = activePartners[i];
+        const popupContent = `<div style="color: #000;"><b>${p.garageName || 'Unknown'}</b><br>${p.ownerName || ''}<br>${p.phone || ''}<br><small>${p.address || p.city}</small></div>`;
+        
+        if (p.Latitude && p.Longitude) {
+          const lat = parseFloat(p.Latitude);
+          const lon = parseFloat(p.Longitude);
+          if (!isNaN(lat) && !isNaN(lon)) {
+            addMarker(lat, lon, popupContent, i === 0 || mapMarkers.length === 0);
+            continue; // Skip the address geocoding since we have exact coordinates
+          }
+        }
+        
         let addressToGeocode = p.address;
         if (addressToGeocode && p.city && !addressToGeocode.toLowerCase().includes(p.city.toLowerCase())) {
             addressToGeocode += ", " + p.city;
@@ -1133,45 +1164,42 @@
         if (addressToGeocode) {
           try {
             document.getElementById('mapLoadingIndicator').innerText = `Loading pin ${i+1} of ${activePartners.length}...`;
-            let response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressToGeocode)}`);
-            let data = await response.json();
             
-            // Fallback to just city if full address fails
-            if ((!data || data.length === 0) && p.city && addressToGeocode !== p.city) {
-              await new Promise(resolve => setTimeout(resolve, 1100)); // wait before fallback
-              response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(p.city)}`);
-              data = await response.json();
-            }
-            
-            if (data && data.length > 0) {
-              // Add a tiny random offset to prevent exact overlaps (so multiple pins at same city are visible)
-              const latOffset = (Math.random() - 0.5) * 0.002;
-              const lonOffset = (Math.random() - 0.5) * 0.002;
-              const lat = parseFloat(data[0].lat) + latOffset;
-              const lon = parseFloat(data[0].lon) + lonOffset;
-              
-              const marker = L.marker([lat, lon]).addTo(partnerMap);
-              marker.bindPopup(`<b>${p.garageName || 'Unknown'}</b><br>${p.ownerName || ''}<br>${p.phone || ''}<br><small>${p.address || p.city}</small>`);
-              mapMarkers.push(marker);
-              
-              if (i === 0 || mapMarkers.length === 1) {
-                  partnerMap.setView([lat, lon], 6);
+            const geocodeResult = await new Promise((resolve) => {
+              geocoder.geocode({ address: addressToGeocode }, (results, status) => {
+                if (status === 'OK' && results && results.length > 0) resolve(results);
+                else resolve(null);
+              });
+            });
+
+            if (geocodeResult) {
+              const location = geocodeResult[0].geometry.location;
+              addMarker(location.lat(), location.lng(), popupContent, i === 0 || mapMarkers.length === 0);
+            } else if (p.city && addressToGeocode !== p.city) {
+              const cityResult = await new Promise((resolve) => {
+                geocoder.geocode({ address: p.city }, (results, status) => {
+                  if (status === 'OK' && results && results.length > 0) resolve(results);
+                  else resolve(null);
+                });
+              });
+
+              if (cityResult) {
+                const location = cityResult[0].geometry.location;
+                addMarker(location.lat(), location.lng(), popupContent, i === 0 || mapMarkers.length === 0);
+              } else {
+                console.warn("Could not geocode:", addressToGeocode);
               }
-            } else {
-              console.warn("Could not geocode:", addressToGeocode);
             }
           } catch(e) {
             console.error('Error geocoding address:', e);
           }
-          // Delay to respect Nominatim API rate limit (1 request/sec)
-          await new Promise(resolve => setTimeout(resolve, 1100));
+          await new Promise(resolve => setTimeout(resolve, 200));
         }
       }
       
       document.getElementById('mapLoadingIndicator').style.display = 'none';
       if (mapMarkers.length > 0) {
-          const group = new L.featureGroup(mapMarkers);
-          partnerMap.fitBounds(group.getBounds().pad(0.1));
+          partnerMap.fitBounds(bounds);
       }
     }
 
@@ -1194,7 +1222,6 @@
     </div>
   </div>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Google Maps JS is loaded in the head -->
 </body>
 </html>
