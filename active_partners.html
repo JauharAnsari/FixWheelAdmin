@@ -1122,6 +1122,10 @@
         const marker = new google.maps.Marker({
           position: position,
           map: partnerMap,
+          icon: {
+            url: './bike_map_ic.png',
+            scaledSize: new google.maps.Size(40, 40) // Updated size to 40
+          }
         });
 
         marker.addListener('click', () => {

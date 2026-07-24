@@ -1210,7 +1210,13 @@
               const lat = parseFloat(data[0].lat) + latOffset;
               const lon = parseFloat(data[0].lon) + lonOffset;
               
-              const marker = L.marker([lat, lon]).addTo(partnerMap);
+              const bikeIcon = L.icon({
+                  iconUrl: './bike_map_ic.png',
+                  iconSize: [40, 40], // Updated size to 40
+                  iconAnchor: [20, 40],
+                  popupAnchor: [0, -40]
+              });
+              const marker = L.marker([lat, lon], {icon: bikeIcon}).addTo(partnerMap);
               marker.bindPopup(`<b>${p.garageName || 'Unknown'}</b><br>${p.ownerName || ''}<br>${p.phone || ''}<br><small>${p.address || p.city}</small>`);
               mapMarkers.push(marker);
               
