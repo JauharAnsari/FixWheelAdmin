@@ -695,6 +695,83 @@
 
     footer span { color: var(--red); }
 
+    /* ─── Edit Modal Specific Styles ─── */
+    .edit-modal-body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-size: 12px;
+      font-family: var(--mono);
+      color: var(--text-2);
+    }
+
+    .form-group input, .form-group textarea {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-1);
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-family: var(--sans);
+      font-size: 14px;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: var(--text-3);
+    }
+
+    .edit-modal-footer {
+      padding: 20px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .btn-primary {
+      background: var(--red);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+    }
+
+    .btn-secondary {
+      background: var(--surface-2);
+      color: var(--text-1);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface-3);
+    }
+
     /* ─── Animations stagger ─── */
     tbody tr:nth-child(1) { animation-delay: 0.05s; }
     tbody tr:nth-child(2) { animation-delay: 0.10s; }
@@ -804,6 +881,7 @@
               <th>License</th>
               <th>Garage</th>
               <th>Remark</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="partner-table-body">
@@ -953,6 +1031,9 @@
           </td>
           <td>
             <textarea onchange="updatePartnerRemark('${p.id}', this.value)" placeholder="Add remark..." style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 8px; border-radius: 4px; font-family: var(--sans); font-size: 12px; outline: none; width: 160px; height: 50px; resize: vertical; overflow-y: auto; transition: border 0.2s;" onfocus="this.style.borderColor='var(--text-3)'" onblur="this.style.borderColor='var(--border)'">${(p.Remarks || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+          </td>
+          <td>
+            <button class="btn-action" onclick="openEditModal('${p.id}', '${(p.garageName || '').replace(/'/g, "\\'")}', '${(p.ownerName || '').replace(/'/g, "\\'")}', '${(p.address || '').replace(/'/g, "\\'")}', '${(p.phone || '').replace(/'/g, "\\'")}')">Edit</button>
           </td>
         </tr>
       `;
@@ -1215,6 +1296,58 @@
     function closeActivePartnerMap() {
       document.getElementById('mapModalOverlay').classList.remove('active');
     }
+
+    // Edit Modal Logic
+    let currentEditPartnerId = null;
+
+    function openEditModal(id, garageName, ownerName, address, phone) {
+      currentEditPartnerId = id;
+      document.getElementById('editGarageName').value = garageName;
+      document.getElementById('editOwnerName').value = ownerName;
+      document.getElementById('editPhone').value = phone;
+      document.getElementById('editAddress').value = address;
+      document.getElementById('editModalOverlay').classList.add('active');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModalOverlay').classList.remove('active');
+      currentEditPartnerId = null;
+    }
+
+    async function savePartnerEdits() {
+      if (!currentEditPartnerId) return;
+
+      const newGarageName = document.getElementById('editGarageName').value;
+      const newOwnerName = document.getElementById('editOwnerName').value;
+      const newPhone = document.getElementById('editPhone').value;
+      const newAddress = document.getElementById('editAddress').value;
+
+      const saveBtn = document.getElementById('saveEditBtn');
+      const originalText = saveBtn.innerText;
+      saveBtn.innerText = 'Saving...';
+      saveBtn.disabled = true;
+
+      const { error } = await supabaseClient
+        .from('Partner')
+        .update({
+          garageName: newGarageName,
+          ownerName: newOwnerName,
+          phone: newPhone,
+          address: newAddress
+        })
+        .eq('id', currentEditPartnerId);
+
+      saveBtn.innerText = originalText;
+      saveBtn.disabled = false;
+
+      if (error) {
+        console.error('Error updating partner:', error);
+        alert('Failed to update partner.');
+      } else {
+        closeEditModal();
+        fetchPartners(); // Refresh data
+      }
+    }
   </script>
 
   <!-- Map Modal -->
@@ -1227,6 +1360,38 @@
       <div style="position:relative; flex:1;">
         <div id="active-partners-map"></div>
         <div class="map-loading" id="mapLoadingIndicator">Loading pins...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="map-modal-overlay" id="editModalOverlay">
+    <div class="map-modal" style="height: auto; max-height: 90vh; max-width: 500px;">
+      <div class="map-modal-header">
+        <h3>Edit Partner Info</h3>
+        <button class="close-map-btn" onclick="closeEditModal()">×</button>
+      </div>
+      <div class="edit-modal-body">
+        <div class="form-group">
+          <label>Garage Name</label>
+          <input type="text" id="editGarageName">
+        </div>
+        <div class="form-group">
+          <label>Owner Name</label>
+          <input type="text" id="editOwnerName">
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="text" id="editPhone">
+        </div>
+        <div class="form-group">
+          <label>Address</label>
+          <textarea id="editAddress" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="edit-modal-footer">
+        <button class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+        <button class="btn-primary" id="saveEditBtn" onclick="savePartnerEdits()">Save Changes</button>
       </div>
     </div>
   </div>
