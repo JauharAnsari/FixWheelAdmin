@@ -951,9 +951,30 @@
             <option value="Disputed - customer">Disputed - customer</option>
             <option value="Disputed - Mechanic">Disputed - Mechanic</option>
           </select>
-          <input type="date" id="pending-date-filter" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
-          <span class="count-badge" id="pending-header-count">0 orders</span>
+          <div style="display:flex; align-items:center; gap: 5px;">
+            <label style="font-size: 12px; color: var(--text-2);">From:</label>
+            <input type="date" id="pending-date-from" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
+              style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
+          </div>
+          <div style="display:flex; align-items:center; gap: 5px;">
+            <label style="font-size: 12px; color: var(--text-2);">To:</label>
+            <input type="date" id="pending-date-to" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
+              style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
+          </div>
+          <span class="count-badge" id="pending-header-count">0 visible</span>
+          <div id="pending-summary-box" style="display:none; background: rgba(16, 185, 129, 0.05); border: 2px solid var(--green); padding: 8px 16px; border-radius: 8px; font-family: var(--mono); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);">
+            <div style="display:flex; align-items:center; gap: 15px;">
+              <div style="display:flex; flex-direction:column; align-items:center;">
+                <span style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-2);">Orders</span>
+                <span id="pending-summary-orders" style="font-size:20px; font-weight:800; color:var(--text-1);">0</span>
+              </div>
+              <div style="width: 2px; height: 30px; background: var(--green); opacity: 0.3;"></div>
+              <div style="display:flex; flex-direction:column; align-items:center;">
+                <span style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-2);">Earnings</span>
+                <span id="pending-summary-earnings" style="font-size:20px; font-weight:800; color:var(--green);">₹0</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -993,7 +1014,32 @@
           <span class="section-tag completed">✓ Done</span>
           <h2>Completed Orders</h2>
         </div>
-        <span class="count-badge" id="completed-header-count">0 completed today</span>
+        <div style="display:flex; gap: 10px; align-items:center; flex-wrap: wrap;">
+          <div style="display:flex; align-items:center; gap: 5px;">
+            <label style="font-size: 12px; color: var(--text-2);">From:</label>
+            <input type="date" id="completed-date-from" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
+              style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
+          </div>
+          <div style="display:flex; align-items:center; gap: 5px;">
+            <label style="font-size: 12px; color: var(--text-2);">To:</label>
+            <input type="date" id="completed-date-to" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
+              style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
+          </div>
+          <span class="count-badge" id="completed-header-count">0 visible</span>
+          <div id="completed-summary-box" style="display:none; background: rgba(16, 185, 129, 0.05); border: 2px solid var(--green); padding: 8px 16px; border-radius: 8px; font-family: var(--mono); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);">
+            <div style="display:flex; align-items:center; gap: 15px;">
+              <div style="display:flex; flex-direction:column; align-items:center;">
+                <span style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-2);">Orders</span>
+                <span id="completed-summary-orders" style="font-size:20px; font-weight:800; color:var(--text-1);">0</span>
+              </div>
+              <div style="width: 2px; height: 30px; background: var(--green); opacity: 0.3;"></div>
+              <div style="display:flex; flex-direction:column; align-items:center;">
+                <span style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-2);">Earnings</span>
+                <span id="completed-summary-earnings" style="font-size:20px; font-weight:800; color:var(--green);">₹0</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="table-wrap">
@@ -1071,10 +1117,31 @@
           <span class="section-tag" style="background: var(--surface-3); color: var(--text-1);">∑ All</span>
           <h2>Total Orders</h2>
         </div>
-        <div style="display:flex; gap: 10px; align-items:center;">
-          <input type="date" id="total-date-filter" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
-          <span class="count-badge" id="total-header-count">0 total orders</span>
+        <div style="display:flex; gap: 10px; align-items:center; flex-wrap: wrap;">
+          <div style="display:flex; align-items:center; gap: 5px;">
+            <label style="font-size: 12px; color: var(--text-2);">From:</label>
+            <input type="date" id="total-date-from" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
+              style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
+          </div>
+          <div style="display:flex; align-items:center; gap: 5px;">
+            <label style="font-size: 12px; color: var(--text-2);">To:</label>
+            <input type="date" id="total-date-to" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
+              style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
+          </div>
+          <span class="count-badge" id="total-header-count">0 visible</span>
+          <div id="total-summary-box" style="display:none; background: rgba(16, 185, 129, 0.05); border: 2px solid var(--green); padding: 8px 16px; border-radius: 8px; font-family: var(--mono); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);">
+            <div style="display:flex; align-items:center; gap: 15px;">
+              <div style="display:flex; flex-direction:column; align-items:center;">
+                <span style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-2);">Orders</span>
+                <span id="total-summary-orders" style="font-size:20px; font-weight:800; color:var(--text-1);">0</span>
+              </div>
+              <div style="width: 2px; height: 30px; background: var(--green); opacity: 0.3;"></div>
+              <div style="display:flex; flex-direction:column; align-items:center;">
+                <span style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-2);">Earnings</span>
+                <span id="total-summary-earnings" style="font-size:20px; font-weight:800; color:var(--green);">₹0</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1261,8 +1328,24 @@
       const statusFilter = (document.getElementById('pending-status-filter')?.value || 'all');
       const cityFilter = (document.getElementById('pending-city-filter')?.value || '').toLowerCase();
       const vehicleFilter = (document.getElementById('pending-vehicle-filter')?.value || '').toLowerCase();
-      const pendingDateFilter = document.getElementById('pending-date-filter')?.value || '';
-      const totalDateFilter = document.getElementById('total-date-filter')?.value || '';
+      
+      const pendingDateFrom = document.getElementById('pending-date-from')?.value || '';
+      const pendingDateTo = document.getElementById('pending-date-to')?.value || '';
+      
+      const completedDateFrom = document.getElementById('completed-date-from')?.value || '';
+      const completedDateTo = document.getElementById('completed-date-to')?.value || '';
+      
+      const totalDateFrom = document.getElementById('total-date-from')?.value || '';
+      const totalDateTo = document.getElementById('total-date-to')?.value || '';
+
+      const isDateInRange = (dateStr, from, to) => {
+        if (!from && !to) return true;
+        if (!dateStr) return false;
+        if (from && to) return dateStr >= from && dateStr <= to;
+        if (from) return dateStr >= from;
+        if (to) return dateStr <= to;
+        return true;
+      };
 
       pendingTable.innerHTML = '';
       completedTable.innerHTML = '';
@@ -1275,7 +1358,17 @@
       let totalCount = 0;
       let totalRevenue = 0;
       let unassignedCount = 0;
+      
       let visiblePendingCount = 0;
+      let visibleCompletedCount = 0;
+      let visibleTotalCount = 0;
+      
+      let pendingSummaryOrders = 0;
+      let pendingSummaryEarnings = 0;
+      let completedSummaryOrders = 0;
+      let completedSummaryEarnings = 0;
+      let totalSummaryOrders = 0;
+      let totalSummaryEarnings = 0;
 
       bookings.forEach(order => {
         let orderDateFormatted = '';
@@ -1293,17 +1386,34 @@
         const isCompleted = (order.order_status || order.status || '').toLowerCase().includes('completed');
         const isCancelled = (order.order_status || order.status || '').toLowerCase().includes('cancel') || (order.order_status || order.status || '').toLowerCase() === 'test order';
         const row = createOrderRow(order, isCompleted || isCancelled);
+        const finalAmt = order.Final_Amount ? Number(order.Final_Amount) : (order.price ? Number(order.price) : 0);
 
-        const matchTotalDate = !totalDateFilter || orderDateFormatted === totalDateFilter;
+        const matchTotalDate = isDateInRange(orderDateFormatted, totalDateFrom, totalDateTo);
         if (totalTable && matchTotalDate) {
           totalTable.innerHTML += row;
           totalCount++;
+          visibleTotalCount++;
+          if (totalDateFrom && totalDateTo) {
+            totalSummaryOrders++;
+            totalSummaryEarnings += finalAmt;
+          }
+        } else if (totalTable && !matchTotalDate) {
+          totalCount++; // Keep totalCount accurate for total tab badge even if filtered out
         }
 
         if (isCompleted) {
-          completedTable.innerHTML += row;
           completedCount++;
-          totalRevenue += (order.Final_Amount || order.price || 0);
+          totalRevenue += finalAmt;
+          
+          const matchCompletedDate = isDateInRange(orderDateFormatted, completedDateFrom, completedDateTo);
+          if (matchCompletedDate) {
+            completedTable.innerHTML += row;
+            visibleCompletedCount++;
+            if (completedDateFrom && completedDateTo) {
+              completedSummaryOrders++;
+              completedSummaryEarnings += finalAmt;
+            }
+          }
         } else if (isCancelled) {
           if (cancelledTable) {
             cancelledTable.innerHTML += row;
@@ -1322,11 +1432,15 @@
 
           const matchCity = cityFilter === '' || (order.city || '').toLowerCase().includes(cityFilter);
           const matchVehicle = vehicleFilter === '' || (order.bikeModel || '').toLowerCase().includes(vehicleFilter) || (order.bikeType || '').toLowerCase().includes(vehicleFilter);
-          const matchPendingDate = !pendingDateFilter || orderDateFormatted === pendingDateFilter;
+          const matchPendingDate = isDateInRange(orderDateFormatted, pendingDateFrom, pendingDateTo);
 
           if (matchSearch && matchStatus && matchCity && matchVehicle && matchPendingDate) {
             pendingTable.innerHTML += row;
             visiblePendingCount++;
+            if (pendingDateFrom && pendingDateTo) {
+              pendingSummaryOrders++;
+              pendingSummaryEarnings += finalAmt;
+            }
           }
         }
       });
@@ -1348,13 +1462,47 @@
       if (totalTabCount) totalTabCount.textContent = totalCount;
       
       document.getElementById('pending-header-count').textContent = `${visiblePendingCount} visible`;
-      document.getElementById('completed-header-count').textContent = `${completedCount} completed today`;
+      document.getElementById('completed-header-count').textContent = `${visibleCompletedCount} visible`;
       
       const cancelledHeaderCount = document.getElementById('cancelled-header-count');
       if (cancelledHeaderCount) cancelledHeaderCount.textContent = `${cancelledCount} cancelled`;
       
       const totalHeaderCount = document.getElementById('total-header-count');
-      if (totalHeaderCount) totalHeaderCount.textContent = `${totalCount} total orders`;
+      if (totalHeaderCount) totalHeaderCount.textContent = `${visibleTotalCount} visible`;
+
+      // Update Summary Boxes
+      const pendingBox = document.getElementById('pending-summary-box');
+      if (pendingBox) {
+        if (pendingDateFrom && pendingDateTo) {
+          pendingBox.style.display = 'block';
+          document.getElementById('pending-summary-orders').textContent = pendingSummaryOrders;
+          document.getElementById('pending-summary-earnings').textContent = `₹${pendingSummaryEarnings.toLocaleString()}`;
+        } else {
+          pendingBox.style.display = 'none';
+        }
+      }
+
+      const completedBox = document.getElementById('completed-summary-box');
+      if (completedBox) {
+        if (completedDateFrom && completedDateTo) {
+          completedBox.style.display = 'block';
+          document.getElementById('completed-summary-orders').textContent = completedSummaryOrders;
+          document.getElementById('completed-summary-earnings').textContent = `₹${completedSummaryEarnings.toLocaleString()}`;
+        } else {
+          completedBox.style.display = 'none';
+        }
+      }
+
+      const totalBox = document.getElementById('total-summary-box');
+      if (totalBox) {
+        if (totalDateFrom && totalDateTo) {
+          totalBox.style.display = 'block';
+          document.getElementById('total-summary-orders').textContent = totalSummaryOrders;
+          document.getElementById('total-summary-earnings').textContent = `₹${totalSummaryEarnings.toLocaleString()}`;
+        } else {
+          totalBox.style.display = 'none';
+        }
+      }
     }
 
     function createOrderRow(order, isCompleted) {

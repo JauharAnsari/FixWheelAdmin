@@ -782,7 +782,8 @@
           <span class="section-tag pending">● Partners</span>
           <h2>Active Partners</h2>
         </div>
-        <div style="display:flex; gap: 10px; align-items:center;">
+        <div style="display:flex; gap: 10px; align-items:center; flex-wrap: wrap;">
+          <input type="text" id="partner-city-search" placeholder="Search City..." oninput="if(window.allPartners) renderDashboard(window.allPartners)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 150px;">
           <input type="text" id="partner-search" placeholder="Search Garage or Owner Name..." oninput="if(window.allPartners) renderDashboard(window.allPartners)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 220px;">
           <span class="count-badge" id="partner-header-count">0 partners</span>
         </div>
@@ -882,6 +883,7 @@
       const partnerTable = document.getElementById('partner-table-body');
       
       const searchTerm = (document.getElementById('partner-search')?.value || '').toLowerCase();
+      const citySearchTerm = (document.getElementById('partner-city-search')?.value || '').toLowerCase();
 
       partnerTable.innerHTML = '';
 
@@ -902,10 +904,13 @@
            (p.garageName || '').toLowerCase().includes(searchTerm) || 
            (p.ownerName || '').toLowerCase().includes(searchTerm) ||
            (p.partnerRef || '').toLowerCase().includes(searchTerm);
+           
+        const matchCity = citySearchTerm === '' ||
+           (p.city || '').toLowerCase().includes(citySearchTerm);
         
         let matchStatus = isActive;
 
-        if (matchSearch && matchStatus) {
+        if (matchSearch && matchCity && matchStatus) {
           partnerTable.innerHTML += createPartnerRow(p);
           visibleCount++;
         }
