@@ -907,6 +907,11 @@
         Cancel Orders
         <span class="tab-count" id="cancelled-tab-count">0</span>
       </button>
+      <button class="tab-trigger" onclick="switchTab('test_order')">
+        <span class="section-tag" style="margin: 0; padding: 2px 6px; background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25);">T</span>
+        Test Orders
+        <span class="tab-count" id="test-order-tab-count">0</span>
+      </button>
       <button class="tab-trigger" onclick="switchTab('total')">
         <span class="section-tag" style="margin: 0; padding: 2px 6px; background: var(--surface-3); color: var(--text-1);">∑</span>
         Total Orders
@@ -1109,6 +1114,45 @@
         </table>
       </div>
     </div> <!-- End Cancelled Section -->
+
+    <!-- TEST ORDERS -->
+    <div id="test_order-section" class="order-section">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="section-tag" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25);">T Test Order</span>
+          <h2>Test Orders</h2>
+        </div>
+        <span class="count-badge" id="test-order-header-count">0 test orders</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Bike</th>
+              <th>Service</th>
+              <th>Source</th>
+              <th>Location</th>
+              <th>City</th>
+              <th>Time</th>
+              <th>Mechanic</th>
+              <th style="display:none;">Status</th>
+              <th>Order Status</th>
+              <th>Amount</th>
+              <th>Final Amount</th>
+              <th>Remark</th>
+              <th>Settlement</th>
+            </tr>
+          </thead>
+          <tbody id="test-order-table-body">
+            <!-- Data will be loaded from Supabase -->
+          </tbody>
+        </table>
+      </div>
+    </div> <!-- End Test Order Section -->
 
     <!-- TOTAL ORDERS -->
     <div id="total-section" class="order-section">
@@ -1323,6 +1367,7 @@
       const completedTable = document.getElementById('completed-table-body');
       const cancelledTable = document.getElementById('cancelled-table-body');
       const totalTable = document.getElementById('total-table-body');
+      const testOrderTable = document.getElementById('test-order-table-body');
 
       const searchTerm = (document.getElementById('pending-search')?.value || '').toLowerCase();
       const statusFilter = (document.getElementById('pending-status-filter')?.value || 'all');
@@ -1351,10 +1396,12 @@
       completedTable.innerHTML = '';
       if (cancelledTable) cancelledTable.innerHTML = '';
       if (totalTable) totalTable.innerHTML = '';
+      if (testOrderTable) testOrderTable.innerHTML = '';
 
       let pendingCount = 0;
       let completedCount = 0;
       let cancelledCount = 0;
+      let testOrderCount = 0;
       let totalCount = 0;
       let totalRevenue = 0;
       let unassignedCount = 0;
@@ -1420,26 +1467,34 @@
             cancelledCount++;
           }
         } else {
-          pendingCount++;
-          if (!order['Assign Mechanic']) unassignedCount++;
+          const isAppSource = (order.source || '').toLowerCase() === 'app';
+          if (isAppSource) {
+            testOrderCount++;
+            if (testOrderTable) {
+              testOrderTable.innerHTML += row;
+            }
+          } else {
+            pendingCount++;
+            if (!order['Assign Mechanic']) unassignedCount++;
 
-          const matchSearch = searchTerm === '' ||
-            (order.customerName || '').toLowerCase().includes(searchTerm) ||
-            (order.bookingRef || order.id || '').toLowerCase().includes(searchTerm);
+            const matchSearch = searchTerm === '' ||
+              (order.customerName || '').toLowerCase().includes(searchTerm) ||
+              (order.bookingRef || order.id || '').toLowerCase().includes(searchTerm);
 
-          const currentStatus = order.order_status || order.status || 'Pending';
-          const matchStatus = statusFilter === 'all' || currentStatus.toLowerCase() === statusFilter.toLowerCase();
+            const currentStatus = order.order_status || order.status || 'Pending';
+            const matchStatus = statusFilter === 'all' || currentStatus.toLowerCase() === statusFilter.toLowerCase();
 
-          const matchCity = cityFilter === '' || (order.city || '').toLowerCase().includes(cityFilter);
-          const matchVehicle = vehicleFilter === '' || (order.bikeModel || '').toLowerCase().includes(vehicleFilter) || (order.bikeType || '').toLowerCase().includes(vehicleFilter);
-          const matchPendingDate = isDateInRange(orderDateFormatted, pendingDateFrom, pendingDateTo);
+            const matchCity = cityFilter === '' || (order.city || '').toLowerCase().includes(cityFilter);
+            const matchVehicle = vehicleFilter === '' || (order.bikeModel || '').toLowerCase().includes(vehicleFilter) || (order.bikeType || '').toLowerCase().includes(vehicleFilter);
+            const matchPendingDate = isDateInRange(orderDateFormatted, pendingDateFrom, pendingDateTo);
 
-          if (matchSearch && matchStatus && matchCity && matchVehicle && matchPendingDate) {
-            pendingTable.innerHTML += row;
-            visiblePendingCount++;
-            if (pendingDateFrom && pendingDateTo) {
-              pendingSummaryOrders++;
-              pendingSummaryEarnings += finalAmt;
+            if (matchSearch && matchStatus && matchCity && matchVehicle && matchPendingDate) {
+              pendingTable.innerHTML += row;
+              visiblePendingCount++;
+              if (pendingDateFrom && pendingDateTo) {
+                pendingSummaryOrders++;
+                pendingSummaryEarnings += finalAmt;
+              }
             }
           }
         }
@@ -1457,6 +1512,12 @@
       
       const cancelledTabCount = document.getElementById('cancelled-tab-count');
       if (cancelledTabCount) cancelledTabCount.textContent = cancelledCount;
+
+      const testOrderTabCount = document.getElementById('test-order-tab-count');
+      if (testOrderTabCount) testOrderTabCount.textContent = testOrderCount;
+      
+      const testOrderHeaderCount = document.getElementById('test-order-header-count');
+      if (testOrderHeaderCount) testOrderHeaderCount.textContent = `${testOrderCount} test orders`;
       
       const totalTabCount = document.getElementById('total-tab-count');
       if (totalTabCount) totalTabCount.textContent = totalCount;
