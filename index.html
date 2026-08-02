@@ -1392,11 +1392,11 @@
         return true;
       };
 
-      pendingTable.innerHTML = '';
-      completedTable.innerHTML = '';
-      if (cancelledTable) cancelledTable.innerHTML = '';
-      if (totalTable) totalTable.innerHTML = '';
-      if (testOrderTable) testOrderTable.innerHTML = '';
+      let pendingHtml = '';
+      let completedHtml = '';
+      let cancelledHtml = '';
+      let totalHtml = '';
+      let testOrderHtml = '';
 
       let pendingCount = 0;
       let completedCount = 0;
@@ -1437,7 +1437,7 @@
 
         const matchTotalDate = isDateInRange(orderDateFormatted, totalDateFrom, totalDateTo);
         if (totalTable && matchTotalDate) {
-          totalTable.innerHTML += row;
+          totalHtml += row;
           totalCount++;
           visibleTotalCount++;
           if (totalDateFrom && totalDateTo) {
@@ -1454,7 +1454,7 @@
           
           const matchCompletedDate = isDateInRange(orderDateFormatted, completedDateFrom, completedDateTo);
           if (matchCompletedDate) {
-            completedTable.innerHTML += row;
+            completedHtml += row;
             visibleCompletedCount++;
             if (completedDateFrom && completedDateTo) {
               completedSummaryOrders++;
@@ -1463,7 +1463,7 @@
           }
         } else if (isCancelled) {
           if (cancelledTable) {
-            cancelledTable.innerHTML += row;
+            cancelledHtml += row;
             cancelledCount++;
           }
         } else {
@@ -1471,7 +1471,7 @@
           if (isAppSource) {
             testOrderCount++;
             if (testOrderTable) {
-              testOrderTable.innerHTML += row;
+              testOrderHtml += row;
             }
           } else {
             pendingCount++;
@@ -1489,7 +1489,7 @@
             const matchPendingDate = isDateInRange(orderDateFormatted, pendingDateFrom, pendingDateTo);
 
             if (matchSearch && matchStatus && matchCity && matchVehicle && matchPendingDate) {
-              pendingTable.innerHTML += row;
+              pendingHtml += row;
               visiblePendingCount++;
               if (pendingDateFrom && pendingDateTo) {
                 pendingSummaryOrders++;
@@ -1499,6 +1499,12 @@
           }
         }
       });
+
+      pendingTable.innerHTML = pendingHtml;
+      completedTable.innerHTML = completedHtml;
+      if (cancelledTable) cancelledTable.innerHTML = cancelledHtml;
+      if (totalTable) totalTable.innerHTML = totalHtml;
+      if (testOrderTable) testOrderTable.innerHTML = testOrderHtml;
 
       // Update Stats
       document.getElementById('stat-total-count').textContent = bookings.length;
