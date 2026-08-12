@@ -1436,8 +1436,9 @@
         }
 
         const isCompleted = (order.order_status || order.status || '').toLowerCase().includes('completed');
-        const isCancelled = (order.order_status || order.status || '').toLowerCase().includes('cancel') || (order.order_status || order.status || '').toLowerCase() === 'test order';
-        const row = createOrderRow(order, isCompleted || isCancelled);
+        const isCancelled = (order.order_status || order.status || '').toLowerCase().includes('cancel');
+        const isTestOrderStatus = (order.order_status || order.status || '').toLowerCase().includes('test order');
+        const row = createOrderRow(order, isCompleted || isCancelled || isTestOrderStatus);
         const finalAmt = order.Final_Amount ? Number(order.Final_Amount) : (order.price ? Number(order.price) : 0);
 
         const matchTotalDate = isDateInRange(orderDateFormatted, totalDateFrom, totalDateTo);
@@ -1473,7 +1474,7 @@
           }
         } else {
           const isAppSource = (order.source || '').toLowerCase() === 'app';
-          if (isAppSource) {
+          if (isAppSource || isTestOrderStatus) {
             testOrderCount++;
             if (testOrderTable) {
               testOrderHtml += row;
