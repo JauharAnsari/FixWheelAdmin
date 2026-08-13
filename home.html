@@ -350,6 +350,100 @@
       font-family: var(--mono);
     }
 
+    /* Custom Order Status UI */
+    .chart-header-custom {
+      margin-bottom: 10px;
+    }
+    
+    .toggle-switch {
+      display: flex;
+      background: var(--surface-2);
+      border-radius: 20px;
+      padding: 4px;
+      gap: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .toggle-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-2);
+      padding: 4px 12px;
+      border-radius: 16px;
+      cursor: pointer;
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .toggle-btn.active {
+      background: var(--surface);
+      color: var(--text-1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .custom-progress-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .progress-bar-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .progress-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--text-2);
+    }
+
+    .progress-val {
+      font-family: var(--mono);
+      font-weight: 600;
+      color: var(--text-1);
+      font-size: 13px;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 12px;
+      background: var(--surface-2);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.8s ease;
+      background-size: 20px 20px;
+    }
+
+    /* Green for Completed */
+    .green-fill {
+      background-color: #22c55e;
+      background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);
+    }
+
+    /* Pink for Pending */
+    .pink-fill {
+      background-color: #ec4899;
+      background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);
+    }
+
+    /* Blue for Canceled */
+    .blue-fill {
+      background-color: #3b82f6;
+      background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);
+    }
+
   </style>
 </head>
 <body>
@@ -435,10 +529,46 @@
     <div class="charts-grid">
       <!-- Order Status Donut -->
       <div class="chart-box">
-        <div class="chart-header">
+        <div class="chart-header chart-header-custom">
           <h3 class="chart-title">Order Status</h3>
+          <div class="toggle-switch">
+            <button class="toggle-btn active" id="toggle-count">Σ</button>
+            <button class="toggle-btn" id="toggle-percent">%</button>
+          </div>
         </div>
         <div id="status-donut-chart"></div>
+        <div class="custom-progress-container">
+          <!-- Completed -->
+          <div class="progress-bar-row">
+            <div class="progress-label-row">
+              <span>Completed</span>
+              <span id="label-completed" class="progress-val">0/0</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill green-fill" id="fill-completed" style="width: 0%"></div>
+            </div>
+          </div>
+          <!-- In progress / Pending -->
+          <div class="progress-bar-row">
+            <div class="progress-label-row">
+              <span>Pending</span>
+              <span id="label-pending" class="progress-val">0/0</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill pink-fill" id="fill-pending" style="width: 0%"></div>
+            </div>
+          </div>
+          <!-- Upcoming / Canceled -->
+          <div class="progress-bar-row">
+            <div class="progress-label-row">
+              <span>Canceled</span>
+              <span id="label-canceled" class="progress-val">0/0</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill blue-fill" id="fill-canceled" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Sales & Views Bar -->
@@ -498,6 +628,39 @@
     // Supabase Integration
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    let orderStatusData = { completed: 0, pending: 0, canceled: 0, total: 0 };
+    let showPercentages = false;
+
+    document.getElementById('toggle-count').addEventListener('click', function() {
+      showPercentages = false;
+      this.classList.add('active');
+      document.getElementById('toggle-percent').classList.remove('active');
+      updateProgressUI();
+    });
+
+    document.getElementById('toggle-percent').addEventListener('click', function() {
+      showPercentages = true;
+      this.classList.add('active');
+      document.getElementById('toggle-count').classList.remove('active');
+      updateProgressUI();
+    });
+
+    function updateProgressUI() {
+      const { completed, pending, canceled, total } = orderStatusData;
+      
+      const compPct = total ? Math.round((completed / total) * 100) : 0;
+      const pendPct = total ? Math.round((pending / total) * 100) : 0;
+      const cancPct = total ? Math.round((canceled / total) * 100) : 0;
+
+      document.getElementById('label-completed').textContent = showPercentages ? `${compPct}%` : `${completed}/${total}`;
+      document.getElementById('label-pending').textContent = showPercentages ? `${pendPct}%` : `${pending}/${total}`;
+      document.getElementById('label-canceled').textContent = showPercentages ? `${cancPct}%` : `${canceled}/${total}`;
+
+      document.getElementById('fill-completed').style.width = `${compPct}%`;
+      document.getElementById('fill-pending').style.width = `${pendPct}%`;
+      document.getElementById('fill-canceled').style.width = `${cancPct}%`;
+    }
+
     async function fetchDashboardData() {
       const [{ data: partners, error: partnersError }, { data: bookings, error: bookingsError }] = await Promise.all([
         supabaseClient.from('Partner').select('*'),
@@ -547,8 +710,12 @@
         bDate.setHours(0, 0, 0, 0);
         
         const isToday = bDate.getTime() === today.getTime();
-        const isCompleted = (b.order_status || b.status || '').toLowerCase().includes('completed');
-        const isCanceled = (b.order_status || b.status || '').toLowerCase().includes('cancel') || (b.order_status || b.status || '').toLowerCase() === 'test order';
+        const statusStr = (b.order_status || b.status || '').toLowerCase();
+        
+        const isCompleted = statusStr.includes('completed');
+        const isCanceled = statusStr.includes('cancel');
+        const isTestOrderStatus = statusStr.includes('test order');
+        const isAppSource = (b.source || '').toLowerCase() === 'app';
         
         const amount = b.Final_Amount || b.price || 0;
 
@@ -556,18 +723,26 @@
           totalCompleted++;
           totalEarnings += amount;
         }
-        else if (isCanceled) totalCanceled++;
-        else totalPending++;
+        else if (isCanceled) {
+          totalCanceled++;
+        }
+        else {
+          if (isAppSource || isTestOrderStatus) {
+            // These are considered Test Orders, do not count towards pending
+          } else {
+            totalPending++;
+          }
+        }
 
-        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear && isCompleted) {
+        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear && statusStr.includes('completed')) {
           monthlyEarnings += amount;
         }
-        if (d.getFullYear() === currentYear && isCompleted) {
+        if (d.getFullYear() === currentYear && statusStr.includes('completed')) {
           yearlyEarnings += amount;
         }
 
         // For 7-day chart
-        if (isCompleted) {
+        if (statusStr.includes('completed')) {
           const key = d.toISOString().split('T')[0];
           if (dailyEarnings[key] !== undefined) {
             dailyEarnings[key] += amount;
@@ -593,6 +768,10 @@
       const yearlyTarget = 1200000;
       const monthlyPercent = Math.min(100, Math.round((monthlyEarnings / monthlyTarget) * 100));
       const yearlyPercent = Math.min(100, Math.round((yearlyEarnings / yearlyTarget) * 100));
+
+      const chartTotalOrders = totalCompleted + totalPending + totalCanceled;
+      orderStatusData = { completed: totalCompleted, pending: totalPending, canceled: totalCanceled, total: chartTotalOrders };
+      updateProgressUI();
 
       renderCharts(totalCompleted, totalPending, totalCanceled, last7Days, dailyEarnings, dailyCompletedOrders, monthlyPercent, yearlyPercent);
     }
@@ -624,16 +803,17 @@
       // 3. Status Donut Chart
       var optionsDonut = {
         series: [completed, pending, canceled],
-        labels: ['Completed', 'Pending', 'Canceled'],
-        chart: { type: 'donut', height: 300, background: 'transparent' },
-        colors: ['#3b82f6', '#facc15', '#ef4444'],
+        labels: ['orders', 'orders', 'orders'],
+        chart: { type: 'donut', height: 260, background: 'transparent' },
+        colors: ['#22c55e', '#ec4899', '#3b82f6'],
         plotOptions: {
-          pie: { donut: { size: '75%', labels: { show: true, name: { color: textColor }, value: { color: isDark ? '#fff' : '#000', fontSize: '24px', fontWeight: 700 }, total: { show: true, showAlways: true, label: 'Total Orders', color: textColor } } } }
+          pie: { donut: { size: '80%', labels: { show: true, name: { show: true, color: textColor, fontSize: '14px', offsetY: 25 }, value: { show: true, color: isDark ? '#fff' : '#000', fontSize: '36px', fontWeight: 800, offsetY: -10 }, total: { show: true, showAlways: true, label: 'orders', color: textColor, fontSize: '14px' } } } }
         },
-        stroke: { width: 0 },
+        stroke: { width: 6, colors: [isDark ? '#141414' : '#ffffff'] },
         dataLabels: { enabled: false },
-        legend: { position: 'bottom', labels: { colors: textColor } },
-        theme: { mode: isDark ? 'dark' : 'light' }
+        legend: { show: false },
+        theme: { mode: isDark ? 'dark' : 'light' },
+        tooltip: { enabled: false }
       };
       new ApexCharts(document.querySelector("#status-donut-chart"), optionsDonut).render();
 
