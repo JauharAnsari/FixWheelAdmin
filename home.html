@@ -769,8 +769,7 @@
       const monthlyPercent = Math.min(100, Math.round((monthlyEarnings / monthlyTarget) * 100));
       const yearlyPercent = Math.min(100, Math.round((yearlyEarnings / yearlyTarget) * 100));
 
-      const chartTotalOrders = totalCompleted + totalPending + totalCanceled;
-      orderStatusData = { completed: totalCompleted, pending: totalPending, canceled: totalCanceled, total: chartTotalOrders };
+      orderStatusData = { completed: totalCompleted, pending: totalPending, canceled: totalCanceled, total: totalOrders };
       updateProgressUI();
 
       renderCharts(totalCompleted, totalPending, totalCanceled, totalOrders, last7Days, dailyEarnings, dailyCompletedOrders, monthlyPercent, yearlyPercent);
