@@ -773,10 +773,10 @@
       orderStatusData = { completed: totalCompleted, pending: totalPending, canceled: totalCanceled, total: chartTotalOrders };
       updateProgressUI();
 
-      renderCharts(totalCompleted, totalPending, totalCanceled, last7Days, dailyEarnings, dailyCompletedOrders, monthlyPercent, yearlyPercent);
+      renderCharts(totalCompleted, totalPending, totalCanceled, totalOrders, last7Days, dailyEarnings, dailyCompletedOrders, monthlyPercent, yearlyPercent);
     }
 
-    function renderCharts(completed, pending, canceled, last7Days, dailyEarnings, dailyCompletedOrders, monthlyPercent, yearlyPercent) {
+    function renderCharts(completed, pending, canceled, totalOrders, last7Days, dailyEarnings, dailyCompletedOrders, monthlyPercent, yearlyPercent) {
       
       // 1. Mini Chart 1 (Dummy data for visual)
       var optionsMini1 = {
@@ -807,7 +807,7 @@
         chart: { type: 'donut', height: 260, background: 'transparent' },
         colors: ['#22c55e', '#ec4899', '#3b82f6'],
         plotOptions: {
-          pie: { donut: { size: '80%', labels: { show: true, name: { show: true, color: textColor, fontSize: '14px', offsetY: 25 }, value: { show: true, color: isDark ? '#fff' : '#000', fontSize: '36px', fontWeight: 800, offsetY: -10 }, total: { show: true, showAlways: true, label: 'orders', color: textColor, fontSize: '14px' } } } }
+          pie: { donut: { size: '80%', labels: { show: true, name: { show: true, color: textColor, fontSize: '14px', offsetY: 25 }, value: { show: true, color: isDark ? '#fff' : '#000', fontSize: '36px', fontWeight: 800, offsetY: -10 }, total: { show: true, showAlways: true, label: 'orders', color: textColor, fontSize: '14px', formatter: function () { return totalOrders; } } } } }
         },
         stroke: { width: 6, colors: [isDark ? '#141414' : '#ffffff'] },
         dataLabels: { enabled: false },
