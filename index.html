@@ -25,6 +25,11 @@
       padding: 0;
     }
 
+    #cancelled-section .col-warranty,
+    #test-order-section .col-warranty {
+      display: none;
+    }
+
     :root {
       --bg: #0a0a0a;
       --surface: #141414;
@@ -1003,6 +1008,7 @@
               <th>Final Amount</th>
               <th>Remark</th>
               <th>Assigned Mechanic</th>
+              <th class="col-warranty">Warranty</th>
               <th>Settlement</th>
             </tr>
           </thead>
@@ -1068,6 +1074,7 @@
               <th>Final Amount</th>
               <th>Remark</th>
               <th>Assigned Mechanic</th>
+              <th class="col-warranty">Warranty</th>
               <th>Settlement</th>
             </tr>
           </thead>
@@ -1108,6 +1115,7 @@
               <th>Final Amount</th>
               <th>Remark</th>
               <th>Assigned Mechanic</th>
+              <th class="col-warranty">Warranty</th>
               <th>Settlement</th>
             </tr>
           </thead>
@@ -1148,6 +1156,7 @@
               <th>Final Amount</th>
               <th>Remark</th>
               <th>Assigned Mechanic</th>
+              <th class="col-warranty">Warranty</th>
               <th>Settlement</th>
             </tr>
           </thead>
@@ -1213,6 +1222,7 @@
               <th>Final Amount</th>
               <th>Remark</th>
               <th>Assigned Mechanic</th>
+              <th class="col-warranty">Warranty</th>
               <th>Settlement</th>
             </tr>
           </thead>
@@ -1630,6 +1640,39 @@
         partnerSourceBadge = `<span style="font-size: 12px; color: var(--text-2); font-weight: 500;">${order.partner_source}</span>`;
       }
 
+      let warrantyDisplay = '-';
+      if (isCompleted) {
+        const bDateStr = order.bookingDate || order.createdAt;
+        if (bDateStr) {
+          const bDate = new Date(bDateStr.endsWith('Z') || bDateStr.includes('+') ? bDateStr : bDateStr + 'Z');
+          if (!isNaN(bDate)) {
+            bDate.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const diffTime = today - bDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const daysLeft = 15 - diffDays;
+            
+            let warrantyStatus = '';
+            if (daysLeft <= 0) {
+              warrantyStatus = 'Warranty Expired';
+              warrantyDisplay = `<span style="color: var(--red); font-weight: 600;">Warranty Expired</span>`;
+            } else {
+              warrantyStatus = `${daysLeft} Days left`;
+              warrantyDisplay = `<span style="color: var(--green); font-weight: 600;">${daysLeft} Days left</span>`;
+            }
+
+            if (order.order_warrenty !== warrantyStatus && order.id) {
+              order.order_warrenty = warrantyStatus;
+              if (typeof supabaseClient !== 'undefined') {
+                supabaseClient.from('Booking').update({ order_warrenty: warrantyStatus }).eq(idColumn, uniqueIdentifier)
+                  .then(({ error }) => { if (error) console.error('Warranty update error:', error); });
+              }
+            }
+          }
+        }
+      }
+
       return `
         <tr>
           <td><span class="order-id">#${order.bookingRef || order.id.slice(0, 7)}</span></td>
@@ -1685,6 +1728,7 @@
             </div>
           </td>
           <td>${partnerSourceBadge}</td>
+          <td class="col-warranty">${warrantyDisplay}</td>
           <td>
             <select class="status-select" style="max-width: 150px; font-weight: 500; color: var(--text-1); background: var(--surface-2);" onchange="updateSettlement('${uniqueIdentifier}', this.value, '${idColumn}')">
               <option value="Pending" ${!order.settlement || order.settlement === 'Pending' ? 'selected' : ''}>Pending</option>
