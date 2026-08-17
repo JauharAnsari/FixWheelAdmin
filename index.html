@@ -30,6 +30,57 @@
       display: none;
     }
 
+    
+    
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .filter-group label {
+      font-size: 11px;
+      color: var(--text-2);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .filter-input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-1);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-family: var(--sans);
+      font-size: 13px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .filter-input:hover {
+      border-color: var(--border-hi);
+    }
+
+    .filter-input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+      background: var(--surface-2);
+    }
+
+    .filter-input::placeholder {
+      color: var(--text-3);
+    }
+
+
     :root {
       --bg: #0a0a0a;
       --surface: #141414;
@@ -96,6 +147,8 @@
       padding: 0 36px;
       height: 60px;
     }
+
+    
 
     .topbar-brand {
       display: flex;
@@ -850,7 +903,8 @@
     </div>
     <div class="topbar-right">
       <button id="download-csv" class="btn-action" style="display:flex; align-items:center; gap:6px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
           <polyline points="7 10 12 15 17 10"></polyline>
           <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -908,17 +962,20 @@
         <span class="tab-count" id="completed-tab-count">0</span>
       </button>
       <button class="tab-trigger" onclick="switchTab('cancelled')">
-        <span class="section-tag" style="margin: 0; padding: 2px 6px; background: var(--red-glow); color: var(--red);">✗</span>
+        <span class="section-tag"
+          style="margin: 0; padding: 2px 6px; background: var(--red-glow); color: var(--red);">✗</span>
         Cancel Orders
         <span class="tab-count" id="cancelled-tab-count">0</span>
       </button>
       <button class="tab-trigger" onclick="switchTab('test_order')">
-        <span class="section-tag" style="margin: 0; padding: 2px 6px; background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25);">T</span>
+        <span class="section-tag"
+          style="margin: 0; padding: 2px 6px; background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25);">T</span>
         Test Orders
         <span class="tab-count" id="test-order-tab-count">0</span>
       </button>
       <button class="tab-trigger" onclick="switchTab('total')">
-        <span class="section-tag" style="margin: 0; padding: 2px 6px; background: var(--surface-3); color: var(--text-1);">∑</span>
+        <span class="section-tag"
+          style="margin: 0; padding: 2px 6px; background: var(--surface-3); color: var(--text-1);">∑</span>
         Total Orders
         <span class="tab-count" id="total-tab-count">0</span>
       </button>
@@ -931,12 +988,11 @@
           <span class="section-tag pending">● Pending</span>
           <h2>Pending Orders</h2>
         </div>
-        <div style="display:flex; gap: 10px; align-items:center; flex-wrap: wrap;">
-          <input type="text" id="pending-search" placeholder="Search customer or ID..."
-            oninput="if(window.allBookings) renderDashboard(window.allBookings)"
-            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 150px;">
-          <select id="pending-city-filter" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 100px;">
+        <div class="filter-bar">
+          <input type="text" id="pending-search" class="filter-input" placeholder="Search ID, Name, Phone, Vehicle..."
+            oninput="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 250px;">
+          
+          <select id="pending-city-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 140px;">
             <option value="">All Cities</option>
             <option value="Delhi">Delhi</option>
             <option value="New Delhi">New Delhi</option>
@@ -945,11 +1001,8 @@
             <option value="Noida">Noida</option>
             <option value="Ghaziabad">Ghaziabad</option>
           </select>
-          <input type="text" id="pending-vehicle-filter" placeholder="Vehicle Name..."
-            oninput="if(window.allBookings) renderDashboard(window.allBookings)"
-            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 120px;">
-          <select id="pending-status-filter" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none;">
+          
+          <select id="pending-status-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
             <option value="all">All Status</option>
             <option value="Pending">Pending</option>
             <option value="In Progress - Mechanic on the way">In Progress - Mechanic on the way</option>
@@ -960,16 +1013,17 @@
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
             <option value="Disputed - customer">Disputed - customer</option>
             <option value="Disputed - Mechanic">Disputed - Mechanic</option>
+            <option value="Completed - Payment received">Completed - Payment received</option>
+            <option value="Test Order">Test Order</option>
           </select>
-          <div style="display:flex; align-items:center; gap: 5px;">
-            <label style="font-size: 12px; color: var(--text-2);">From:</label>
-            <input type="date" id="pending-date-from" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-              style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
+
+          <div class="filter-group">
+            <label>From:</label>
+            <input type="date" id="pending-date-from" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
           </div>
-          <div style="display:flex; align-items:center; gap: 5px;">
-            <label style="font-size: 12px; color: var(--text-2);">To:</label>
-            <input type="date" id="pending-date-to" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-              style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
+          <div class="filter-group">
+            <label>To:</label>
+            <input type="date" id="pending-date-to" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
           </div>
           <span class="count-badge" id="pending-header-count">0 visible</span>
           <div id="pending-summary-box" style="display:none; background: rgba(16, 185, 129, 0.05); border: 2px solid var(--green); padding: 8px 16px; border-radius: 8px; font-family: var(--mono); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);">
@@ -1026,16 +1080,42 @@
           <span class="section-tag completed">✓ Done</span>
           <h2>Completed Orders</h2>
         </div>
-        <div style="display:flex; gap: 10px; align-items:center; flex-wrap: wrap;">
-          <div style="display:flex; align-items:center; gap: 5px;">
-            <label style="font-size: 12px; color: var(--text-2);">From:</label>
-            <input type="date" id="completed-date-from" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-              style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
+        <div class="filter-bar">
+          <input type="text" id="completed-search" class="filter-input" placeholder="Search ID, Name, Phone, Vehicle..."
+            oninput="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 250px;">
+          
+          <select id="completed-city-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 140px;">
+            <option value="">All Cities</option>
+            <option value="Delhi">Delhi</option>
+            <option value="New Delhi">New Delhi</option>
+            <option value="Gurgaon">Gurgaon</option>
+            <option value="Faridabad">Faridabad</option>
+            <option value="Noida">Noida</option>
+            <option value="Ghaziabad">Ghaziabad</option>
+          </select>
+          
+          <select id="completed-status-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress - Mechanic on the way">In Progress - Mechanic on the way</option>
+            <option value="Customer Not Response">Customer Not Response</option>
+            <option value="Service Started">Service Started</option>
+            <option value="Cancel - spare parts">Cancel - spare parts</option>
+            <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+            <option value="Customer cancel - rate high">Customer cancel - rate high</option>
+            <option value="Disputed - customer">Disputed - customer</option>
+            <option value="Disputed - Mechanic">Disputed - Mechanic</option>
+            <option value="Completed - Payment received">Completed - Payment received</option>
+            <option value="Test Order">Test Order</option>
+          </select>
+
+          <div class="filter-group">
+            <label>From:</label>
+            <input type="date" id="completed-date-from" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
           </div>
-          <div style="display:flex; align-items:center; gap: 5px;">
-            <label style="font-size: 12px; color: var(--text-2);">To:</label>
-            <input type="date" id="completed-date-to" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-              style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
+          <div class="filter-group">
+            <label>To:</label>
+            <input type="date" id="completed-date-to" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
           </div>
           <span class="count-badge" id="completed-header-count">0 visible</span>
           <div id="completed-summary-box" style="display:none; background: rgba(16, 185, 129, 0.05); border: 2px solid var(--green); padding: 8px 16px; border-radius: 8px; font-family: var(--mono); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);">
@@ -1092,7 +1172,58 @@
           <span class="section-tag" style="background: var(--red-glow); color: var(--red);">✗ Cancelled</span>
           <h2>Cancel Orders</h2>
         </div>
-        <span class="count-badge" id="cancelled-header-count">0 cancelled</span>
+        <div class="filter-bar">
+          <input type="text" id="cancelled-search" class="filter-input" placeholder="Search ID, Name, Phone, Vehicle..."
+            oninput="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 250px;">
+          
+          <select id="cancelled-city-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 140px;">
+            <option value="">All Cities</option>
+            <option value="Delhi">Delhi</option>
+            <option value="New Delhi">New Delhi</option>
+            <option value="Gurgaon">Gurgaon</option>
+            <option value="Faridabad">Faridabad</option>
+            <option value="Noida">Noida</option>
+            <option value="Ghaziabad">Ghaziabad</option>
+          </select>
+          
+          <select id="cancelled-status-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress - Mechanic on the way">In Progress - Mechanic on the way</option>
+            <option value="Customer Not Response">Customer Not Response</option>
+            <option value="Service Started">Service Started</option>
+            <option value="Cancel - spare parts">Cancel - spare parts</option>
+            <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+            <option value="Customer cancel - rate high">Customer cancel - rate high</option>
+            <option value="Disputed - customer">Disputed - customer</option>
+            <option value="Disputed - Mechanic">Disputed - Mechanic</option>
+            <option value="Completed - Payment received">Completed - Payment received</option>
+            <option value="Test Order">Test Order</option>
+          </select>
+
+          <div class="filter-group">
+            <label>From:</label>
+            <input type="date" id="cancelled-date-from" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
+          </div>
+          <div class="filter-group">
+            <label>To:</label>
+            <input type="date" id="cancelled-date-to" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
+          </div>
+          <span class="count-badge" id="cancelled-header-count">0 visible</span>
+          <div id="cancelled-summary-box" style="display:none; background: rgba(16, 185, 129, 0.05); border: 2px solid var(--green); padding: 8px 16px; border-radius: 8px; font-family: var(--mono); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);">
+            <div style="display:flex; align-items:center; gap: 15px;">
+              <div style="display:flex; flex-direction:column; align-items:center;">
+                <span style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-2);">Orders</span>
+                <span id="cancelled-summary-orders" style="font-size:20px; font-weight:800; color:var(--text-1);">0</span>
+              </div>
+              <div style="width: 2px; height: 30px; background: var(--green); opacity: 0.3;"></div>
+              <div style="display:flex; flex-direction:column; align-items:center;">
+                <span style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-2);">Earnings</span>
+                <span id="cancelled-summary-earnings" style="font-size:20px; font-weight:800; color:var(--green);">₹0</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="table-wrap">
@@ -1130,10 +1261,63 @@
     <div id="test_order-section" class="order-section">
       <div class="section-header">
         <div class="section-title">
-          <span class="section-tag" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25);">T Test Order</span>
+          <span class="section-tag"
+            style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25);">T
+            Test Order</span>
           <h2>Test Orders</h2>
         </div>
-        <span class="count-badge" id="test-order-header-count">0 test orders</span>
+        <div class="filter-bar">
+          <input type="text" id="test-order-search" class="filter-input" placeholder="Search ID, Name, Phone, Vehicle..."
+            oninput="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 250px;">
+          
+          <select id="test-order-city-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 140px;">
+            <option value="">All Cities</option>
+            <option value="Delhi">Delhi</option>
+            <option value="New Delhi">New Delhi</option>
+            <option value="Gurgaon">Gurgaon</option>
+            <option value="Faridabad">Faridabad</option>
+            <option value="Noida">Noida</option>
+            <option value="Ghaziabad">Ghaziabad</option>
+          </select>
+          
+          <select id="test-order-status-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress - Mechanic on the way">In Progress - Mechanic on the way</option>
+            <option value="Customer Not Response">Customer Not Response</option>
+            <option value="Service Started">Service Started</option>
+            <option value="Cancel - spare parts">Cancel - spare parts</option>
+            <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+            <option value="Customer cancel - rate high">Customer cancel - rate high</option>
+            <option value="Disputed - customer">Disputed - customer</option>
+            <option value="Disputed - Mechanic">Disputed - Mechanic</option>
+            <option value="Completed - Payment received">Completed - Payment received</option>
+            <option value="Test Order">Test Order</option>
+          </select>
+
+          <div class="filter-group">
+            <label>From:</label>
+            <input type="date" id="test-order-date-from" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
+          </div>
+          <div class="filter-group">
+            <label>To:</label>
+            <input type="date" id="test-order-date-to" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
+          </div>
+          <span class="count-badge" id="test-order-header-count">0 visible</span>
+          <div id="test-order-summary-box" style="display:none; background: rgba(16, 185, 129, 0.05); border: 2px solid var(--green); padding: 8px 16px; border-radius: 8px; font-family: var(--mono); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);">
+            <div style="display:flex; align-items:center; gap: 15px;">
+              <div style="display:flex; flex-direction:column; align-items:center;">
+                <span style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-2);">Orders</span>
+                <span id="test-order-summary-orders" style="font-size:20px; font-weight:800; color:var(--text-1);">0</span>
+              </div>
+              <div style="width: 2px; height: 30px; background: var(--green); opacity: 0.3;"></div>
+              <div style="display:flex; flex-direction:column; align-items:center;">
+                <span style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-2);">Earnings</span>
+                <span id="test-order-summary-earnings" style="font-size:20px; font-weight:800; color:var(--green);">₹0</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="table-wrap">
@@ -1174,16 +1358,42 @@
           <span class="section-tag" style="background: var(--surface-3); color: var(--text-1);">∑ All</span>
           <h2>Total Orders</h2>
         </div>
-        <div style="display:flex; gap: 10px; align-items:center; flex-wrap: wrap;">
-          <div style="display:flex; align-items:center; gap: 5px;">
-            <label style="font-size: 12px; color: var(--text-2);">From:</label>
-            <input type="date" id="total-date-from" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-              style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
+        <div class="filter-bar">
+          <input type="text" id="total-search" class="filter-input" placeholder="Search ID, Name, Phone, Vehicle..."
+            oninput="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 250px;">
+          
+          <select id="total-city-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 140px;">
+            <option value="">All Cities</option>
+            <option value="Delhi">Delhi</option>
+            <option value="New Delhi">New Delhi</option>
+            <option value="Gurgaon">Gurgaon</option>
+            <option value="Faridabad">Faridabad</option>
+            <option value="Noida">Noida</option>
+            <option value="Ghaziabad">Ghaziabad</option>
+          </select>
+          
+          <select id="total-status-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress - Mechanic on the way">In Progress - Mechanic on the way</option>
+            <option value="Customer Not Response">Customer Not Response</option>
+            <option value="Service Started">Service Started</option>
+            <option value="Cancel - spare parts">Cancel - spare parts</option>
+            <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+            <option value="Customer cancel - rate high">Customer cancel - rate high</option>
+            <option value="Disputed - customer">Disputed - customer</option>
+            <option value="Disputed - Mechanic">Disputed - Mechanic</option>
+            <option value="Completed - Payment received">Completed - Payment received</option>
+            <option value="Test Order">Test Order</option>
+          </select>
+
+          <div class="filter-group">
+            <label>From:</label>
+            <input type="date" id="total-date-from" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
           </div>
-          <div style="display:flex; align-items:center; gap: 5px;">
-            <label style="font-size: 12px; color: var(--text-2);">To:</label>
-            <input type="date" id="total-date-to" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-              style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
+          <div class="filter-group">
+            <label>To:</label>
+            <input type="date" id="total-date-to" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
           </div>
           <span class="count-badge" id="total-header-count">0 visible</span>
           <div id="total-summary-box" style="display:none; background: rgba(16, 185, 129, 0.05); border: 2px solid var(--green); padding: 8px 16px; border-radius: 8px; font-family: var(--mono); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);">
@@ -1291,9 +1501,9 @@
         alert('No data to download');
         return;
       }
-      
+
       let csvContent = "\uFEFFOrder ID,Date,Customer Name,Phone,Vehicle,Service,Source,Address,Slot,Mechanic,Order Status,Amount,Final Amount,Remark\r\n";
-      
+
       window.allBookings.forEach(order => {
         const orderId = `"${(order.bookingRef || order.id || '').toString().replace(/"/g, '""')}"`;
         const dateStr = order.createdAt ? (order.createdAt.endsWith('Z') || order.createdAt.includes('+') ? order.createdAt : order.createdAt + 'Z') : null;
@@ -1310,18 +1520,18 @@
         const amount = `"${(order.price || 0).toString().replace(/"/g, '""')}"`;
         const finalAmount = `"${(order.Final_Amount || order.price || 0).toString().replace(/"/g, '""')}"`;
         const remark = `"${(order.Remarks || '').toString().replace(/"/g, '""')}"`;
-        
+
         csvContent += [orderId, date, customer, phone, vehicle, service, source, address, slot, mechanic, orderStatus, amount, finalAmount, remark].join(',') + "\r\n";
       });
-      
+
       const now = new Date();
-      const timestamp = now.getFullYear().toString() + 
-        String(now.getMonth() + 1).padStart(2, '0') + 
-        String(now.getDate()).padStart(2, '0') + "_" + 
-        String(now.getHours()).padStart(2, '0') + 
-        String(now.getMinutes()).padStart(2, '0') + 
+      const timestamp = now.getFullYear().toString() +
+        String(now.getMonth() + 1).padStart(2, '0') +
+        String(now.getDate()).padStart(2, '0') + "_" +
+        String(now.getHours()).padStart(2, '0') +
+        String(now.getMinutes()).padStart(2, '0') +
         String(now.getSeconds()).padStart(2, '0');
-        
+
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
@@ -1384,19 +1594,21 @@
       const totalTable = document.getElementById('total-table-body');
       const testOrderTable = document.getElementById('test-order-table-body');
 
-      const searchTerm = (document.getElementById('pending-search')?.value || '').toLowerCase();
-      const statusFilter = (document.getElementById('pending-status-filter')?.value || 'all');
-      const cityFilter = (document.getElementById('pending-city-filter')?.value || '').toLowerCase();
-      const vehicleFilter = (document.getElementById('pending-vehicle-filter')?.value || '').toLowerCase();
-      
-      const pendingDateFrom = document.getElementById('pending-date-from')?.value || '';
-      const pendingDateTo = document.getElementById('pending-date-to')?.value || '';
-      
-      const completedDateFrom = document.getElementById('completed-date-from')?.value || '';
-      const completedDateTo = document.getElementById('completed-date-to')?.value || '';
-      
-      const totalDateFrom = document.getElementById('total-date-from')?.value || '';
-      const totalDateTo = document.getElementById('total-date-to')?.value || '';
+      const getFilters = (prefix) => ({
+        search: (document.getElementById(`${prefix}-search`)?.value || '').toLowerCase(),
+        status: (document.getElementById(`${prefix}-status-filter`)?.value || 'all'),
+        city: (document.getElementById(`${prefix}-city-filter`)?.value || '').toLowerCase(),
+        dateFrom: document.getElementById(`${prefix}-date-from`)?.value || '',
+        dateTo: document.getElementById(`${prefix}-date-to`)?.value || ''
+      });
+
+      const filters = {
+        pending: getFilters('pending'),
+        completed: getFilters('completed'),
+        cancelled: getFilters('cancelled'),
+        'test-order': getFilters('test-order'),
+        total: getFilters('total')
+      };
 
       const isDateInRange = (dateStr, from, to) => {
         if (!from && !to) return true;
@@ -1420,11 +1632,11 @@
       let totalCount = 0;
       let totalRevenue = 0;
       let unassignedCount = 0;
-      
+
       let visiblePendingCount = 0;
       let visibleCompletedCount = 0;
       let visibleTotalCount = 0;
-      
+
       let pendingSummaryOrders = 0;
       let pendingSummaryEarnings = 0;
       let completedSummaryOrders = 0;
@@ -1435,14 +1647,14 @@
       bookings.forEach(order => {
         let orderDateFormatted = '';
         if (order.createdAt) {
-           const dateStr = order.createdAt.endsWith('Z') || order.createdAt.includes('+') ? order.createdAt : order.createdAt + 'Z';
-           const d = new Date(dateStr);
-           if (!isNaN(d)) {
-             const yyyy = d.getFullYear();
-             const mm = String(d.getMonth() + 1).padStart(2, '0');
-             const dd = String(d.getDate()).padStart(2, '0');
-             orderDateFormatted = `${yyyy}-${mm}-${dd}`;
-           }
+          const dateStr = order.createdAt.endsWith('Z') || order.createdAt.includes('+') ? order.createdAt : order.createdAt + 'Z';
+          const d = new Date(dateStr);
+          if (!isNaN(d)) {
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            orderDateFormatted = `${yyyy}-${mm}-${dd}`;
+          }
         }
 
         const isCompleted = (order.order_status || order.status || '').toLowerCase().includes('completed');
@@ -1451,67 +1663,74 @@
         const row = createOrderRow(order, isCompleted || isCancelled || isTestOrderStatus);
         const finalAmt = order.Final_Amount ? Number(order.Final_Amount) : (order.price ? Number(order.price) : 0);
 
-        const matchTotalDate = isDateInRange(orderDateFormatted, totalDateFrom, totalDateTo);
-        if (totalTable && matchTotalDate) {
+        const matchFilters = (f) => {
+          const searchMatch = f.search === '' || 
+            (order.customerName || '').toLowerCase().includes(f.search) ||
+            (order.phone || '').toLowerCase().includes(f.search) ||
+            (order.bookingRef || order.id || '').toLowerCase().includes(f.search) ||
+            (order.bikeModel || '').toLowerCase().includes(f.search) ||
+            (order.bikeType || '').toLowerCase().includes(f.search);
+          
+          const currentStatus = order.order_status || order.status || 'Pending';
+          const statusMatch = f.status === 'all' || currentStatus.toLowerCase() === f.status.toLowerCase();
+          
+          const cityMatch = f.city === '' || (order.city || '').toLowerCase().includes(f.city);
+          const dateMatch = isDateInRange(orderDateFormatted, f.dateFrom, f.dateTo);
+          
+          return searchMatch && statusMatch && cityMatch && dateMatch;
+        };
+
+        // Base counts (independent of filters)
+        totalCount++;
+        if (isCompleted) { completedCount++; totalRevenue += finalAmt; }
+        else if (isCancelled) { cancelledCount++; }
+        else {
+          const isAppSource = (order.source || '').toLowerCase() === 'app';
+          if (isAppSource || isTestOrderStatus) { testOrderCount++; }
+          else {
+            pendingCount++;
+            if (!order['Assign Mechanic']) unassignedCount++;
+          }
+        }
+
+        // Apply filters for Total
+        if (totalTable && matchFilters(filters.total)) {
           totalHtml += row;
-          totalCount++;
           visibleTotalCount++;
-          if (totalDateFrom && totalDateTo) {
+          if (filters.total.dateFrom && filters.total.dateTo) {
             totalSummaryOrders++;
             totalSummaryEarnings += finalAmt;
           }
-        } else if (totalTable && !matchTotalDate) {
-          totalCount++; // Keep totalCount accurate for total tab badge even if filtered out
         }
 
-        if (isCompleted) {
-          completedCount++;
-          totalRevenue += finalAmt;
-          
-          const matchCompletedDate = isDateInRange(orderDateFormatted, completedDateFrom, completedDateTo);
-          if (matchCompletedDate) {
-            completedHtml += row;
-            visibleCompletedCount++;
-            if (completedDateFrom && completedDateTo) {
-              completedSummaryOrders++;
-              completedSummaryEarnings += finalAmt;
-            }
+        // Apply filters for Completed
+        if (isCompleted && completedTable && matchFilters(filters.completed)) {
+          completedHtml += row;
+          visibleCompletedCount++;
+          if (filters.completed.dateFrom && filters.completed.dateTo) {
+            completedSummaryOrders++;
+            completedSummaryEarnings += finalAmt;
           }
-        } else if (isCancelled) {
-          if (cancelledTable) {
-            cancelledHtml += row;
-            cancelledCount++;
-          }
-        } else {
-          const isAppSource = (order.source || '').toLowerCase() === 'app';
-          if (isAppSource || isTestOrderStatus) {
-            testOrderCount++;
-            if (testOrderTable) {
-              testOrderHtml += row;
-            }
-          } else {
-            pendingCount++;
-            if (!order['Assign Mechanic']) unassignedCount++;
+        }
 
-            const matchSearch = searchTerm === '' ||
-              (order.customerName || '').toLowerCase().includes(searchTerm) ||
-              (order.bookingRef || order.id || '').toLowerCase().includes(searchTerm);
+        // Apply filters for Cancelled
+        if (isCancelled && cancelledTable && matchFilters(filters.cancelled)) {
+          cancelledHtml += row;
+        }
 
-            const currentStatus = order.order_status || order.status || 'Pending';
-            const matchStatus = statusFilter === 'all' || currentStatus.toLowerCase() === statusFilter.toLowerCase();
+        // Apply filters for Test Orders
+        const isAppSource = (order.source || '').toLowerCase() === 'app';
+        if (!isCompleted && !isCancelled && (isAppSource || isTestOrderStatus) && testOrderTable && matchFilters(filters['test-order'])) {
+          testOrderHtml += row;
+        }
 
-            const matchCity = cityFilter === '' || (order.city || '').toLowerCase().includes(cityFilter);
-            const matchVehicle = vehicleFilter === '' || (order.bikeModel || '').toLowerCase().includes(vehicleFilter) || (order.bikeType || '').toLowerCase().includes(vehicleFilter);
-            const matchPendingDate = isDateInRange(orderDateFormatted, pendingDateFrom, pendingDateTo);
-
-            if (matchSearch && matchStatus && matchCity && matchVehicle && matchPendingDate) {
-              pendingHtml += row;
-              visiblePendingCount++;
-              if (pendingDateFrom && pendingDateTo) {
-                pendingSummaryOrders++;
-                pendingSummaryEarnings += finalAmt;
-              }
-            }
+        // Apply filters for Pending
+        if (!isCompleted && !isCancelled && !isAppSource && !isTestOrderStatus && pendingTable && matchFilters(filters.pending)) {
+          pendingHtml += row;
+          visiblePendingCount++;
+          if (filters.pending.dateFrom && filters.pending.dateTo) {
+            pendingSummaryOrders++;
+            pendingSummaryEarnings += finalAmt;
           }
         }
       });
@@ -1531,25 +1750,25 @@
 
       document.getElementById('pending-tab-count').textContent = pendingCount;
       document.getElementById('completed-tab-count').textContent = completedCount;
-      
+
       const cancelledTabCount = document.getElementById('cancelled-tab-count');
       if (cancelledTabCount) cancelledTabCount.textContent = cancelledCount;
 
       const testOrderTabCount = document.getElementById('test-order-tab-count');
       if (testOrderTabCount) testOrderTabCount.textContent = testOrderCount;
-      
+
       const testOrderHeaderCount = document.getElementById('test-order-header-count');
       if (testOrderHeaderCount) testOrderHeaderCount.textContent = `${testOrderCount} test orders`;
-      
+
       const totalTabCount = document.getElementById('total-tab-count');
       if (totalTabCount) totalTabCount.textContent = totalCount;
-      
+
       document.getElementById('pending-header-count').textContent = `${visiblePendingCount} visible`;
       document.getElementById('completed-header-count').textContent = `${visibleCompletedCount} visible`;
-      
+
       const cancelledHeaderCount = document.getElementById('cancelled-header-count');
       if (cancelledHeaderCount) cancelledHeaderCount.textContent = `${cancelledCount} cancelled`;
-      
+
       const totalHeaderCount = document.getElementById('total-header-count');
       if (totalHeaderCount) totalHeaderCount.textContent = `${visibleTotalCount} visible`;
 
@@ -1652,7 +1871,7 @@
             const diffTime = today - bDate;
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
             const daysLeft = 15 - diffDays;
-            
+
             let warrantyStatus = '';
             if (daysLeft <= 0) {
               warrantyStatus = 'Warranty Expired';
@@ -1695,11 +1914,11 @@
               <select class="status-select" style="max-width: 150px; font-weight: 500; ${!order['Assign Mechanic'] ? 'color: var(--text-3);' : 'color: #60a5fa; border-color: rgba(59, 130, 246, 0.25); background-color: rgba(59, 130, 246, 0.1);'}" onchange="updateMechanic('${uniqueIdentifier}', this.value, '${idColumn}')">
                 <option value="" style="color: var(--text-1); background: var(--surface-2);" ${!order['Assign Mechanic'] ? 'selected' : ''}>Unassigned</option>
                 ${(window.activeMechanics || []).map(m => {
-                  const mechName = m.garageName || m.ownerName || 'Unknown';
-                  return `<option value="${mechName}" style="color: var(--text-1); background: var(--surface-2);" ${order['Assign Mechanic'] === mechName ? 'selected' : ''}>${mechName}</option>`;
-                }).join('')}
-                ${order['Assign Mechanic'] && !(window.activeMechanics || []).find(m => (m.garageName || m.ownerName || 'Unknown') === order['Assign Mechanic']) 
-                  ? `<option value="${order['Assign Mechanic']}" style="color: var(--text-1); background: var(--surface-2);" selected hidden>${order['Assign Mechanic']}</option>` : ''}
+        const mechName = m.garageName || m.ownerName || 'Unknown';
+        return `<option value="${mechName}" style="color: var(--text-1); background: var(--surface-2);" ${order['Assign Mechanic'] === mechName ? 'selected' : ''}>${mechName}</option>`;
+      }).join('')}
+                ${order['Assign Mechanic'] && !(window.activeMechanics || []).find(m => (m.garageName || m.ownerName || 'Unknown') === order['Assign Mechanic'])
+          ? `<option value="${order['Assign Mechanic']}" style="color: var(--text-1); background: var(--surface-2);" selected hidden>${order['Assign Mechanic']}</option>` : ''}
               </select>
             </div>
           </td>
@@ -1776,7 +1995,7 @@
         .from('Booking')
         .update(updateData)
         .eq(column, id);
-      
+
       if (error) {
         console.error('Error updating mechanic:', error);
         alert('Failed to assign mechanic: ' + error.message);
