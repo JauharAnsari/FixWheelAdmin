@@ -1685,8 +1685,7 @@
         if (isCompleted) { completedCount++; totalRevenue += finalAmt; }
         else if (isCancelled) { cancelledCount++; }
         else {
-          const isAppSource = (order.source || '').toLowerCase() === 'app';
-          if (isAppSource || isTestOrderStatus) { testOrderCount++; }
+          if (isTestOrderStatus) { testOrderCount++; }
           else {
             pendingCount++;
             if (!order['Assign Mechanic']) unassignedCount++;
@@ -1719,13 +1718,12 @@
         }
 
         // Apply filters for Test Orders
-        const isAppSource = (order.source || '').toLowerCase() === 'app';
-        if (!isCompleted && !isCancelled && (isAppSource || isTestOrderStatus) && testOrderTable && matchFilters(filters['test-order'])) {
+        if (!isCompleted && !isCancelled && isTestOrderStatus && testOrderTable && matchFilters(filters['test-order'])) {
           testOrderHtml += row;
         }
 
         // Apply filters for Pending
-        if (!isCompleted && !isCancelled && !isAppSource && !isTestOrderStatus && pendingTable && matchFilters(filters.pending)) {
+        if (!isCompleted && !isCancelled && !isTestOrderStatus && pendingTable && matchFilters(filters.pending)) {
           pendingHtml += row;
           visiblePendingCount++;
           if (filters.pending.dateFrom && filters.pending.dateTo) {
