@@ -1063,6 +1063,8 @@
               <th>Remark</th>
               <th>Assigned Mechanic</th>
               <th class="col-warranty">Warranty</th>
+              <th>Payment Received By</th>
+              <th>Payment Settled</th>
               <th>Settlement</th>
             </tr>
           </thead>
@@ -1155,6 +1157,8 @@
               <th>Remark</th>
               <th>Assigned Mechanic</th>
               <th class="col-warranty">Warranty</th>
+              <th>Payment Received By</th>
+              <th>Payment Settled</th>
               <th>Settlement</th>
             </tr>
           </thead>
@@ -1247,6 +1251,8 @@
               <th>Remark</th>
               <th>Assigned Mechanic</th>
               <th class="col-warranty">Warranty</th>
+              <th>Payment Received By</th>
+              <th>Payment Settled</th>
               <th>Settlement</th>
             </tr>
           </thead>
@@ -1341,6 +1347,8 @@
               <th>Remark</th>
               <th>Assigned Mechanic</th>
               <th class="col-warranty">Warranty</th>
+              <th>Payment Received By</th>
+              <th>Payment Settled</th>
               <th>Settlement</th>
             </tr>
           </thead>
@@ -1433,6 +1441,8 @@
               <th>Remark</th>
               <th>Assigned Mechanic</th>
               <th class="col-warranty">Warranty</th>
+              <th>Payment Received By</th>
+              <th>Payment Settled</th>
               <th>Settlement</th>
             </tr>
           </thead>
@@ -1502,7 +1512,7 @@
         return;
       }
 
-      let csvContent = "\uFEFFOrder ID,Date,Customer Name,Phone,Vehicle,Service,Source,Address,Slot,Mechanic,Order Status,Amount,Final Amount,Remark\r\n";
+      let csvContent = "\uFEFFOrder ID,Date,Customer Name,Phone,Vehicle,Service,Source,Address,Slot,Mechanic,Order Status,Amount,Final Amount,Remark,Payment Received By,Payment Settled,Settlement\r\n";
 
       window.allBookings.forEach(order => {
         const orderId = `"${(order.bookingRef || order.id || '').toString().replace(/"/g, '""')}"`;
@@ -1520,8 +1530,11 @@
         const amount = `"${(order.price || 0).toString().replace(/"/g, '""')}"`;
         const finalAmount = `"${(order.Final_Amount || order.price || 0).toString().replace(/"/g, '""')}"`;
         const remark = `"${(order.Remarks || '').toString().replace(/"/g, '""')}"`;
+        const paymentReceivedBy = `"${(order.payment_received_by || '').toString().replace(/"/g, '""')}"`;
+        const paymentSettled = `"${(order.payment_settled || '').toString().replace(/"/g, '""')}"`;
+        const oldSettlement = `"${(order.settlement || '').toString().replace(/"/g, '""')}"`;
 
-        csvContent += [orderId, date, customer, phone, vehicle, service, source, address, slot, mechanic, orderStatus, amount, finalAmount, remark].join(',') + "\r\n";
+        csvContent += [orderId, date, customer, phone, vehicle, service, source, address, slot, mechanic, orderStatus, amount, finalAmount, remark, paymentReceivedBy, paymentSettled, oldSettlement].join(',') + "\r\n";
       });
 
       const now = new Date();
@@ -1947,6 +1960,19 @@
           <td>${partnerSourceBadge}</td>
           <td class="col-warranty">${warrantyDisplay}</td>
           <td>
+            <select class="status-select" style="max-width: 150px; font-weight: 500; color: var(--text-1); background: var(--surface-2);" onchange="updatePaymentReceivedBy('${uniqueIdentifier}', this.value, '${idColumn}')">
+              <option value="Pending" ${!order.payment_received_by || order.payment_received_by === 'Pending' ? 'selected' : ''}>Pending</option>
+              <option value="Mechanic" ${order.payment_received_by === 'Mechanic' ? 'selected' : ''}>Mechanic</option>
+              <option value="Admin" ${order.payment_received_by === 'Admin' ? 'selected' : ''}>Admin</option>
+            </select>
+          </td>
+          <td>
+            <select class="status-select" style="max-width: 150px; font-weight: 500; color: var(--text-1); background: var(--surface-2);" onchange="updatePaymentSettled('${uniqueIdentifier}', this.value, '${idColumn}')">
+              <option value="Pending" ${!order.payment_settled || order.payment_settled === 'Pending' ? 'selected' : ''}>Pending</option>
+              <option value="Done" ${order.payment_settled === 'Done' ? 'selected' : ''}>Done</option>
+            </select>
+          </td>
+          <td>
             <select class="status-select" style="max-width: 150px; font-weight: 500; color: var(--text-1); background: var(--surface-2);" onchange="updateSettlement('${uniqueIdentifier}', this.value, '${idColumn}')">
               <option value="Pending" ${!order.settlement || order.settlement === 'Pending' ? 'selected' : ''}>Pending</option>
               <option value="Done" ${order.settlement === 'Done' ? 'selected' : ''}>Done</option>
@@ -1962,6 +1988,42 @@
       if (s === 'en-route') return 'en-route';
       if (s === 'assigned' || s === 'accepted') return 'accepted';
       return 'waiting';
+    }
+
+    async function updatePaymentReceivedBy(id, newValue, column = 'id') {
+      console.log(`Updating payment_received_by for ${id} via ${column} to: ${newValue}`);
+
+      const { data, error } = await supabaseClient
+        .from('Booking')
+        .update({ payment_received_by: newValue })
+        .eq(column, id)
+        .select();
+
+      if (error) {
+        console.error('Supabase Update Payment Received By Error:', error);
+        alert('Update Failed: ' + error.message);
+      } else {
+        console.log('Payment Received By update successful:', data);
+        fetchBookings();
+      }
+    }
+
+    async function updatePaymentSettled(id, newValue, column = 'id') {
+      console.log(`Updating payment_settled for ${id} via ${column} to: ${newValue}`);
+
+      const { data, error } = await supabaseClient
+        .from('Booking')
+        .update({ payment_settled: newValue })
+        .eq(column, id)
+        .select();
+
+      if (error) {
+        console.error('Supabase Update Payment Settled Error:', error);
+        alert('Update Failed: ' + error.message);
+      } else {
+        console.log('Payment Settled update successful:', data);
+        fetchBookings();
+      }
     }
 
     async function updateSettlement(id, newSettlement, column = 'id') {
