@@ -716,6 +716,7 @@
               <th>Owner Name</th>
               <th>Phone</th>
               <th>Vehicle Type</th>
+              <th>Services</th>
               <th>City</th>
               <th>Status</th>
               <th>License</th>
@@ -846,6 +847,7 @@
           <td><div class="customer-phone" style="font-size: 13px; color: var(--text-1); font-family: var(--sans);">${p.ownerName || 'Unknown'}</div></td>
           <td><span class="price">${p.phone || 'N/A'}</span></td>
           <td><span class="service-pill">${p.vehicleType || 'N/A'}</span></td>
+          <td><div class="location-text" style="font-weight: normal; font-size: 12px; color: var(--text-2); max-width: 150px;">${Array.isArray(p.servicesOffered) ? p.servicesOffered.join(', ') : (p.servicesOffered || 'N/A')}</div></td>
           <td><div class="customer-phone" style="font-size: 13px; color: var(--text-1); font-family: var(--sans);">${p.city || 'N/A'}</div></td>
           <td>
             <select class="status-dropdown badge ${statusClass}" onchange="updatePartnerStatus('${p.id}', this.value)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 4px 8px; border-radius: 4px; font-family: var(--mono); font-size: 11px; outline: none; cursor: pointer;">

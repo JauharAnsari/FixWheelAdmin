@@ -802,6 +802,7 @@
               <th>Owner Name</th>
               <th>Phone</th>
               <th>Vehicle Type</th>
+              <th>Services</th>
               <th>Address</th>
               <th>City</th>
               <th>Status</th>
@@ -876,7 +877,7 @@
         return;
       }
       
-      let csvContent = "Partner Ref,Garage Name,Owner Name,Phone,Vehicle Type,Address,City,Status,Remark\n";
+      let csvContent = "Partner Ref,Garage Name,Owner Name,Phone,Vehicle Type,Services,Address,City,Status,Remark\n";
       
       rows.forEach(tr => {
         const ref = `"${tr.children[0].innerText.trim().replace(/"/g, '""')}"`;
@@ -884,16 +885,17 @@
         const owner = `"${tr.children[2].innerText.trim().replace(/"/g, '""')}"`;
         const phone = `"${tr.children[3].innerText.trim().replace(/"/g, '""')}"`;
         const vehicle = `"${tr.children[4].innerText.trim().replace(/"/g, '""')}"`;
-        const address = `"${tr.children[5].innerText.trim().replace(/"/g, '""')}"`;
-        const city = `"${tr.children[6].innerText.trim().replace(/"/g, '""')}"`;
+        const services = `"${tr.children[5].innerText.trim().replace(/"/g, '""')}"`;
+        const address = `"${tr.children[6].innerText.trim().replace(/"/g, '""')}"`;
+        const city = `"${tr.children[7].innerText.trim().replace(/"/g, '""')}"`;
         
-        const statusSelect = tr.children[7].querySelector('select');
+        const statusSelect = tr.children[8].querySelector('select');
         const status = statusSelect ? `"${statusSelect.value.replace(/"/g, '""')}"` : '""';
         
-        const remarkArea = tr.children[10].querySelector('textarea');
+        const remarkArea = tr.children[11].querySelector('textarea');
         const remark = remarkArea ? `"${remarkArea.value.replace(/"/g, '""')}"` : '""';
         
-        csvContent += [ref, garage, owner, phone, vehicle, address, city, status, remark].join(',') + "\n";
+        csvContent += [ref, garage, owner, phone, vehicle, services, address, city, status, remark].join(',') + "\n";
       });
       
       const now = new Date();
@@ -990,6 +992,7 @@
           <td><div class="customer-phone" style="font-size: 13px; color: var(--text-1); font-family: var(--sans);">${p.ownerName || 'Unknown'}</div></td>
           <td><span class="price">${p.phone || 'N/A'}</span></td>
           <td><span class="service-pill">${p.vehicleType || 'N/A'}</span></td>
+          <td><div class="location-text" style="font-weight: normal; font-size: 12px; color: var(--text-2); max-width: 150px;">${Array.isArray(p.servicesOffered) ? p.servicesOffered.join(', ') : (p.servicesOffered || 'N/A')}</div></td>
           <td><div class="location-text">${p.address || 'N/A'}</div></td>
           <td><div class="customer-phone" style="font-size: 13px; color: var(--text-1); font-family: var(--sans);">${p.city || 'N/A'}</div></td>
           <td>
@@ -1089,7 +1092,7 @@
           return;
         }
 
-        const headers = ['Partner Ref', 'Garage Name', 'Owner Name', 'Phone', 'Vehicle Type', 'Address', 'City', 'Status', 'Remarks'];
+        const headers = ['Partner Ref', 'Garage Name', 'Owner Name', 'Phone', 'Vehicle Type', 'Services', 'Address', 'City', 'Status', 'Remarks'];
         const csvRows = [headers.join(',')];
 
         activePartners.forEach(p => {
@@ -1100,6 +1103,7 @@
             `"${(p.ownerName || '').replace(/"/g, '""')}"`,
             `"${p.phone || ''}"`,
             `"${p.vehicleType || ''}"`,
+            `"${(Array.isArray(p.servicesOffered) ? p.servicesOffered.join(', ') : (p.servicesOffered || '')).replace(/"/g, '""')}"`,
             `"${(p.address || '').replace(/"/g, '""')}"`,
             `"${p.city || ''}"`,
             `"${statusValue}"`,

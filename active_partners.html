@@ -875,6 +875,7 @@
               <th>Owner Name</th>
               <th>Phone</th>
               <th>Vehicle Type</th>
+              <th>Services</th>
               <th>Address</th>
               <th>City</th>
               <th>Status</th>
@@ -1022,6 +1023,7 @@
           <td><div class="customer-phone" style="font-size: 13px; color: var(--text-1); font-family: var(--sans);">${p.ownerName || 'Unknown'}</div></td>
           <td><span class="price">${p.phone || 'N/A'}</span></td>
           <td><span class="service-pill">${p.vehicleType || 'N/A'}</span></td>
+          <td><div class="location-text" style="font-weight: normal; font-size: 12px; color: var(--text-2); max-width: 150px;">${Array.isArray(p.servicesOffered) ? p.servicesOffered.join(', ') : (p.servicesOffered || 'N/A')}</div></td>
           <td><div class="location-text">${p.address || 'N/A'}</div></td>
           <td><div class="customer-phone" style="font-size: 13px; color: var(--text-1); font-family: var(--sans);">${p.city || 'N/A'}</div></td>
           <td>
@@ -1124,7 +1126,7 @@
           return;
         }
 
-        const headers = ['Partner Ref', 'Garage Name', 'Owner Name', 'Phone', 'Vehicle Type', 'Address', 'City', 'Status', 'Remarks'];
+        const headers = ['Partner Ref', 'Garage Name', 'Owner Name', 'Phone', 'Vehicle Type', 'Services', 'Address', 'City', 'Status', 'Remarks'];
         const csvRows = [headers.join(',')];
 
         activePartners.forEach(p => {
@@ -1135,6 +1137,7 @@
             `"${(p.ownerName || '').replace(/"/g, '""')}"`,
             `"${p.phone || ''}"`,
             `"${p.vehicleType || ''}"`,
+            `"${(Array.isArray(p.servicesOffered) ? p.servicesOffered.join(', ') : (p.servicesOffered || '')).replace(/"/g, '""')}"`,
             `"${(p.address || '').replace(/"/g, '""')}"`,
             `"${p.city || ''}"`,
             `"${statusValue}"`,
