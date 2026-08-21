@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <script>
-    if (sessionStorage.getItem('fixwheel_admin_logged_in') !== 'true' && localStorage.getItem('fixwheel_admin_logged_in') !== 'true') {
+    if (sessionStorage.getItem('fixwheel_admin_session_v2') !== 'true' && localStorage.getItem('fixwheel_admin_session_v2') !== 'true') {
       window.location.replace('login.html');
     }
   </script>
@@ -1027,8 +1027,8 @@
 
     // Logout logic
     document.getElementById('logout-btn').addEventListener('click', () => {
-      sessionStorage.removeItem('fixwheel_admin_logged_in');
-      localStorage.removeItem('fixwheel_admin_logged_in');
+      sessionStorage.removeItem('fixwheel_admin_session_v2');
+      localStorage.removeItem('fixwheel_admin_session_v2');
       window.location.replace('login.html');
     });
 
