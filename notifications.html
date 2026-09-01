@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <script> if (sessionStorage.getItem('fixwheel_admin_logged_in') !== 'true' && localStorage.getItem('fixwheel_admin_logged_in') !== 'true') window.location.replace('login.html'); </script>
+  <script> if (sessionStorage.getItem('fixwheel_admin_logged_in') !== 'true' && localStorage.getItem('fixwheel_admin_logged_in') !== 'true' && sessionStorage.getItem('fixwheel_admin_session_v2') !== 'true' && localStorage.getItem('fixwheel_admin_session_v2') !== 'true') {
+      window.location.replace('login.html');
+    } </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>FixWheel — Notification Logs</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
