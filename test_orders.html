@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script>
+    if (sessionStorage.getItem('fixwheel_admin_logged_in') !== 'true' && localStorage.getItem('fixwheel_admin_logged_in') !== 'true') {
+      window.location.replace('login.html');
+    }
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FixWheel — Dev Tools: Test Orders</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="sidebar.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="sidebar.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0a; --surface: #141414; --surface-2: #1e1e1e; --surface-3: #262626;
+      --border: #2a2a2a; --border-hi: #3f3f3f; --red: #ef4444; --red-dim: #991b1b;
+      --red-glow: rgba(239, 68, 68, 0.15); --green: #22c55e; --green-dim: #166534;
+      --text-1: #ffffff; --text-2: #a1a1aa; --text-3: #71717a;
+      --topbar-bg: rgba(10, 10, 10, 0.85); --mono: 'DM Mono', monospace; --sans: 'Syne', sans-serif;
+    }
+    [data-theme="light"] {
+      --bg: #f3f4f6; --surface: #ffffff; --surface-2: #f9fafb; --surface-3: #f3f4f6;
+      --border: #e5e7eb; --border-hi: #d1d5db; --text-1: #111827; --text-2: #4b5563;
+      --text-3: #6b7280; --topbar-bg: rgba(255, 255, 255, 0.85);
+    }
+    body { background: var(--bg); color: var(--text-1); font-family: var(--sans); }
+    .dashboard-main { padding: 30px 36px; max-width: 1400px; margin: 0 auto; width: 100%; }
+    .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; margin-top: 20px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+    th { background: var(--surface-2); padding: 14px 16px; font-family: var(--mono); font-size: 11px; color: var(--text-3); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+    td { padding: 14px 16px; border-bottom: 1px solid var(--border); color: var(--text-2); font-family: var(--mono); font-size: 12px; }
+    .status-select { background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 4px 8px; border-radius: 4px; font-family: var(--mono); font-size: 11px; }
+  </style>
+  <script>
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  </script>
+</head>
+<body>
+
+  <div class="main-wrapper">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-weight:700; font-size:15px; letter-spacing:0.04em; text-transform:uppercase;">Dev Tools</span>
+        <span style="font-family:var(--mono); color:var(--text-3); font-size:12px;">/ Test Orders Sandbox</span>
+      </div>
+      <div class="topbar-right" style="display:flex; align-items:center; gap:20px;">
+        <div class="live-dot" style="display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; color:var(--text-2);">LIVE</div>
+        <button id="theme-toggle" class="admin-chip" style="cursor:pointer; background:var(--surface-2); border:1px solid var(--border-hi); color:var(--text-2); padding:5px 12px; border-radius:20px; font-family:var(--mono); font-size:12px;">Theme</button>
+        <div class="admin-chip">admin@fixwheel.in</div>
+      </div>
+    </header>
+
+    <main class="dashboard-main">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <span style="display:inline-block; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:600; background:rgba(59, 130, 246, 0.15); color:#60a5fa; border:1px solid rgba(59, 130, 246, 0.25); font-family:var(--mono);">SANDBOX ENVIRONMENT</span>
+          <h1 style="font-size:24px; font-weight:800; margin-top:8px;">Test Orders Queue</h1>
+          <p style="font-family:var(--mono); font-size:12px; color:var(--text-3); margin-top:4px;">Isolated dev orders test panel. These orders are excluded from production revenue and analytics KPIs.</p>
+        </div>
+        <div class="admin-chip" id="test-count-badge">0 test orders</div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Bike</th>
+              <th>Service</th>
+              <th>Source</th>
+              <th>Location</th>
+              <th>Status</th>
+              <th>Amount</th>
+              <th>Assigned Mechanic</th>
+            </tr>
+          </thead>
+          <tbody id="test-table-body">
+            <tr><td colspan="10" style="text-align:center; padding:30px; color:var(--text-3);">Loading test orders...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSidebar('test_orders');
+
+      const themeBtn = document.getElementById('theme-toggle');
+      themeBtn?.addEventListener('click', () => {
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        if (isLight) {
+          document.documentElement.removeAttribute('data-theme');
+          localStorage.setItem('theme', 'dark');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          localStorage.setItem('theme', 'light');
+        }
+      });
+
+      const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      
+      async function loadTestOrders() {
+        const { data: bookings, error } = await supabaseClient.from('Booking').select('*');
+        if (error) {
+          console.error(error);
+          return;
+        }
+        
+        const testOrders = bookings.filter(b => {
+          const statusStr = (b.order_status || b.status || '').toLowerCase();
+          return b.is_test_order === true || b.is_test_order === 'true' || statusStr.includes('test order') || statusStr.includes('sandbox');
+        });
+
+        document.getElementById('test-count-badge').textContent = `${testOrders.length} test orders`;
+        const tbody = document.getElementById('test-table-body');
+        
+        if (testOrders.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:30px; color:var(--text-3);">No test orders found in sandbox.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = testOrders.map(o => `
+          <tr>
+            <td><span style="color:var(--text-1); font-weight:700;">#${o.bookingRef || o.id.slice(0, 7)}</span></td>
+            <td>${o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN') : 'N/A'}</td>
+            <td>${o.customerName || 'Test User'}<br><span style="color:var(--text-3); font-size:11px;">${o.phone || ''}</span></td>
+            <td>${o.bikeModel || ''} (${o.bikeType || ''})</td>
+            <td>${o.package || 'Test Service'}</td>
+            <td><span style="padding:2px 6px; border-radius:4px; background:rgba(59,130,246,0.1); color:#60a5fa; font-size:11px;">${o.source || 'App'}</span></td>
+            <td>${o.address || o.city || 'N/A'}</td>
+            <td><span style="padding:2px 8px; border-radius:12px; background:var(--surface-3); color:var(--text-2); font-size:11px;">${o.order_status || 'Test Order'}</span></td>
+            <td style="color:var(--text-1); font-weight:700;">₹${(o.Final_Amount || o.price || 0).toLocaleString()}</td>
+            <td>${o['Assign Mechanic'] || 'Unassigned'}</td>
+          </tr>
+        `).join('');
+      }
+
+      loadTestOrders();
+    });
+  </script>
+</body>
+</html>

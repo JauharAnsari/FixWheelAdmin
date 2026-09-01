@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script>
+    if (sessionStorage.getItem('fixwheel_admin_logged_in') !== 'true' && localStorage.getItem('fixwheel_admin_logged_in') !== 'true') {
+      window.location.replace('login.html');
+    }
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FixWheel — Partner Workload & Queue</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="sidebar.css">
+  <script src="sidebar.js"></script>
+  
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface-2: #1e1e1e;
+      --surface-3: #262626;
+      --border: #2a2a2a;
+      --border-hi: #3f3f3f;
+      --red: #ef4444;
+      --red-dim: #991b1b;
+      --green: #22c55e;
+      --green-dim: #166534;
+      --green-glow: rgba(34, 197, 94, 0.15);
+      --yellow: #facc15;
+      --blue: #3b82f6;
+      --text-1: #ffffff;
+      --text-2: #a1a1aa;
+      --text-3: #71717a;
+      --topbar-bg: rgba(10, 10, 10, 0.85);
+      --mono: 'DM Mono', monospace;
+      --sans: 'Syne', sans-serif;
+    }
+
+    [data-theme="light"] {
+      --bg: #f3f4f6;
+      --surface: #ffffff;
+      --surface-2: #f9fafb;
+      --surface-3: #e5e7eb;
+      --border: #e5e7eb;
+      --border-hi: #d1d5db;
+      --text-1: #111827;
+      --text-2: #4b5563;
+      --text-3: #6b7280;
+      --topbar-bg: rgba(255, 255, 255, 0.85);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-1);
+      font-family: var(--sans);
+      min-height: 100vh;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--topbar-bg);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 36px;
+      height: 60px;
+    }
+
+    .live-dot {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-2);
+    }
+
+    .live-dot::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 8px #22c55e;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    .main-container {
+      padding: 24px 36px;
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* KPI Summary Grid */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .summary-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .summary-val {
+      font-size: 26px;
+      font-weight: 800;
+      font-family: var(--sans);
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+    }
+
+    .input-control {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-1);
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 12px;
+      outline: none;
+    }
+
+    /* Workload Grid */
+    .workload-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .workload-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .workload-card:hover {
+      border-color: var(--border-hi);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+
+    .workload-badge-pill {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .workload-badge-pill.active-orders {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .workload-badge-pill.clear-orders {
+      background: var(--green-glow);
+      color: #4ade80;
+      border: 1px solid var(--green-dim);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-card {
+      background: var(--surface);
+      border: 1px solid var(--border-hi);
+      border-radius: 14px;
+      padding: 28px;
+      width: 90%;
+      max-width: 900px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.6);
+      animation: modalSlide 0.25s ease-out;
+    }
+
+    @keyframes modalSlide {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      min-width: 750px;
+    }
+
+    .modal-table th {
+      background: var(--surface-2);
+      padding: 10px 12px;
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--text-3);
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-table td {
+      padding: 12px;
+      font-size: 12.5px;
+      border-bottom: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-wrapper">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-weight:700; font-size:15px; text-transform:uppercase;">Partners</span>
+        <span style="font-family:var(--mono); color:var(--text-3); font-size:12px;">/ Workload & Active Queue</span>
+      </div>
+      <div class="topbar-right" style="display:flex; align-items:center; gap:20px;">
+        <span class="live-dot">LIVE</span>
+        <button id="theme-toggle" style="cursor:pointer; background:var(--surface-2); border:1px solid var(--border-hi); color:var(--text-2); padding:5px 12px; border-radius:20px; font-family:var(--mono); font-size:12px;">Theme</button>
+        <span style="background:var(--surface-2); border:1px solid var(--border-hi); border-radius:20px; padding:5px 14px; font-size:12px; font-family:var(--mono); color:var(--text-2);">admin@fixwheel.app</span>
+      </div>
+    </header>
+
+    <main class="main-container">
+
+      <!-- KPI Summary Section -->
+      <section class="summary-grid">
+        <div class="summary-card">
+          <span class="summary-label">Total Active Mechanics</span>
+          <span class="summary-val" style="color: var(--text-1);" id="kpi-total-mechanics">0</span>
+          <span style="font-family:var(--mono); font-size:11px; color:var(--text-3);">Active - Working with FixWheel</span>
+        </div>
+
+        <div class="summary-card" style="border-color: rgba(59, 130, 246, 0.3); background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, var(--surface) 100%);">
+          <span class="summary-label">Busy Mechanics (Active Queue)</span>
+          <span class="summary-val" style="color: #60a5fa;" id="kpi-busy-mechanics">0</span>
+          <span style="font-family:var(--mono); font-size:11px; color:var(--text-3);">Currently handling pending jobs</span>
+        </div>
+
+        <div class="summary-card" style="border-color: var(--green-dim); background: linear-gradient(135deg, var(--green-glow) 0%, var(--surface) 100%);">
+          <span class="summary-label">Available Mechanics</span>
+          <span class="summary-val" style="color: #4ade80;" id="kpi-clear-mechanics">0</span>
+          <span style="font-family:var(--mono); font-size:11px; color:var(--text-3);">Queue clear, ready for dispatch</span>
+        </div>
+
+        <div class="summary-card">
+          <span class="summary-label">Total Pending Dispatches</span>
+          <span class="summary-val" style="color: var(--yellow);" id="kpi-pending-dispatches">0</span>
+          <span style="font-family:var(--mono); font-size:11px; color:var(--text-3);">Pending & In-Progress bookings</span>
+        </div>
+      </section>
+
+      <!-- Filter Controls -->
+      <section class="filter-bar">
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+          <input type="text" id="search-input" placeholder="Search Garage, Owner, Phone or City..." class="input-control" style="min-width:260px;" oninput="renderWorkloadGrid()" />
+          <select id="queue-filter" class="input-control" onchange="renderWorkloadGrid()">
+            <option value="all">All Mechanics</option>
+            <option value="busy">Busy Mechanics Only (Pending Jobs)</option>
+            <option value="clear">Available Mechanics (Clear Queue)</option>
+          </select>
+        </div>
+        <span style="font-family:var(--mono); font-size:11.5px; color:var(--text-3);" id="visible-count">Showing 0 mechanics</span>
+      </section>
+
+      <!-- Workload Cards Grid -->
+      <section class="workload-grid" id="workload-grid">
+        <!-- Rendered dynamically -->
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Pending Bookings Modal -->
+  <div class="modal-overlay" id="pending-modal">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:14px;">
+        <div>
+          <h3 style="font-size:18px; font-weight:700; color:var(--text-1); display:flex; align-items:center; gap:8px;" id="modal-partner-name">
+            <span>📋</span> Pending Bookings
+          </h3>
+          <p style="font-size:12px; color:var(--text-3); font-family:var(--mono); margin-top:2px;" id="modal-partner-meta">Active Dispatch Queue</p>
+        </div>
+        <button onclick="closePendingModal()" style="background:none; border:none; color:var(--text-3); font-size:22px; cursor:pointer;">✕</button>
+      </div>
+
+      <div id="modal-content">
+        <!-- Pending Bookings Table rendered here -->
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script>
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let allPartners = [];
+    let allBookings = [];
+
+    // Theme toggle
+    document.getElementById('theme-toggle')?.addEventListener('click', () => {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      if (isLight) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+      }
+    });
+
+    async function fetchWorkloadData() {
+      const [{ data: partners, error: pErr }, { data: bookings, error: bErr }] = await Promise.all([
+        supabaseClient.from('Partner').select('*'),
+        supabaseClient.from('Booking').select('*').order('createdAt', { ascending: false })
+      ]);
+
+      if (pErr || bErr) {
+        console.error('Error fetching workload data:', pErr || bErr);
+        return;
+      }
+
+      // Filter active partners
+      allPartners = (partners || []).filter(p => {
+        const st = (p.partner_status || p.status || '').toLowerCase();
+        return st.includes('active') && !st.includes('deactivate');
+      });
+
+      // Filter non-test bookings
+      allBookings = (bookings || []).filter(b => {
+        const st = (b.order_status || b.status || '').toLowerCase();
+        const isTest = b.is_test_order === true || b.is_test_order === 'true' || st.includes('test order') || st.includes('sandbox');
+        return !isTest;
+      });
+
+      renderWorkloadGrid();
+    }
+
+    function renderWorkloadGrid() {
+      const grid = document.getElementById('workload-grid');
+      if (!grid) return;
+
+      const searchTerm = (document.getElementById('search-input')?.value || '').toLowerCase();
+      const queueFilter = document.getElementById('queue-filter')?.value || 'all';
+
+      let totalMechanics = allPartners.length;
+      let busyMechanics = 0;
+      let clearMechanics = 0;
+      let totalPendingDispatches = 0;
+
+      const partnerWorkloadList = allPartners.map(p => {
+        const pGarage = (p.garageName || '').trim().toLowerCase();
+        const pOwner = (p.ownerName || '').trim().toLowerCase();
+
+        const assignedBookings = allBookings.filter(b => {
+          const mech = (b['Assign Mechanic'] || b.mechanic || '').trim().toLowerCase();
+          if (!mech) return false;
+          return (pGarage && mech === pGarage) || (pOwner && mech === pOwner);
+        });
+
+        const pendingBookings = assignedBookings.filter(b => {
+          const st = (b.order_status || b.status || '').toLowerCase();
+          return !st.includes('completed') && !st.includes('cancel');
+        });
+
+        if (pendingBookings.length > 0) {
+          busyMechanics++;
+          totalPendingDispatches += pendingBookings.length;
+        } else {
+          clearMechanics++;
+        }
+
+        return {
+          partnerObj: p,
+          garageName: p.garageName || p.ownerName || 'Unknown Garage',
+          ownerName: p.ownerName || '',
+          phone: p.phone || p.mobile || 'N/A',
+          city: p.city || p.work_location || 'NCR',
+          assignedBookings,
+          pendingBookings,
+          pendingCount: pendingBookings.length
+        };
+      });
+
+      // Update KPI Header
+      document.getElementById('kpi-total-mechanics').textContent = totalMechanics;
+      document.getElementById('kpi-busy-mechanics').textContent = busyMechanics;
+      document.getElementById('kpi-clear-mechanics').textContent = clearMechanics;
+      document.getElementById('kpi-pending-dispatches').textContent = totalPendingDispatches;
+
+      // Filter list
+      const filteredList = partnerWorkloadList.filter(p => {
+        const matchSearch = searchTerm === '' ||
+          p.garageName.toLowerCase().includes(searchTerm) ||
+          p.ownerName.toLowerCase().includes(searchTerm) ||
+          p.phone.toLowerCase().includes(searchTerm) ||
+          p.city.toLowerCase().includes(searchTerm);
+
+        if (!matchSearch) return false;
+
+        if (queueFilter === 'busy') return p.pendingCount > 0;
+        if (queueFilter === 'clear') return p.pendingCount === 0;
+        return true;
+      });
+
+      // Sort: Busy mechanics first
+      filteredList.sort((a, b) => b.pendingCount - a.pendingCount);
+
+      document.getElementById('visible-count').textContent = `Showing ${filteredList.length} mechanics`;
+
+      if (filteredList.length === 0) {
+        grid.innerHTML = `
+          <div style="font-family:var(--mono); color:var(--text-3); font-size:13px; text-align:center; padding:40px; grid-column:span 3;">
+            No mechanics match the current search & filter criteria.
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      filteredList.forEach(p => {
+        const badgeClass = p.pendingCount > 0 ? 'active-orders' : 'clear-orders';
+        const badgeText = p.pendingCount > 0 ? `⚡ ${p.pendingCount} Pending Orders` : `✓ Clear Queue`;
+
+        html += `
+          <div class="workload-card" onclick="openPendingModal('${escapeStr(p.garageName)}', '${escapeStr(p.ownerName)}', '${escapeStr(p.phone)}')">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <h4 style="font-size:15px; font-weight:700; color:var(--text-1);">${p.garageName}</h4>
+                <div style="font-size:12px; color:var(--text-3); font-family:var(--mono); margin-top:2px;">${p.ownerName} · ${p.city}</div>
+              </div>
+              <span class="workload-badge-pill ${badgeClass}">${badgeText}</span>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; pt:8px; border-top:1px solid var(--border);">
+              <span style="font-family:var(--mono); font-size:11.5px; color:var(--text-2);">${p.phone}</span>
+              <span style="font-family:var(--mono); font-size:11.5px; color:var(--blue); font-weight:600;">View Pending Bookings (${p.pendingCount}) →</span>
+            </div>
+          </div>
+        `;
+      });
+
+      grid.innerHTML = html;
+    }
+
+    function escapeStr(str) {
+      if (!str) return '';
+      return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    function openPendingModal(garageName, ownerName, phone) {
+      const gName = (garageName || ownerName || 'Partner').trim();
+      const pNameLower = gName.toLowerCase();
+      const oNameLower = (ownerName || '').trim().toLowerCase();
+
+      document.getElementById('modal-partner-name').innerHTML = `<span>📋</span> Pending Bookings for ${gName}`;
+      document.getElementById('modal-partner-meta').textContent = `Contact: ${phone || 'N/A'} · Active Dispatch Queue`;
+
+      const modalContent = document.getElementById('modal-content');
+
+      // Filter pending orders
+      const pendingOrders = allBookings.filter(b => {
+        const mech = (b['Assign Mechanic'] || b.mechanic || '').trim().toLowerCase();
+        if (!mech) return false;
+        const matchesMech = mech === pNameLower || (oNameLower && mech === oNameLower);
+        if (!matchesMech) return false;
+
+        const st = (b.order_status || b.status || '').toLowerCase();
+        return !st.includes('completed') && !st.includes('cancel');
+      });
+
+      if (pendingOrders.length === 0) {
+        modalContent.innerHTML = `
+          <div style="text-align:center; padding:48px 20px; color:var(--text-3); font-family:var(--mono);">
+            <div style="font-size:36px; margin-bottom:10px; color:#4ade80;">✓</div>
+            <p style="font-size:15px; font-weight:700; color:var(--text-1);">Queue is Completely Clear!</p>
+            <p style="font-size:12px; margin-top:6px;">No pending or in-progress orders are currently assigned to ${gName}.</p>
+          </div>
+        `;
+      } else {
+        let html = `
+          <div class="table-wrap" style="max-height:55vh; overflow-y:auto; border:1px solid var(--border); border-radius:8px;">
+            <table class="modal-table">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Booking Date</th>
+                  <th>Customer Name & Phone</th>
+                  <th>Vehicle</th>
+                  <th>Service Package</th>
+                  <th>Order Status</th>
+                  <th>Amount</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+
+        pendingOrders.forEach(b => {
+          const dateStr = b.createdAt ? new Date(b.createdAt.endsWith('Z') || b.createdAt.includes('+') ? b.createdAt : b.createdAt + 'Z').toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : 'N/A';
+          const amt = Number(b.Final_Amount) || Number(b.price) || 0;
+
+          html += `
+            <tr>
+              <td><span style="font-family:var(--mono); font-weight:700; color:var(--text-1);">#${b.bookingRef || b.id.slice(0, 7)}</span></td>
+              <td><span style="font-family:var(--mono); font-size:11px; color:var(--text-2);">${dateStr}</span></td>
+              <td>
+                <div style="font-weight:600; color:var(--text-1); font-size:13px;">${b.customerName || 'Unknown'}</div>
+                <div style="font-family:var(--mono); font-size:11px; color:var(--text-3);">${b.phone || ''}</div>
+              </td>
+              <td>
+                <div style="font-size:12.5px; color:var(--text-1);">${b.bikeModel || ''}</div>
+                <div style="font-family:var(--mono); font-size:10.5px; color:var(--text-3);">${b.bikeType || ''}</div>
+              </td>
+              <td><span style="font-family:var(--mono); font-size:11px; padding:2px 6px; background:var(--surface-3); border-radius:4px;">${b.package || 'Service'}</span></td>
+              <td><span style="font-family:var(--mono); font-size:11px; color:#60a5fa; font-weight:600;">${b.order_status || b.status || 'Pending'}</span></td>
+              <td><strong style="font-family:var(--mono); color:var(--text-1);">₹${amt.toLocaleString()}</strong></td>
+              <td>
+                <a href="index.html" style="font-family:var(--mono); font-size:11px; color:var(--blue); text-decoration:none; font-weight:600;">View in Queue →</a>
+              </td>
+            </tr>
+          `;
+        });
+
+        html += `
+              </tbody>
+            </table>
+          </div>
+        `;
+        modalContent.innerHTML = html;
+      }
+
+      const modal = document.getElementById('pending-modal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closePendingModal() {
+      const modal = document.getElementById('pending-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    // Initialize
+    fetchWorkloadData();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSidebar('partner_workload');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script>
+    if (sessionStorage.getItem('fixwheel_admin_logged_in') !== 'true' && localStorage.getItem('fixwheel_admin_logged_in') !== 'true') {
+      window.location.replace('login.html');
+    }
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>FixWheel — Partner Payouts & 25%/75% Settlements</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="theme.css?v=2027">
+  <link rel="stylesheet" href="sidebar.css?v=2027">
+  <script src="sidebar.js?v=2027"></script>
+  
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      background: var(--bg);
+      color: var(--text-1);
+      font-family: var(--sans);
+      min-height: 100vh;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--topbar-bg);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 36px;
+      height: 60px;
+    }
+
+    .live-dot {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-2);
+    }
+
+    .live-dot::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 8px #22c55e;
+    }
+
+    .main-container {
+      padding: 24px 36px;
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-width: 1150px;
+    }
+
+    /* KPI Summary Cards */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .summary-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .summary-val {
+      font-size: 26px;
+      font-weight: 800;
+      font-family: var(--sans);
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+    }
+
+    .filter-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .search-input {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-1);
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: var(--mono);
+      outline: none;
+      min-width: 220px;
+    }
+
+    .select-input {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-1);
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: var(--mono);
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* Main Payouts Table */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow-x: auto;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    table {
+      width: 100%;
+      min-width: 1100px;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: var(--surface-2);
+      color: var(--text-3);
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 14px 16px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tr.partner-row {
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    tr.partner-row:hover {
+      background: var(--surface-2);
+    }
+
+    /* Settlement Badges */
+    .settlement-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .settlement-badge.done {
+      background: var(--green-glow);
+      color: #4ade80;
+      border: 1px solid var(--green-dim);
+    }
+
+    .settlement-badge.pay-mech {
+      background: var(--yellow-glow);
+      color: #facc15;
+      border: 1px solid var(--yellow-dim);
+    }
+
+    .settlement-badge.collect-mech {
+      background: var(--blue-glow);
+      color: #60a5fa;
+      border: 1px solid var(--blue-dim);
+    }
+
+    /* Nested Drawer Table */
+    .drawer-row {
+      display: none;
+      background: rgba(0, 0, 0, 0.25);
+    }
+
+    .drawer-row.active {
+      display: table-row;
+    }
+
+    .drawer-container {
+      padding: 16px 24px 24px 24px;
+      border-left: 3px solid var(--red);
+      background: var(--surface-2);
+    }
+
+    .nested-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: var(--surface);
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .nested-table th {
+      background: var(--surface-3);
+      font-size: 10.5px;
+      padding: 10px 14px;
+    }
+
+    .nested-table td {
+      padding: 10px 14px;
+      font-size: 12px;
+    }
+
+    .btn-settle-action {
+      background: var(--green-glow);
+      border: 1px solid var(--green-dim);
+      color: #4ade80;
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-family: var(--mono);
+      font-size: 11px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+
+    .btn-settle-action:hover {
+      background: rgba(34, 197, 94, 0.3);
+    }
+
+    .btn-unsettle-action {
+      background: var(--surface-3);
+      border: 1px solid var(--border-hi);
+      color: var(--text-2);
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-family: var(--mono);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-unsettle-action:hover {
+      background: var(--border-hi);
+      color: var(--text-1);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-wrapper">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="font-weight:800; font-size:15px; text-transform:uppercase;">PARTNER PAYOUTS</span>
+        <span style="font-family:var(--mono); color:var(--text-3); font-size:12px;">/ 25% Platform Fee & 75% Mechanic Share Settlement Engine</span>
+      </div>
+      <div class="topbar-right" style="display:flex; align-items:center; gap:16px;">
+        <button id="theme-toggle" class="fw-btn-secondary" style="cursor:pointer; background:var(--surface-2); border:1px solid var(--border-hi); color:var(--text-2); padding:5px 12px; border-radius:20px; font-family:var(--mono); font-size:12px;">Theme</button>
+        <div class="live-dot">LIVE</div>
+        <div style="background:var(--surface-2); border:1px solid var(--border-hi); border-radius:20px; padding:5px 14px; font-size:12px; font-family:var(--mono); color:var(--text-2);" id="admin-email">admin@fixwheel.app</div>
+      </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="main-container">
+      
+      <!-- Top Financial Summary Grid (25% / 75% Rule Engine) -->
+      <div class="summary-grid">
+        <div class="summary-card" style="border-color: var(--yellow-dim); background: linear-gradient(135deg, rgba(234, 179, 8, 0.05) 0%, var(--surface) 100%);">
+          <span class="summary-label">FixWheel Owes Mechanics (75%)</span>
+          <div class="summary-val" style="color: #facc15;" id="kpi-we-owe-mech">₹0</div>
+          <span style="font-family:var(--mono); font-size:11px; color:var(--text-3);">75% share for FixWheel-paid orders</span>
+        </div>
+
+        <div class="summary-card" style="border-color: var(--blue-dim); background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, var(--surface) 100%);">
+          <span class="summary-label">Mechanics Owe FixWheel (25%)</span>
+          <div class="summary-val" style="color: #60a5fa;" id="kpi-mech-owes-us">₹0</div>
+          <span style="font-family:var(--mono); font-size:11px; color:var(--text-3);">25% platform fee for cash orders</span>
+        </div>
+
+        <div class="summary-card" style="border-color: var(--green-dim); background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, var(--surface) 100%);">
+          <span class="summary-label">Net Settlement Balance</span>
+          <div class="summary-val" style="color: #4ade80;" id="kpi-net-balance">₹0</div>
+          <span style="font-family:var(--mono); font-size:11px; color:var(--text-3);" id="kpi-net-sub">Net payout due</span>
+        </div>
+
+        <div class="summary-card">
+          <span class="summary-label">Completed Jobs Total</span>
+          <div class="summary-val" style="color: var(--text-1);" id="kpi-completed-jobs">0</div>
+          <span style="font-family:var(--mono); font-size:11px; color:var(--text-3);">Excludes test sandbox</span>
+        </div>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="filter-bar">
+        <div class="filter-controls">
+          <input type="text" id="search-input" class="search-input" placeholder="Search partner name, garage, phone..." oninput="renderPayoutsTable()">
+          
+          <select id="payout-filter" class="select-input" onchange="renderPayoutsTable()">
+            <option value="all">All Partners</option>
+            <option value="pending" selected>Unsettled Settlements Only</option>
+            <option value="settled">Fully Settled Only</option>
+          </select>
+
+          <select id="sort-select" class="select-input" onchange="renderPayoutsTable()">
+            <option value="owed-desc">Net Balance (Highest First)</option>
+            <option value="jobs-desc">Completed Jobs (Highest First)</option>
+            <option value="name-asc">Partner Name (A-Z)</option>
+          </select>
+        </div>
+
+        <span style="font-family:var(--mono); font-size:12px; color:var(--text-3);" id="visible-count">Showing 0 partners</span>
+      </div>
+
+      <!-- Main Settlements Table -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Partner / Garage</th>
+              <th>Contact / City</th>
+              <th>Jobs Done</th>
+              <th>FixWheel Paid (100%)</th>
+              <th>Mechanic Cash (100%)</th>
+              <th>We Owe Mech (75%)</th>
+              <th>Mech Owes Us (25%)</th>
+              <th>Net Settlement Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="payouts-table-body">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script>
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let allPartnersData = [];
+    let allBookingsData = [];
+    let expandedPartnerId = null;
+
+    // Theme toggle
+    document.getElementById('theme-toggle')?.addEventListener('click', () => {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      if (isLight) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+      }
+    });
+
+    async function fetchPayoutsData() {
+      const [{ data: partners, error: pErr }, { data: bookings, error: bErr }] = await Promise.all([
+        supabaseClient.from('Partner').select('*'),
+        supabaseClient.from('Booking').select('*').order('createdAt', { ascending: false })
+      ]);
+
+      if (pErr || bErr) {
+        console.error('Error fetching data:', pErr || bErr);
+        return;
+      }
+
+      allPartnersData = partners || [];
+      // Filter out test orders
+      allBookingsData = (bookings || []).filter(b => {
+        const st = (b.order_status || b.status || '').toLowerCase();
+        const isTest = b.is_test_order === true || b.is_test_order === 'true' || st.includes('test order') || st.includes('sandbox');
+        return !isTest;
+      });
+
+      renderPayoutsTable();
+    }
+
+    function toggleDrawer(partnerId) {
+      if (expandedPartnerId === partnerId) {
+        expandedPartnerId = null;
+      } else {
+        expandedPartnerId = partnerId;
+      }
+      renderPayoutsTable();
+    }
+
+    function renderPayoutsTable() {
+      const tbody = document.getElementById('payouts-table-body');
+      if (!tbody) return;
+
+      const searchTerm = (document.getElementById('search-input')?.value || '').toLowerCase();
+      const payoutFilter = document.getElementById('payout-filter')?.value || 'all';
+      const sortSelect = document.getElementById('sort-select')?.value || 'owed-desc';
+
+      const partnerStatsMap = {};
+
+      allPartnersData.forEach(p => {
+        const nameKey = (p.garageName || p.ownerName || 'Unknown Partner').trim();
+        partnerStatsMap[nameKey] = {
+          partnerObj: p,
+          garageName: p.garageName || p.ownerName || 'Unknown Garage',
+          ownerName: p.ownerName || '',
+          phone: p.phone || p.mobile || '',
+          city: p.city || p.work_location || 'NCR',
+          assignedOrders: [],
+          completedOrders: [],
+          completedCount: 0,
+          fixwheelCollectedTotal: 0,
+          mechanicCollectedTotal: 0,
+          weOweMech75Total: 0,
+          mechOwesUs25Total: 0,
+          netBalance: 0
+        };
+      });
+
+      // Process orders using 25% / 75% Settlement Rules
+      allBookingsData.forEach(b => {
+        const mechName = (b['Assign Mechanic'] || b.mechanic || '').trim();
+        if (!mechName || mechName === 'Unassigned') return;
+
+        let targetKey = Object.keys(partnerStatsMap).find(k => k.toLowerCase() === mechName.toLowerCase());
+        if (!targetKey) {
+          targetKey = mechName;
+          partnerStatsMap[targetKey] = {
+            partnerObj: { garageName: mechName },
+            garageName: mechName,
+            ownerName: '',
+            phone: b.phone || '',
+            city: b.city || 'NCR',
+            assignedOrders: [],
+            completedOrders: [],
+            completedCount: 0,
+            fixwheelCollectedTotal: 0,
+            mechanicCollectedTotal: 0,
+            weOweMech75Total: 0,
+            mechOwesUs25Total: 0,
+            netBalance: 0
+          };
+        }
+
+        const entry = partnerStatsMap[targetKey];
+        entry.assignedOrders.push(b);
+
+        const isCompleted = (b.order_status || b.status || '').toLowerCase().includes('completed');
+        const finalAmt = Number(b.Final_Amount) || Number(b.price) || 0;
+        const isSettled = b.settlement === 'Done';
+
+        if (isCompleted) {
+          entry.completedOrders.push(b);
+          entry.completedCount++;
+
+          const isFixWheelPaid = (b.order_status || b.status || '').toLowerCase().includes('fixwheel') || (b.payment_received_by || '').toLowerCase() === 'fixwheel';
+          const isMechanicPaid = (b.order_status || b.status || '').toLowerCase().includes('mechanic') || (b.payment_received_by || '').toLowerCase() === 'mechanic';
+
+          if (!isSettled) {
+            if (isFixWheelPaid) {
+              // FixWheel collected 100%. We owe Mechanic 75%
+              const mech75 = Math.round(finalAmt * 0.75);
+              entry.fixwheelCollectedTotal += finalAmt;
+              entry.weOweMech75Total += mech75;
+            } else {
+              // Mechanic collected 100%. Mechanic owes FixWheel 25%
+              const fw25 = Math.round(finalAmt * 0.25);
+              entry.mechanicCollectedTotal += finalAmt;
+              entry.mechOwesUs25Total += fw25;
+            }
+          }
+        }
+      });
+
+      let partnerList = Object.values(partnerStatsMap);
+
+      let grandWeOweMech75 = 0;
+      let grandMechOwesUs25 = 0;
+      let grandCompletedJobs = 0;
+
+      partnerList.forEach(p => {
+        p.netBalance = p.weOweMech75Total - p.mechOwesUs25Total;
+        grandWeOweMech75 += p.weOweMech75Total;
+        grandMechOwesUs25 += p.mechOwesUs25Total;
+        grandCompletedJobs += p.completedCount;
+      });
+
+      const grandNetBalance = grandWeOweMech75 - grandMechOwesUs25;
+
+      document.getElementById('kpi-we-owe-mech').textContent = `₹${grandWeOweMech75.toLocaleString()}`;
+      document.getElementById('kpi-mech-owes-us').textContent = `₹${grandMechOwesUs25.toLocaleString()}`;
+      
+      const netValEl = document.getElementById('kpi-net-balance');
+      const netSubEl = document.getElementById('kpi-net-sub');
+      if (grandNetBalance >= 0) {
+        netValEl.textContent = `₹${grandNetBalance.toLocaleString()}`;
+        netValEl.style.color = '#4ade80';
+        netSubEl.textContent = 'Net FixWheel Payout Owed to Mechanics';
+      } else {
+        netValEl.textContent = `₹${Math.abs(grandNetBalance).toLocaleString()}`;
+        netValEl.style.color = '#60a5fa';
+        netSubEl.textContent = 'Net Commission Owed by Mechanics to FixWheel';
+      }
+
+      document.getElementById('kpi-completed-jobs').textContent = grandCompletedJobs;
+
+      // Filter
+      partnerList = partnerList.filter(p => {
+        const matchSearch = searchTerm === '' || 
+          p.garageName.toLowerCase().includes(searchTerm) ||
+          p.ownerName.toLowerCase().includes(searchTerm) ||
+          p.phone.toLowerCase().includes(searchTerm) ||
+          p.city.toLowerCase().includes(searchTerm);
+
+        if (!matchSearch) return false;
+
+        if (payoutFilter === 'pending') return Math.abs(p.netBalance) > 0 || p.weOweMech75Total > 0 || p.mechOwesUs25Total > 0;
+        if (payoutFilter === 'settled') return p.netBalance === 0 && p.completedCount > 0;
+        return true;
+      });
+
+      // Sort
+      partnerList.sort((a, b) => {
+        if (sortSelect === 'owed-desc') return Math.abs(b.netBalance) - Math.abs(a.netBalance);
+        if (sortSelect === 'jobs-desc') return b.completedCount - a.completedCount;
+        if (sortSelect === 'name-asc') return a.garageName.localeCompare(b.garageName);
+        return 0;
+      });
+
+      document.getElementById('visible-count').textContent = `Showing ${partnerList.length} partners`;
+
+      if (partnerList.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" style="text-align:center; padding:40px; color:var(--text-3); font-family:var(--mono);">
+              No partners match the selected filter criteria.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      let html = '';
+      partnerList.forEach((p, idx) => {
+        const uniqueId = `partner-row-${idx}`;
+        const isExpanded = expandedPartnerId === uniqueId;
+
+        let statusBadge = '';
+        if (p.netBalance > 0) {
+          statusBadge = `<span class="settlement-badge pay-mech">● FixWheel Owes ₹${p.netBalance.toLocaleString()} (75%)</span>`;
+        } else if (p.netBalance < 0) {
+          statusBadge = `<span class="settlement-badge collect-mech">● Mechanic Owes ₹${Math.abs(p.netBalance).toLocaleString()} (25%)</span>`;
+        } else if (p.completedCount > 0) {
+          statusBadge = `<span class="settlement-badge done">✓ Fully Settled</span>`;
+        } else {
+          statusBadge = `<span style="font-size:11px; color:var(--text-3); font-family:var(--mono);">No Completed Jobs</span>`;
+        }
+
+        html += `
+          <tr class="partner-row" onclick="toggleDrawer('${uniqueId}')">
+            <td>
+              <div style="font-weight:700; color:var(--text-1); font-size:13.5px;">${p.garageName}</div>
+              <div style="font-size:11px; color:var(--text-3); font-family:var(--mono);">${p.ownerName}</div>
+            </td>
+            <td>
+              <div style="font-family:var(--mono); font-size:12px; color:var(--text-2);">${p.phone || 'N/A'}</div>
+              <div style="font-size:11px; color:var(--text-3);">${p.city}</div>
+            </td>
+            <td><strong style="color:#4ade80; font-family:var(--mono);">${p.completedCount}</strong></td>
+            <td><span style="font-family:var(--mono); font-weight:600; color:var(--text-2);">₹${p.fixwheelCollectedTotal.toLocaleString()}</span></td>
+            <td><span style="font-family:var(--mono); font-weight:600; color:var(--text-2);">₹${p.mechanicCollectedTotal.toLocaleString()}</span></td>
+            <td><span style="font-family:var(--mono); font-weight:700; color:#facc15;">₹${p.weOweMech75Total.toLocaleString()}</span></td>
+            <td><span style="font-family:var(--mono); font-weight:700; color:#60a5fa;">₹${p.mechOwesUs25Total.toLocaleString()}</span></td>
+            <td>${statusBadge}</td>
+            <td>
+              <button style="background:var(--surface-2); border:1px solid var(--border); color:var(--text-2); padding:4px 10px; border-radius:6px; font-family:var(--mono); font-size:11px; cursor:pointer;">
+                ${isExpanded ? 'Hide Orders ▲' : 'Settle Orders ▼'}
+              </button>
+            </td>
+          </tr>
+
+          <!-- Nested Drawer Row -->
+          <tr class="drawer-row ${isExpanded ? 'active' : ''}">
+            <td colspan="9" style="padding:0;">
+              <div class="drawer-container">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                  <h4 style="font-size:13.5px; font-weight:700; color:var(--text-1);">
+                    Order-by-Order Settlement Breakdown for ${p.garageName}
+                  </h4>
+                  <span style="font-family:var(--mono); font-size:11px; color:var(--text-3);">
+                    25% Platform Fee / 75% Mechanic Share Engine
+                  </span>
+                </div>
+
+                ${p.assignedOrders.length === 0 ? '<div style="font-family:var(--mono); font-size:12px; color:var(--text-3); padding:10px 0;">No orders assigned to this partner yet.</div>' : `
+                  <table class="nested-table">
+                    <thead>
+                      <tr>
+                        <th>Order Ref</th>
+                        <th>Date</th>
+                        <th>Vehicle & Service</th>
+                        <th>Order Status</th>
+                        <th>Collected By</th>
+                        <th>Final Amount (100%)</th>
+                        <th>FixWheel 25%</th>
+                        <th>Mechanic 75%</th>
+                        <th>Settlement Due</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${p.assignedOrders.map(b => {
+                        const bId = b.bookingRef ? b.bookingRef : b.id;
+                        const bCol = b.bookingRef ? 'bookingRef' : 'id';
+                        const isCompleted = (b.order_status || b.status || '').toLowerCase().includes('completed');
+                        const isSettled = b.settlement === 'Done';
+                        const amt = Number(b.Final_Amount) || Number(b.price) || 0;
+                        const fw25 = Math.round(amt * 0.25);
+                        const mech75 = Math.round(amt * 0.75);
+
+                        const isFixWheelPaid = (b.order_status || b.status || '').toLowerCase().includes('fixwheel') || (b.payment_received_by || '').toLowerCase() === 'fixwheel';
+                        const isMechanicPaid = (b.order_status || b.status || '').toLowerCase().includes('mechanic') || (b.payment_received_by || '').toLowerCase() === 'mechanic';
+
+                        const dateStr = b.createdAt ? new Date(b.createdAt.endsWith('Z') || b.createdAt.includes('+') ? b.createdAt : b.createdAt + 'Z').toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) : 'N/A';
+
+                        let dueBadge = '';
+                        if (isSettled) {
+                          dueBadge = '<span class="settlement-badge done">✓ Settled</span>';
+                        } else if (!isCompleted) {
+                          dueBadge = '<span class="settlement-badge" style="background:var(--surface-3); color:var(--text-3);">Pending Job</span>';
+                        } else if (isFixWheelPaid) {
+                          dueBadge = `<span class="settlement-badge pay-mech" title="FixWheel collected full payment online. We owe 75% to mechanic.">Pay Mech ₹${mech75.toLocaleString()} (75%)</span>`;
+                        } else {
+                          dueBadge = `<span class="settlement-badge collect-mech" title="Mechanic collected cash. Mechanic owes 25% fee to FixWheel.">Collect ₹${fw25.toLocaleString()} (25%)</span>`;
+                        }
+
+                        return `
+                          <tr>
+                            <td><span style="font-family:var(--mono); color:var(--text-1); font-weight:600;">#${b.bookingRef || b.id.slice(0, 7)}</span></td>
+                            <td><span style="font-family:var(--mono); font-size:11px; color:var(--text-2);">${dateStr}</span></td>
+                            <td>
+                              <div style="font-weight:600;">${b.bikeModel || 'Bike'}</div>
+                              <div style="font-size:11px; color:var(--text-3); font-family:var(--mono);">${b.package || 'Service'}</div>
+                            </td>
+                            <td><span class="fw-badge ${isCompleted ? 'fw-badge-success' : 'fw-badge-neutral'}" style="font-size:10.5px;">${b.order_status || b.status || 'Pending'}</span></td>
+                            <td>
+                              ${isFixWheelPaid 
+                                ? '<span class="fw-badge fw-badge-info" style="font-size:10.5px;">🏢 FixWheel</span>' 
+                                : '<span class="fw-badge fw-badge-amber" style="font-size:10.5px;">🔧 Mechanic</span>'}
+                            </td>
+                            <td><strong style="font-family:var(--mono); color:var(--text-1);">₹${amt.toLocaleString()}</strong></td>
+                            <td><span style="font-family:var(--mono); color:#60a5fa;">₹${fw25.toLocaleString()}</span></td>
+                            <td><span style="font-family:var(--mono); color:#facc15;">₹${mech75.toLocaleString()}</span></td>
+                            <td>${dueBadge}</td>
+                            <td>
+                              ${isSettled 
+                                ? `<button class="btn-unsettle-action" onclick="event.stopPropagation(); updateSettlementStatus('${bId}', 'Pending', '${bCol}')">Mark Pending</button>`
+                                : `<button class="btn-settle-action" onclick="event.stopPropagation(); updateSettlementStatus('${bId}', 'Done', '${bCol}')">✓ Settle Order</button>`
+                              }
+                            </td>
+                          </tr>
+                        `;
+                      }).join('')}
+                    </tbody>
+                  </table>
+                `}
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    async function updateSettlementStatus(orderId, newSettlement, column = 'id') {
+      const { data, error } = await supabaseClient
+        .from('Booking')
+        .update({ settlement: newSettlement })
+        .eq(column, orderId)
+        .select();
+
+      if (error) {
+        console.error('Error updating settlement:', error);
+        alert('Failed to update settlement: ' + error.message);
+      } else {
+        console.log('Settlement updated:', data);
+        await fetchPayoutsData();
+      }
+    }
+
+    // Initialize
+    fetchPayoutsData();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSidebar('payouts');
+    });
+  </script>
+</body>
+</html>

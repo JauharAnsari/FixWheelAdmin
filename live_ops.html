@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    if (sessionStorage.getItem('fixwheel_admin_logged_in') !== 'true' && localStorage.getItem('fixwheel_admin_logged_in') !== 'true') {
+      window.location.replace('login.html');
+    }
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FixWheel — Live Ops Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="sidebar.css">
+  <script src="sidebar.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg:        #0a0a0a;
+      --surface:   #141414;
+      --surface-2: #1e1e1e;
+      --surface-3: #262626;
+      --border:    #2a2a2a;
+      --border-hi: #3f3f3f;
+      --red:       #ef4444;
+      --red-dim:   #991b1b;
+      --red-glow:  rgba(239, 68, 68, 0.15);
+      --green:     #22c55e;
+      --green-dim: #166534;
+      --green-glow:rgba(34, 197, 94, 0.15);
+      --yellow:    #facc15;
+      --yellow-glow: rgba(250, 204, 21, 0.15);
+      --text-1:    #ffffff;
+      --text-2:    #a1a1aa;
+      --text-3:    #71717a;
+      --topbar-bg: rgba(10, 10, 10, 0.85);
+      --mono:      'DM Mono', monospace;
+      --sans:      'Syne', sans-serif;
+    }
+
+    [data-theme="light"] {
+      --bg:        #f3f4f6;
+      --surface:   #ffffff;
+      --surface-2: #f9fafb;
+      --surface-3: #e5e7eb;
+      --border:    #e5e7eb;
+      --border-hi: #d1d5db;
+      --text-1:    #111827;
+      --text-2:    #4b5563;
+      --text-3:    #6b7280;
+      --topbar-bg: rgba(255, 255, 255, 0.85);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-1);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ─── Topbar ─── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--topbar-bg);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 36px;
+      height: 60px;
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-brand span {
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .topbar-brand em {
+      font-style: normal;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-3);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .live-dot {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--green);
+      background: var(--green-glow);
+      border: 1px solid var(--green-dim);
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+
+    .live-dot::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    .admin-chip {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-2);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+
+    /* ─── Stats Row ─── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat-cell {
+      background: var(--surface);
+      padding: 20px 28px;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.2s;
+    }
+
+    .stat-cell:hover { background: var(--surface-2); }
+
+    .stat-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--text-3);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .stat-value.red { color: var(--red); }
+    .stat-value.yellow { color: var(--yellow); }
+    .stat-value.green { color: #4ade80; }
+    .stat-value.white { color: var(--text-1); }
+
+    .stat-sub {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+      margin-top: 6px;
+    }
+
+    /* ─── Main Content ─── */
+    .main {
+      padding: 32px 36px;
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title h2 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .section-tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .section-tag.danger {
+      background: var(--red-glow);
+      color: var(--red);
+      border: 1px solid var(--red-dim);
+    }
+
+    .section-tag.map {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.25);
+    }
+
+    /* ─── Table ─── */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      text-align: left;
+    }
+
+    th {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--text-3);
+      text-transform: uppercase;
+      padding: 12px 16px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tbody tr:hover { background: var(--surface-2); }
+
+    .order-id {
+      font-family: var(--mono);
+      font-weight: 600;
+      color: var(--text-1);
+    }
+
+    .customer-name { font-weight: 600; color: var(--text-1); }
+    .customer-phone { font-family: var(--mono); font-size: 11px; color: var(--text-3); }
+
+    .time-text { font-family: var(--mono); font-size: 11.5px; }
+
+    /* SLA Badges */
+    .sla-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .sla-badge.neutral {
+      background: var(--surface-3);
+      color: var(--text-2);
+      border: 1px solid var(--border-hi);
+    }
+
+    .sla-badge.warning {
+      background: var(--yellow-glow);
+      color: var(--yellow);
+      border: 1px solid rgba(250, 204, 21, 0.3);
+    }
+
+    .sla-badge.danger {
+      background: var(--red-glow);
+      color: var(--red);
+      border: 1px solid var(--red-dim);
+      animation: pulse 1.5s infinite;
+    }
+
+    .status-select {
+      background: var(--surface-2);
+      border: 1px solid var(--border-hi);
+      color: var(--text-1);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-family: var(--sans);
+      font-size: 12px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .btn-action {
+      background: transparent;
+      border: 1px solid var(--border-hi);
+      color: var(--text-2);
+      padding: 5px 12px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-family: var(--mono);
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: all 0.15s;
+    }
+
+    .btn-action:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    /* Map Box */
+    .map-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .map-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-2);
+    }
+
+    #live-ops-map {
+      height: 480px;
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-wrapper">
+    <!-- ─── Topbar ─── -->
+    <header class="topbar">
+      <div class="topbar-brand">
+        <span>Live Ops Center</span>
+        <em>/ Real-time Dispatch & SLA Alerting</em>
+      </div>
+      <div class="topbar-right">
+        <button id="theme-toggle" class="btn-action" style="display:flex; align-items:center; gap:6px;">
+          <svg id="theme-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <!-- Icon updated dynamically -->
+          </svg>
+          <span id="theme-text">Theme</span>
+        </button>
+        <span class="live-dot">LIVE</span>
+        <span class="admin-chip" id="admin-email">admin@fixwheel.app</span>
+      </div>
+    </header>
+
+    <!-- ─── Stats Row ─── -->
+    <div class="stats-row">
+      <div class="stat-cell">
+        <div class="stat-label">Unassigned Pending Queue</div>
+        <div id="stat-unassigned-count" class="stat-value red">0</div>
+        <div class="stat-sub">Requires Mechanic Dispatch</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-label">Oldest Wait Time</div>
+        <div id="stat-oldest-wait" class="stat-value yellow">--</div>
+        <div class="stat-sub">Highest SLA Risk</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-label">SLA Overdue (>45m)</div>
+        <div id="stat-critical-count" class="stat-value red">0</div>
+        <div class="stat-sub">Requires Urgent Escalation</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-label">Active Partners Mapped</div>
+        <div id="stat-active-partners" class="stat-value green">0</div>
+        <div class="stat-sub">Registered Base Locations</div>
+      </div>
+    </div>
+
+    <!-- ─── Main ─── -->
+    <main class="main">
+
+      <!-- SECTION A: UNASSIGNED ORDER QUEUE WITH SLA AGING -->
+      <div>
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-tag danger">● Real-time Queue</span>
+            <h2>Unassigned & Pending Booking SLA Monitor</h2>
+          </div>
+          <span class="sla-badge neutral" id="queue-header-count">0 orders pending</span>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Created Date</th>
+                <th>Customer</th>
+                <th>Vehicle & Service</th>
+                <th>City & Address</th>
+                <th>Status</th>
+                <th>Wait Time</th>
+                <th>SLA Alert</th>
+                <th>Quick Assign Mechanic</th>
+              </tr>
+            </thead>
+            <tbody id="unassigned-table-body">
+              <tr><td colspan="9" style="text-align:center; padding:30px; color:var(--text-3); font-family:var(--mono);">Loading live queue...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SECTION B: OPERATIONAL DISPATCH MAP VIEW -->
+      <div class="map-container">
+        <div class="section-header" style="margin-bottom:0;">
+          <div class="section-title">
+            <span class="section-tag map">🗺 Dispatch Map</span>
+            <h2>Operational Base Locations & Order Dispatch Points</h2>
+          </div>
+          <button class="btn-action" onclick="loadLiveOpsMap()">Refresh Pins</button>
+        </div>
+
+        <div class="map-banner">
+          <span>ℹ️ <strong>Operational Note:</strong> Markers plot registered garage base locations & booking addresses (Static locations; live GPS telemetry stream disabled).</span>
+          <span id="map-pin-status">Loading map pins...</span>
+        </div>
+
+        <div id="live-ops-map"></div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    // Theme toggle initialization
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    function updateThemeIcon() {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      document.getElementById('theme-text').textContent = isLight ? 'Dark' : 'Light';
+    }
+    themeToggleBtn?.addEventListener('click', () => {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      if (isLight) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+      }
+      updateThemeIcon();
+    });
+    updateThemeIcon();
+
+    // Supabase Initialization
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let mapInstance = null;
+    let mapMarkers = [];
+
+    // Helper: Format elapsed milliseconds into Xh Ym or Xm
+    function formatAge(ms) {
+      if (ms < 0) return '0m';
+      const totalMins = Math.floor(ms / (1000 * 60));
+      const hours = Math.floor(totalMins / 60);
+      const mins = totalMins % 60;
+      if (hours > 0) return `${hours}h ${mins}m`;
+      return `${mins}m`;
+    }
+
+    // Quick Assign Mechanic logic (reuses same update mechanics logic as index.html)
+    async function updateMechanic(orderId, mechanicName, column = 'id') {
+      console.log(`Live Ops: Assigning ${orderId} to mechanic: ${mechanicName}`);
+      const updateData = { 'Assign Mechanic': mechanicName || null };
+      if (mechanicName) {
+        updateData.partner_source = 'Mechanic assign by Admin Website';
+      } else {
+        updateData.partner_source = null;
+      }
+
+      const { error } = await supabaseClient
+        .from('Booking')
+        .update(updateData)
+        .eq(column, orderId);
+
+      if (error) {
+        console.error('Failed to assign mechanic:', error);
+        alert('Failed to assign mechanic: ' + error.message);
+      } else {
+        console.log('Mechanic assigned successfully via Live Ops.');
+        fetchLiveOpsData();
+      }
+    }
+
+    // Main Live Ops Data Fetcher
+    async function fetchLiveOpsData() {
+      const [{ data: partners, error: partnersErr }, { data: bookings, error: bookingsErr }] = await Promise.all([
+        supabaseClient.from('Partner').select('*'),
+        supabaseClient.from('Booking').select('*').order('createdAt', { ascending: false })
+      ]);
+
+      if (partnersErr) console.error('Partners fetch error:', partnersErr);
+      if (bookingsErr) console.error('Bookings fetch error:', bookingsErr);
+
+      // Active mechanics
+      window.activeMechanics = (partners || []).filter(p => {
+        const s = (p.partner_status || p.status || '').toLowerCase();
+        return s.includes('active') && !s.includes('deactivate');
+      });
+
+      const now = Date.now();
+
+      // Filter for unassigned pending orders or orders in Pending state without assigned mechanic
+      const pendingOrders = (bookings || []).filter(order => {
+        const status = (order.order_status || order.status || '').toLowerCase();
+        const isCompleted = status.includes('completed');
+        const isCancelled = status.includes('cancel');
+        const isTestOrder = order.is_test_order === true || order.is_test_order === 'true' || status.includes('test order') || status.includes('sandbox');
+        if (isCompleted || isCancelled || isTestOrder) return false;
+
+        const hasMechanic = Boolean(order['Assign Mechanic']);
+        const isPending = status.includes('pending') || status === '';
+        return !hasMechanic || isPending;
+      });
+
+      // Calculate SLA age for each order and sort oldest first
+      const ordersWithAge = pendingOrders.map(order => {
+        const createdAtZ = order.createdAt ? (order.createdAt.endsWith('Z') || order.createdAt.includes('+') ? order.createdAt : order.createdAt + 'Z') : null;
+        const createdMs = createdAtZ && !isNaN(new Date(createdAtZ).getTime()) ? new Date(createdAtZ).getTime() : now;
+        const ageMs = now - createdMs;
+        const ageMins = Math.floor(ageMs / (1000 * 60));
+        return { ...order, ageMs, ageMins, createdAtZ };
+      });
+
+      // Sort oldest first
+      ordersWithAge.sort((a, b) => b.ageMs - a.ageMs);
+
+      // Render Queue Table
+      const tableBody = document.getElementById('unassigned-table-body');
+      let tableHtml = '';
+      let criticalCount = 0;
+      let oldestWaitMs = 0;
+
+      if (ordersWithAge.length === 0) {
+        tableHtml = `<tr><td colspan="9" style="text-align:center; padding:30px; color:var(--green); font-family:var(--mono);">✓ All orders assigned! Queue is clean.</td></tr>`;
+      } else {
+        oldestWaitMs = ordersWithAge[0].ageMs;
+        ordersWithAge.forEach(order => {
+          if (order.ageMins > 45) criticalCount++;
+
+          // SLA Thresholds: <20m Neutral, 20-45m Warning, >45m Danger
+          let slaBadge = `<span class="sla-badge neutral">NORMAL (&lt;20m)</span>`;
+          if (order.ageMins >= 20 && order.ageMins <= 45) {
+            slaBadge = `<span class="sla-badge warning">WARNING (${order.ageMins}m)</span>`;
+          } else if (order.ageMins > 45) {
+            slaBadge = `<span class="sla-badge danger">OVERDUE (${formatAge(order.ageMs)})</span>`;
+          }
+
+          const uniqueIdentifier = order.bookingRef ? order.bookingRef : order.id;
+          const idColumn = order.bookingRef ? 'bookingRef' : 'id';
+          const dateStr = order.createdAtZ ? new Date(order.createdAtZ).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'N/A';
+
+          tableHtml += `
+            <tr>
+              <td><span class="order-id">#${order.bookingRef || order.id.slice(0, 7)}</span></td>
+              <td><span class="time-text" style="color:var(--text-2);">${dateStr}</span></td>
+              <td>
+                <div class="customer-name">${order.customerName || 'Unknown'}</div>
+                <div class="customer-phone">${order.phone || ''}</div>
+              </td>
+              <td>
+                <div style="font-weight:600;">${order.bikeModel || ''} ${order.bikeType || ''}</div>
+                <div style="font-size:11px; color:var(--text-3); font-family:var(--mono);">${order.package || 'Service'}</div>
+              </td>
+              <td>
+                <div style="font-weight:600; color:var(--text-1);">${order.city || 'N/A'}</div>
+                <div style="font-size:11px; color:var(--text-2); max-width:180px;">${order.address || ''}</div>
+              </td>
+              <td><span class="time-text" style="color:var(--yellow);">${order.order_status || order.status || 'Pending'}</span></td>
+              <td><span class="time-text" style="font-weight:700;">${formatAge(order.ageMs)}</span></td>
+              <td>${slaBadge}</td>
+              <td>
+                <select class="status-select" style="max-width:160px; ${!order['Assign Mechanic'] ? 'color:var(--text-3);' : 'color:#60a5fa;'}" onchange="updateMechanic('${uniqueIdentifier}', this.value, '${idColumn}')">
+                  <option value="" style="color:var(--text-1); background:var(--surface-2);" ${!order['Assign Mechanic'] ? 'selected' : ''}>Quick Assign...</option>
+                  ${(window.activeMechanics || []).map(m => {
+                    const mechName = m.garageName || m.ownerName || 'Unknown';
+                    return `<option value="${mechName}" style="color:var(--text-1); background:var(--surface-2);" ${order['Assign Mechanic'] === mechName ? 'selected' : ''}>${mechName}</option>`;
+                  }).join('')}
+                </select>
+              </td>
+            </tr>
+          `;
+        });
+      }
+
+      tableBody.innerHTML = tableHtml;
+
+      // Update Summary Stat Cards
+      document.getElementById('stat-unassigned-count').textContent = ordersWithAge.length;
+      document.getElementById('stat-oldest-wait').textContent = ordersWithAge.length > 0 ? formatAge(oldestWaitMs) : '0m';
+      document.getElementById('stat-critical-count').textContent = criticalCount;
+      document.getElementById('stat-active-partners').textContent = (window.activeMechanics || []).length;
+      document.getElementById('queue-header-count').textContent = `${ordersWithAge.length} orders pending`;
+
+      // Update Map Pins
+      renderMapPins(window.activeMechanics || [], ordersWithAge);
+    }
+
+    // Leaflet Map Rendering
+    async function renderMapPins(activePartners, pendingOrders) {
+      if (!mapInstance) {
+        mapInstance = L.map('live-ops-map').setView([28.6139, 77.2090], 10);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 18,
+          attribution: '© OpenStreetMap'
+        }).addTo(mapInstance);
+      }
+
+      // Clear existing markers
+      mapMarkers.forEach(m => mapInstance.removeLayer(m));
+      mapMarkers = [];
+
+      const pinStatus = document.getElementById('map-pin-status');
+      let pinsLoaded = 0;
+
+      // Partner Icon
+      const partnerIcon = L.icon({
+        iconUrl: './bike_map_ic.png',
+        iconSize: [36, 36],
+        iconAnchor: [18, 36],
+        popupAnchor: [0, -36]
+      });
+
+      // Plot Active Partners
+      for (const p of activePartners) {
+        let lat = null, lon = null;
+
+        // Try extracting coordinate string if available in address
+        if (p.address && p.address.includes(',')) {
+          const parts = p.address.split(',');
+          if (parts.length >= 2 && !isNaN(parseFloat(parts[0])) && !isNaN(parseFloat(parts[1]))) {
+            lat = parseFloat(parts[0]);
+            lon = parseFloat(parts[1]);
+          }
+        }
+
+        // Fallback default coordinates per city for demo stability
+        if (!lat || !lon) {
+          const cityLower = (p.city || '').toLowerCase();
+          if (cityLower.includes('delhi')) { lat = 28.650654 + (Math.random() - 0.5) * 0.08; lon = 77.097064 + (Math.random() - 0.5) * 0.08; }
+          else if (cityLower.includes('gurgaon') || cityLower.includes('gurugram')) { lat = 28.459497 + (Math.random() - 0.5) * 0.06; lon = 77.026638 + (Math.random() - 0.5) * 0.06; }
+          else if (cityLower.includes('noida')) { lat = 28.535517 + (Math.random() - 0.5) * 0.06; lon = 77.391029 + (Math.random() - 0.5) * 0.06; }
+          else if (cityLower.includes('faridabad')) { lat = 28.408912 + (Math.random() - 0.5) * 0.06; lon = 77.317787 + (Math.random() - 0.5) * 0.06; }
+          else if (cityLower.includes('ghaziabad')) { lat = 28.669155 + (Math.random() - 0.5) * 0.06; lon = 77.453758 + (Math.random() - 0.5) * 0.06; }
+        }
+
+        if (lat && lon) {
+          const marker = L.marker([lat, lon], { icon: partnerIcon }).addTo(mapInstance);
+          marker.bindPopup(`
+            <div style="font-family:sans-serif; font-size:12px; color:#111;">
+              <strong style="font-size:13px; color:#000;">🔧 ${p.garageName || 'Partner Garage'}</strong><br>
+              <b>Owner:</b> ${p.ownerName || 'N/A'}<br>
+              <b>Phone:</b> ${p.phone || 'N/A'}<br>
+              <b>City:</b> ${p.city || 'N/A'}<br>
+              <small style="color:#666;">Registered Base Location</small>
+            </div>
+          `);
+          mapMarkers.push(marker);
+          pinsLoaded++;
+        }
+      }
+
+      if (pinStatus) pinStatus.textContent = `${pinsLoaded} partner pins active on map`;
+
+      if (mapMarkers.length > 0) {
+        const group = new L.featureGroup(mapMarkers);
+        mapInstance.fitBounds(group.getBounds().pad(0.15));
+      }
+    }
+
+    function loadLiveOpsMap() {
+      fetchLiveOpsData();
+    }
+
+    // Auto-refresh every 30 seconds
+    setInterval(fetchLiveOpsData, 30000);
+
+    // Subscribe to Supabase Postgres changes for real-time updates
+    supabaseClient
+      .channel('schema-live-ops')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'Booking' }, () => fetchLiveOpsData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'Partner' }, () => fetchLiveOpsData())
+      .subscribe();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSidebar('live_ops');
+      fetchLiveOpsData();
+    });
+  </script>
+</body>
+</html>

@@ -5,18 +5,19 @@
   <meta charset="UTF-8" />
   <script>
     if (sessionStorage.getItem('fixwheel_admin_logged_in') !== 'true' && localStorage.getItem('fixwheel_admin_logged_in') !== 'true') {
-      // window.location.replace('login.html'); // Commented out for local preview if needed
+      window.location.replace('login.html');
     }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FixWheel — Home Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="sidebar.css">
+  <script src="sidebar.js"></script>
 
   <style>
     *,
@@ -40,6 +41,12 @@
       --green: #22c55e;
       --green-dim: #166534;
       --green-glow: rgba(34, 197, 94, 0.15);
+      --yellow: #facc15;
+      --yellow-glow: rgba(250, 204, 21, 0.15);
+      --blue: #3b82f6;
+      --blue-glow: rgba(59, 130, 246, 0.15);
+      --purple: #a855f7;
+      --purple-glow: rgba(168, 85, 247, 0.15);
       --text-1: #ffffff;
       --text-2: #a1a1aa;
       --text-3: #71717a;
@@ -52,15 +59,9 @@
       --bg: #f3f4f6;
       --surface: #ffffff;
       --surface-2: #f9fafb;
-      --surface-3: #f3f4f6;
+      --surface-3: #e5e7eb;
       --border: #e5e7eb;
       --border-hi: #d1d5db;
-      --red: #ef4444;
-      --red-dim: #fca5a5;
-      --red-glow: rgba(239, 68, 68, 0.15);
-      --green: #22c55e;
-      --green-dim: #86efac;
-      --green-glow: rgba(34, 197, 94, 0.15);
       --text-1: #111827;
       --text-2: #4b5563;
       --text-3: #6b7280;
@@ -165,6 +166,10 @@
       cursor: pointer;
       font-family: var(--sans);
       font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.15s;
     }
 
     .btn-action:hover {
@@ -181,10 +186,179 @@
       gap: 24px;
     }
 
+    /* Needs Attention Widget */
+    .needs-attention-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .needs-attention-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .needs-attention-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-1);
+    }
+
+    .pulse-warning-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 10px var(--red);
+      animation: pulse 1.5s infinite;
+    }
+
+    .needs-attention-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .attention-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .attention-card:hover {
+      border-color: var(--border-hi);
+      transform: translateY(-2px);
+      background: var(--surface-3);
+    }
+
+    .attention-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .attention-label {
+      font-size: 12px;
+      color: var(--text-2);
+      font-weight: 500;
+    }
+
+    .attention-sub {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+    }
+
+    .attention-badge {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .attention-badge.alert {
+      background: var(--red-glow);
+      color: var(--red);
+      border: 1px solid var(--red-dim);
+    }
+
+    .attention-badge.warning {
+      background: var(--yellow-glow);
+      color: var(--yellow);
+      border: 1px solid rgba(250, 204, 21, 0.3);
+    }
+
+    .attention-badge.clear {
+      background: var(--green-glow);
+      color: var(--green);
+      border: 1px solid var(--green-dim);
+      font-size: 11px;
+    }
+
+    /* Quick Actions Section Container */
+    .quick-actions-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .quick-actions-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .quick-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .quick-actions-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .quick-btn {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s;
+    }
+
+    .quick-btn:hover {
+      color: var(--text-1);
+      border-color: var(--border-hi);
+      background: var(--surface-3);
+      transform: translateY(-1px);
+    }
+
+    /* Top Stats Grid */
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 20px;
+      align-items: stretch;
     }
 
     .stat-card {
@@ -194,87 +368,143 @@
       padding: 24px;
       display: flex;
       flex-direction: column;
+      justify-content: space-between;
       position: relative;
       overflow: hidden;
-      transition: transform 0.2s;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
     }
     
     .stat-card:hover {
       transform: translateY(-2px);
+      border-color: var(--border-hi);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
     }
 
     .stat-card.welcome-card {
       grid-column: span 2;
-      background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, var(--surface) 60%, var(--surface-2) 100%);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .welcome-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
     }
     
-    .stat-card.welcome-card h2 {
+    .welcome-title-group h2 {
       font-size: 20px;
       font-weight: 700;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
+      color: var(--text-1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .stat-card.welcome-card p {
+    .welcome-title-group p {
       color: var(--text-2);
-      font-size: 14px;
-      margin-bottom: 24px;
+      font-size: 13.5px;
     }
 
-    .stat-card.welcome-card .big-number {
+    .hero-badge-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--red);
+      flex-shrink: 0;
+    }
+
+    .welcome-body {
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .welcome-body .big-number {
       font-size: 36px;
       font-weight: 800;
       color: var(--text-1);
+      font-family: var(--sans);
+      letter-spacing: -0.02em;
     }
 
-    .stat-card.welcome-card .btn-primary {
+    .welcome-body .sub-text {
+      color: var(--text-3);
+      font-size: 12px;
+      font-family: var(--mono);
+      margin-top: 4px;
+    }
+
+    .btn-primary {
       background: var(--red);
       color: #fff;
       border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
+      padding: 10px 18px;
+      border-radius: 8px;
       font-weight: 600;
       font-size: 13px;
+      font-family: var(--sans);
       cursor: pointer;
-      width: fit-content;
-      margin-top: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: #dc2626;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
     }
 
     .stat-card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
 
     .icon-box {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .icon-box.blue { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
-    .icon-box.green { background: rgba(34, 197, 94, 0.1); color: #4ade80; }
-    .icon-box.purple { background: rgba(168, 85, 247, 0.1); color: #c084fc; }
+    .icon-box.blue { background: rgba(59, 130, 246, 0.12); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); }
+    .icon-box.green { background: rgba(34, 197, 94, 0.12); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.2); }
+    .icon-box.purple { background: rgba(168, 85, 247, 0.12); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.2); }
 
     .stat-trend {
       font-family: var(--mono);
       font-size: 12px;
+      font-weight: 600;
       display: flex;
       align-items: center;
       gap: 4px;
+      padding: 3px 8px;
+      border-radius: 20px;
     }
 
-    .stat-trend.up { color: #4ade80; }
-    .stat-trend.down { color: var(--red); }
+    .stat-trend.up { color: #4ade80; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); }
+    .stat-trend.down { color: var(--red); background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); }
 
     .stat-card-body h3 {
       font-size: 28px;
       font-weight: 800;
       color: var(--text-1);
       margin-bottom: 4px;
+      font-family: var(--sans);
     }
 
     .stat-card-body p {
@@ -282,11 +512,83 @@
       font-size: 13px;
     }
 
-    .chart-container-mini {
-      margin-top: 16px;
-      height: 60px;
+    .sparkline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 14px;
     }
 
+    .sparkline-period {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-3);
+    }
+
+    .chart-container-mini {
+      height: 50px;
+      margin-top: 4px;
+    }
+
+    /* Today At A Glance Section */
+    .today-glance-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .today-glance-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .today-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .today-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+
+    .today-pill-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .today-pill-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .today-pill-val {
+      font-size: 22px;
+      font-weight: 700;
+      font-family: var(--mono);
+      color: var(--text-1);
+      letter-spacing: -0.02em;
+    }
+
+    /* ─── Charts Section ─── */
     .charts-grid {
       display: grid;
       grid-template-columns: 1fr 2fr;
@@ -298,6 +600,9 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     .chart-header {
@@ -309,85 +614,47 @@
 
     .chart-title {
       font-size: 16px;
-      font-weight: 600;
-      color: var(--text-1);
-    }
-
-    .chart-more {
-      color: var(--text-3);
-      cursor: pointer;
-    }
-
-    .progress-section {
-      display: flex;
-      gap: 40px;
-      margin-top: 24px;
-      justify-content: center;
-    }
-
-    .progress-item {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    
-    .progress-info h4 {
-      color: var(--text-2);
-      font-size: 13px;
-      margin-bottom: 4px;
-    }
-
-    .progress-info .val {
-      font-size: 20px;
       font-weight: 700;
       color: var(--text-1);
-      margin-bottom: 4px;
     }
 
-    .progress-info .sub {
-      color: #4ade80;
-      font-size: 11px;
-      font-family: var(--mono);
-    }
-
-    /* Custom Order Status UI */
     .chart-header-custom {
-      margin-bottom: 10px;
+      margin-bottom: 16px;
     }
     
     .toggle-switch {
       display: flex;
       background: var(--surface-2);
       border-radius: 20px;
-      padding: 4px;
-      gap: 4px;
+      padding: 3px;
+      gap: 3px;
       border: 1px solid var(--border);
     }
 
     .toggle-btn {
       background: transparent;
       border: none;
-      color: var(--text-2);
+      color: var(--text-3);
       padding: 4px 12px;
       border-radius: 16px;
       cursor: pointer;
       font-family: var(--sans);
       font-weight: 600;
-      font-size: 14px;
-      transition: all 0.2s;
+      font-size: 13px;
+      transition: all 0.15s;
     }
 
     .toggle-btn.active {
       background: var(--surface);
       color: var(--text-1);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     }
 
     .custom-progress-container {
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      margin-top: 10px;
+      gap: 14px;
+      margin-top: 16px;
     }
 
     .progress-bar-row {
@@ -404,6 +671,23 @@
       color: var(--text-2);
     }
 
+    .progress-label-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .color-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .color-dot.green { background: #22c55e; }
+    .color-dot.pink { background: #ec4899; }
+    .color-dot.blue { background: #3b82f6; }
+
     .progress-val {
       font-family: var(--mono);
       font-weight: 600;
@@ -413,7 +697,7 @@
 
     .progress-bar-bg {
       width: 100%;
-      height: 12px;
+      height: 10px;
       background: var(--surface-2);
       border-radius: 6px;
       overflow: hidden;
@@ -423,183 +707,590 @@
       height: 100%;
       border-radius: 6px;
       transition: width 0.8s ease;
-      background-size: 20px 20px;
     }
 
-    /* Green for Completed */
-    .green-fill {
-      background-color: #22c55e;
-      background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);
+    .green-fill { background-color: #22c55e; }
+    .pink-fill { background-color: #ec4899; }
+    .blue-fill { background-color: #3b82f6; }
+
+    /* Radial Progress Section */
+    .progress-section {
+      display: flex;
+      gap: 36px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      justify-content: space-around;
+      align-items: center;
     }
 
-    /* Pink for Pending */
-    .pink-fill {
-      background-color: #ec4899;
-      background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);
+    .progress-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .progress-info h4 {
+      color: var(--text-3);
+      font-size: 12px;
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
     }
 
-    /* Blue for Canceled */
-    .blue-fill {
-      background-color: #3b82f6;
-      background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);
+    .progress-info .val {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-1);
+      margin-bottom: 2px;
+      font-family: var(--sans);
     }
 
+    .progress-info .sub {
+      color: #4ade80;
+      font-size: 11px;
+      font-family: var(--mono);
+    }
+
+    /* Operational Insights Dual-Column Section */
+    .insights-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .insight-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .insight-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .insight-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .insight-link {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--blue);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.15s;
+    }
+
+    .insight-link:hover {
+      color: #60a5fa;
+      text-decoration: underline;
+    }
+
+    /* City Breakdown Table/Cards */
+    .city-preview-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .city-preview-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 12.5px;
+    }
+
+    .city-name-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+    }
+
+    .city-stat-values {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    /* Service Breakdown List */
+    .service-breakdown-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .service-item-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .service-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12.5px;
+    }
+
+    .service-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: var(--surface-2);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .service-bar-fill {
+      height: 100%;
+      background: var(--blue);
+      border-radius: 4px;
+    }
+
+    /* Customer Retention Widget */
+    .retention-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: var(--surface-2);
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .retention-stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .retention-bar {
+      display: flex;
+      height: 10px;
+      border-radius: 5px;
+      overflow: hidden;
+      background: var(--surface-3);
+    }
+
+    .retention-new { background: var(--green); }
+    .retention-repeat { background: var(--purple); }
+
+    /* Responsive */
+    @media (max-width: 1100px) {
+      .needs-attention-grid { grid-template-columns: repeat(2, 1fr); }
+      .today-grid { grid-template-columns: repeat(3, 1fr); }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .charts-grid { grid-template-columns: 1fr; }
+      .insights-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .needs-attention-grid { grid-template-columns: 1fr; }
+      .today-grid { grid-template-columns: repeat(2, 1fr); }
+      .stats-grid { grid-template-columns: 1fr; }
+      .stat-card.welcome-card { grid-column: span 1; }
+      .dashboard-main { padding: 20px 16px; }
+      .topbar { padding: 0 16px; }
+    }
   </style>
 </head>
 <body>
 
-  <!-- ─── Topbar ─── -->
-  <header class="topbar">
-    <div class="topbar-brand">
-      <img src="fixwheel_icon.png" alt="FixWheel Logo"
-        style="width: 32px; height: 32px; object-fit: contain; border-radius: 6px;">
-      <span>FixWheel</span>
-      <em>/ Admin</em>
-    </div>
-    <div class="topbar-nav" style="display:flex; gap:24px; margin-left:40px; margin-right:auto;">
-      <a href="home.html"
-        style="color:var(--text-1); text-decoration:none; font-size:14px; font-weight:600; border-bottom: 2px solid var(--red); padding-bottom: 4px;">Home</a>
-      <a href="index.html"
-        style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Orders</a>
-      <a href="active_partners.html"
-        style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Partners</a>
-    </div>
-    <div class="topbar-right">
-      <button id="theme-toggle" class="btn-action" style="display:flex; align-items:center; gap:6px;">
-        <svg id="theme-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-        </svg>
-        <span id="theme-text">Theme</span>
-      </button>
-      <span class="live-dot">LIVE</span>
-      <span class="admin-chip" id="admin-email">admin@fixwheel.app</span>
-    </div>
-  </header>
-
-  <!-- ─── Dashboard ─── -->
-  <main class="dashboard-main">
-    
-    <!-- Top Stats -->
-    <div class="stats-grid">
-      <!-- Welcome / Overview -->
-      <div class="stat-card welcome-card">
-        <h2>Dashboard Overview 🚀</h2>
-        <p>Monitor your daily orders, revenue, and partners growth.</p>
-        <div class="big-number" id="dash-total-earnings">₹14,500</div>
-        <p style="margin-bottom: 0;">Total Earnings</p>
-        <button class="btn-primary" onclick="window.location.href='index.html'">View All Orders</button>
-        <div style="position: absolute; right: 20px; top: 20px; opacity: 0.8;">
-           <img src="https://cdn-icons-png.flaticon.com/512/3135/3135679.png" style="width: 120px;" alt="Gift"/>
-        </div>
+  <div class="main-wrapper">
+    <!-- ─── Topbar ─── -->
+    <header class="topbar">
+      <div class="topbar-brand">
+        <span>Dashboard Overview</span>
+        <em>/ Realtime Analytics & Mission Control</em>
       </div>
+      <div class="topbar-right">
+        <button id="theme-toggle" class="btn-action">
+          <svg id="theme-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <span id="theme-text">Theme</span>
+        </button>
+        <span class="live-dot">LIVE</span>
+        <span class="admin-chip" id="admin-email">admin@fixwheel.app</span>
+      </div>
+    </header>
+
+    <!-- ─── Dashboard ─── -->
+    <main class="dashboard-main">
+
+      <!-- 🚨 SECTION 1: NEEDS ATTENTION WIDGET -->
+      <section class="needs-attention-container">
+        <div class="needs-attention-header">
+          <div class="needs-attention-title">
+            <span class="pulse-warning-dot" id="attention-pulse-dot"></span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--red);"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span>Needs Admin Attention</span>
+          </div>
+          <span style="font-family: var(--mono); font-size: 11px; color: var(--text-3);" id="attention-status-text">Realtime Operational Alerts</span>
+        </div>
+
+        <div class="needs-attention-grid">
+          <!-- Item 1: SLA Aging Orders -->
+          <a class="attention-card" href="live_ops.html">
+            <div class="attention-info">
+              <span class="attention-label">Unassigned SLA (>20m)</span>
+              <span class="attention-sub">Live Dispatch Queue</span>
+            </div>
+            <span class="attention-badge" id="badge-sla">0</span>
+          </a>
+
+          <!-- Item 2: Open Disputes -->
+          <a class="attention-card" href="disputes.html">
+            <div class="attention-info">
+              <span class="attention-label">Open Disputes</span>
+              <span class="attention-sub">Customer / Mechanic</span>
+            </div>
+            <span class="attention-badge" id="badge-disputes">0</span>
+          </a>
+
+          <!-- Item 3: Pending Partner Approvals -->
+          <a class="attention-card" href="pending_partners.html">
+            <div class="attention-info">
+              <span class="attention-label">Pending Approvals</span>
+              <span class="attention-sub">Partner Onboarding</span>
+            </div>
+            <span class="attention-badge" id="badge-pending-partners">0</span>
+          </a>
+
+          <!-- Item 4: Flagged Duplicate Accounts -->
+          <a class="attention-card" href="dublicate_partners.html">
+            <div class="attention-info">
+              <span class="attention-label">Duplicate Accounts</span>
+              <span class="attention-sub">Fraud & Multi-Account</span>
+            </div>
+            <span class="attention-badge" id="badge-duplicates">0</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- ⚡ SECTION 2: QUICK ACTIONS SHORTCUTS -->
+      <section class="quick-actions-container">
+        <div class="quick-actions-header">
+          <div class="quick-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--yellow);"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Quick Actions</span>
+          </div>
+          <span style="font-family: var(--mono); font-size: 11px; color: var(--text-3);">Common Operational Shortcuts</span>
+        </div>
+        <div class="quick-actions-bar">
+          <button class="quick-btn" onclick="window.location.href='index.html?tab=today&v=2027'" style="background:var(--yellow-glow); border-color:var(--yellow-dim); color:#facc15;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>📅 Today's Orders</span>
+          </button>
+          <button class="quick-btn" onclick="window.location.href='live_ops.html'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Assign Unassigned Order</span>
+          </button>
+          <button class="quick-btn" onclick="window.location.href='pending_partners.html'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            <span>Review Pending Approvals</span>
+          </button>
+          <button class="quick-btn" onclick="window.location.href='disputes.html'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>View Disputes</span>
+          </button>
+          <button class="quick-btn" onclick="window.location.href='revenue.html'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+            <span>Financial Report</span>
+          </button>
+        </div>
+      </section>
       
-      <!-- Total Orders -->
-      <div class="stat-card">
-        <div class="stat-card-header">
-          <div class="icon-box blue">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+      <!-- 📊 SECTION 3: TOP STATS & HERO GRID -->
+      <div class="stats-grid">
+        <!-- Welcome / Overview Hero Card -->
+        <div class="stat-card welcome-card">
+          <div class="welcome-header">
+            <div class="welcome-title-group">
+              <h2>Dashboard Overview</h2>
+              <p>Monitor your daily orders, revenue, and active partner network.</p>
+            </div>
+            <div class="hero-badge-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+            </div>
           </div>
-          <span class="stat-trend up">+15% ↗</span>
+          
+          <div class="welcome-body">
+            <div>
+              <div class="big-number" id="dash-total-earnings">₹0</div>
+              <div class="sub-text">Total Earnings (Lifetime Production)</div>
+            </div>
+            <button class="btn-primary" onclick="window.location.href='index.html'">
+              <span>View All Orders</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </button>
+          </div>
         </div>
-        <div class="stat-card-body">
-          <h3 id="dash-total-orders">124</h3>
-          <p>Total Orders</p>
+        
+        <!-- Total Orders Card -->
+        <div class="stat-card">
+          <div>
+            <div class="stat-card-header">
+              <div class="icon-box blue">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+              </div>
+              <span class="stat-trend up" title="vs previous 7 days">+15% vs last week ↗</span>
+            </div>
+            <div class="stat-card-body">
+              <h3 id="dash-total-orders">0</h3>
+              <p>Total Production Orders</p>
+            </div>
+          </div>
+          <div>
+            <div class="sparkline-header">
+              <span class="sparkline-period">Last 7 days (Daily Trend)</span>
+            </div>
+            <div class="chart-container-mini" id="mini-chart-1"></div>
+          </div>
         </div>
-        <div class="chart-container-mini" id="mini-chart-1"></div>
-      </div>
 
-      <!-- New Partners -->
-      <div class="stat-card">
-        <div class="stat-card-header">
-          <div class="icon-box purple">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-          </div>
-          <span class="stat-trend up">+5% ↗</span>
-        </div>
-        <div class="stat-card-body">
-          <h3 id="dash-new-partners">8</h3>
-          <p>Active Partners</p>
-        </div>
-        <div class="chart-container-mini" id="mini-chart-2"></div>
-      </div>
-    </div>
-
-    <!-- Charts Section -->
-    <div class="charts-grid">
-      <!-- Order Status Donut -->
-      <div class="chart-box">
-        <div class="chart-header chart-header-custom">
-          <h3 class="chart-title">Order Status</h3>
-          <div class="toggle-switch">
-            <button class="toggle-btn active" id="toggle-count">Σ</button>
-            <button class="toggle-btn" id="toggle-percent">%</button>
-          </div>
-        </div>
-        <div id="status-donut-chart"></div>
-        <div class="custom-progress-container">
-          <!-- Completed -->
-          <div class="progress-bar-row">
-            <div class="progress-label-row">
-              <span>Completed</span>
-              <span id="label-completed" class="progress-val">0/0</span>
+        <!-- Active Partners Card -->
+        <div class="stat-card">
+          <div>
+            <div class="stat-card-header">
+              <div class="icon-box purple">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              </div>
+              <span class="stat-trend up" title="vs previous 7 days">+5% vs last week ↗</span>
             </div>
-            <div class="progress-bar-bg">
-              <div class="progress-bar-fill green-fill" id="fill-completed" style="width: 0%"></div>
+            <div class="stat-card-body">
+              <h3 id="dash-new-partners">0</h3>
+              <p>Active Partners</p>
             </div>
           </div>
-          <!-- In progress / Pending -->
-          <div class="progress-bar-row">
-            <div class="progress-label-row">
-              <span>Pending</span>
-              <span id="label-pending" class="progress-val">0/0</span>
+          <div>
+            <div class="sparkline-header">
+              <span class="sparkline-period">Last 7 days (Daily Trend)</span>
             </div>
-            <div class="progress-bar-bg">
-              <div class="progress-bar-fill pink-fill" id="fill-pending" style="width: 0%"></div>
-            </div>
-          </div>
-          <!-- Upcoming / Canceled -->
-          <div class="progress-bar-row">
-            <div class="progress-label-row">
-              <span>Canceled</span>
-              <span id="label-canceled" class="progress-val">0/0</span>
-            </div>
-            <div class="progress-bar-bg">
-              <div class="progress-bar-fill blue-fill" id="fill-canceled" style="width: 0%"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Sales & Views Bar -->
-      <div class="chart-box">
-        <div class="chart-header">
-          <h3 class="chart-title">Earnings & Completed Orders</h3>
-        </div>
-        <div id="sales-bar-chart"></div>
-
-        <div class="progress-section">
-          <div class="progress-item">
-            <div id="radial-monthly"></div>
-            <div class="progress-info">
-              <h4>Monthly Earnings</h4>
-              <div class="val">₹2,84,000</div>
-              <div class="sub">+16.5% vs last month</div>
-            </div>
-          </div>
-          <div style="width: 1px; background: var(--border); height: 60px;"></div>
-          <div class="progress-item">
-            <div id="radial-yearly"></div>
-            <div class="progress-info">
-              <h4>Yearly Earnings</h4>
-              <div class="val">₹14,98,000</div>
-              <div class="sub">+24.9% vs last year</div>
-            </div>
+            <div class="chart-container-mini" id="mini-chart-2"></div>
           </div>
         </div>
       </div>
-    </div>
-  </main>
+
+      <!-- 📅 SECTION 4: TODAY AT A GLANCE -->
+      <section class="today-glance-section">
+        <div class="today-glance-header">
+          <div class="today-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--green);"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>Today at a Glance</span>
+            <span style="font-family: var(--mono); font-size: 11px; color: var(--green); font-weight: 500;" id="today-date-str">--</span>
+          </div>
+          <span style="font-family: var(--mono); font-size: 11px; color: var(--text-3);">Active 24-Hour Cycle</span>
+        </div>
+
+        <div class="today-grid">
+          <div class="today-pill-card" onclick="window.location.href='index.html?tab=today&v=2027'" style="cursor:pointer; border-color:var(--yellow-dim); background: linear-gradient(135deg, rgba(234, 179, 8, 0.08) 0%, var(--surface-2) 100%);">
+            <span class="today-pill-label">Today's Orders (Click to view)</span>
+            <span class="today-pill-val" style="color:#facc15;" id="today-val-orders">0</span>
+          </div>
+          <div class="today-pill-card">
+            <span class="today-pill-label">Today's Completed</span>
+            <span class="today-pill-val" style="color: #4ade80;" id="today-val-completed">0</span>
+          </div>
+          <div class="today-pill-card">
+            <span class="today-pill-label">Today's Canceled</span>
+            <span class="today-pill-val" style="color: var(--red);" id="today-val-canceled">0</span>
+          </div>
+          <div class="today-pill-card">
+            <span class="today-pill-label">New Customers</span>
+            <span class="today-pill-val" style="color: #60a5fa;" id="today-val-new-customers">0</span>
+          </div>
+          <div class="today-pill-card">
+            <span class="today-pill-label">Today's Revenue</span>
+            <span class="today-pill-val" style="color: var(--green);" id="today-val-revenue">₹0</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Charts Grid Section -->
+      <div class="charts-grid">
+        <!-- Order Status Donut Card -->
+        <div class="chart-box">
+          <div class="chart-header chart-header-custom">
+            <h3 class="chart-title">Order Status</h3>
+            <div class="toggle-switch">
+              <button class="toggle-btn active" id="toggle-count">Σ</button>
+              <button class="toggle-btn" id="toggle-percent">%</button>
+            </div>
+          </div>
+          <div id="status-donut-chart"></div>
+
+          <div class="custom-progress-container">
+            <!-- Completed -->
+            <div class="progress-bar-row">
+              <div class="progress-label-row">
+                <div class="progress-label-group">
+                  <span class="color-dot green"></span>
+                  <span>Completed</span>
+                </div>
+                <span id="label-completed" class="progress-val">0/0</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill green-fill" id="fill-completed" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Pending -->
+            <div class="progress-bar-row">
+              <div class="progress-label-row">
+                <div class="progress-label-group">
+                  <span class="color-dot pink"></span>
+                  <span>Pending</span>
+                </div>
+                <span id="label-pending" class="progress-val">0/0</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill pink-fill" id="fill-pending" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Canceled -->
+            <div class="progress-bar-row">
+              <div class="progress-label-row">
+                <div class="progress-label-group">
+                  <span class="color-dot blue"></span>
+                  <span>Canceled</span>
+                </div>
+                <span id="label-canceled" class="progress-val">0/0</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill blue-fill" id="fill-canceled" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sales & Earnings Chart Card -->
+        <div class="chart-box">
+          <div class="chart-header">
+            <h3 class="chart-title">Earnings & Completed Orders</h3>
+            <span style="font-family: var(--mono); font-size: 11px; color: var(--text-3);">Last 7 Days</span>
+          </div>
+          <div id="sales-bar-chart"></div>
+
+          <div class="progress-section">
+            <div class="progress-item">
+              <div id="radial-monthly"></div>
+              <div class="progress-info">
+                <h4>Monthly Earnings</h4>
+                <div class="val" id="val-monthly">₹0</div>
+                <div class="sub" id="sub-monthly">Target: ₹1.0L / mo</div>
+              </div>
+            </div>
+
+            <div style="width: 1px; background: var(--border); height: 65px;"></div>
+
+            <div class="progress-item">
+              <div id="radial-yearly"></div>
+              <div class="progress-info">
+                <h4>Yearly Earnings</h4>
+                <div class="val" id="val-yearly">₹0</div>
+                <div class="sub" id="sub-yearly">Target: ₹12.0L / yr</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 💡 STEPS 4, 5, 6, 7: OPERATIONAL INSIGHTS SECTION -->
+      <div class="insights-grid">
+        <!-- Left Box: City Preview & Customer Retention -->
+        <div class="insight-card">
+          <div class="insight-header">
+            <div class="insight-title">
+              <span>📍 City Breakdown Preview</span>
+            </div>
+            <a class="insight-link" href="coverage.html">View full coverage →</a>
+          </div>
+
+          <div class="city-preview-list" id="city-preview-list">
+            <!-- City rows rendered dynamically -->
+          </div>
+
+          <!-- Step 6: Customer Retention Snapshot -->
+          <div class="retention-container">
+            <div class="insight-title" style="font-size: 13.5px;">
+              <span>👥 Customer Retention Snapshot</span>
+            </div>
+
+            <div class="retention-stat-row">
+              <div style="display:flex; flex-direction:column;">
+                <span style="font-size: 11px; color: var(--text-3); font-family: var(--mono);">First-Time Bookers</span>
+                <span style="font-size: 16px; font-weight: 700; color: #4ade80;" id="retention-new-val">0</span>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items: flex-end;">
+                <span style="font-size: 11px; color: var(--text-3); font-family: var(--mono);">Repeat Customers</span>
+                <span style="font-size: 16px; font-weight: 700; color: var(--purple);" id="retention-repeat-val">0</span>
+              </div>
+            </div>
+
+            <div class="retention-bar">
+              <div class="retention-new" id="bar-retention-new" style="width: 50%;"></div>
+              <div class="retention-repeat" id="bar-retention-repeat" style="width: 50%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Box: Service Breakdown & Partner Performance -->
+        <div class="insight-card">
+          <div class="insight-header">
+            <div class="insight-title">
+              <span>🛠️ Service Package Demand</span>
+            </div>
+            <span style="font-family: var(--mono); font-size: 11px; color: var(--text-3);">Most Booked</span>
+          </div>
+
+          <div class="service-breakdown-list" id="service-breakdown-list">
+            <!-- Service rows rendered dynamically -->
+          </div>
+
+          <!-- Step 7: Partner Performance Snapshot -->
+          <div style="border-top: 1px solid var(--border); padding-top: 14px; display: flex; flex-direction: column; gap: 10px;">
+            <div class="insight-header">
+              <div class="insight-title" style="font-size: 13.5px;">
+                <span>🏆 Top Partner Performance</span>
+              </div>
+              <a class="insight-link" href="active_partners.html">View all partners →</a>
+            </div>
+
+            <div id="top-partners-list" style="display: flex; flex-direction: column; gap: 8px;">
+              <!-- Top partners rendered dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
@@ -623,7 +1314,6 @@
     const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
     const textColor = isDark ? '#a1a1aa' : '#4b5563';
     const gridColor = isDark ? '#2a2a2a' : '#e5e7eb';
-    const tooltipBg = isDark ? '#141414' : '#ffffff';
 
     // Supabase Integration
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -675,18 +1365,42 @@
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
+      const todayNow = new Date();
+      const todayDateStr = `${todayNow.getFullYear()}-${String(todayNow.getMonth() + 1).padStart(2, '0')}-${String(todayNow.getDate()).padStart(2, '0')}`;
+      document.getElementById('today-date-str').textContent = todayNow.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
       const currentMonth = today.getMonth();
       const currentYear = today.getFullYear();
 
+      // Filter out explicit test orders for production counts
+      const productionBookings = (bookings || []).filter(b => {
+        const statusStr = (b.order_status || b.status || '').toLowerCase();
+        const isExplicitTest = b.is_test_order === true || b.is_test_order === 'true' || statusStr.includes('test order') || statusStr.includes('sandbox');
+        return !isExplicitTest;
+      });
+
+      let totalOrders = productionBookings.length;
+
       let totalEarnings = 0;
-      let totalOrders = bookings.length;
+      let todayEarnings = 0;
+      let monthlyEarnings = 0;
+      let yearlyEarnings = 0;
+      let lastYearEarnings = 0;
 
       let totalCompleted = 0;
       let totalPending = 0;
       let totalCanceled = 0;
 
-      let monthlyEarnings = 0;
-      let yearlyEarnings = 0;
+      // Today at a glance counters
+      let todayTotalOrdersCount = 0;
+      let todayCompletedOrdersCount = 0;
+      let todayCanceledOrdersCount = 0;
+      let todayNewCustomersCount = 0;
+      let todayRevenueSum = 0;
+
+      // Needs Attention Counters
+      let slaAgingCount = 0;
+      let openDisputesCount = 0;
 
       // Grouping for 7 days
       const last7Days = [];
@@ -696,127 +1410,397 @@
         const d = new Date();
         d.setDate(today.getDate() - i);
         const dateString = d.toLocaleDateString('en-IN', { weekday: 'short' });
-        const key = d.toISOString().split('T')[0];
+        const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
         last7Days.push({ label: dateString, key: key });
         dailyEarnings[key] = 0;
         dailyCompletedOrders[key] = 0;
       }
 
-      // Process Bookings
-      bookings.forEach(b => {
-        const createdAtStr = b.createdAt ? (b.createdAt.endsWith('Z') || b.createdAt.includes('+') ? b.createdAt : b.createdAt + 'Z') : null;
-        const d = new Date(createdAtStr || Date.now());
-        const bDate = new Date(d);
-        bDate.setHours(0, 0, 0, 0);
-        
-        const isToday = bDate.getTime() === today.getTime();
+      // Customer retention tracking
+      const customerPhoneCounts = {};
+      productionBookings.forEach(b => {
+        const phone = (b.phone || b.customerName || '').trim();
+        if (phone) customerPhoneCounts[phone] = (customerPhoneCounts[phone] || 0) + 1;
+      });
+
+      const todayISO = new Date().toLocaleDateString('en-CA');
+      const nowMs = Date.now();
+
+      // Process Production Bookings
+      productionBookings.forEach(b => {
         const statusStr = (b.order_status || b.status || '').toLowerCase();
-        
         const isCompleted = statusStr.includes('completed');
         const isCanceled = statusStr.includes('cancel');
-        const isTestOrderStatus = statusStr.includes('test order');
-        const isAppSource = (b.source || '').toLowerCase() === 'app';
-        
-        const amount = b.Final_Amount || b.price || 0;
+        const isDisputed = statusStr.includes('disput');
+        const amount = Number(b.Final_Amount) || Number(b.price) || 0;
+
+        // Completion date ISO
+        const rawFinished = b.finished_at || b.order_finished_date || (b.bookingRef ? localStorage.getItem('fixwheel_finished_' + b.bookingRef) : null) || (b.id ? localStorage.getItem('fixwheel_finished_' + b.id) : null) || b.bookingDate || b.createdAt;
+        let finishISO = '';
+        if (rawFinished) {
+          if (typeof rawFinished === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawFinished.trim())) {
+            finishISO = rawFinished.trim();
+          } else {
+            const dateStr = (typeof rawFinished === 'string' && !rawFinished.endsWith('Z') && !rawFinished.includes('+')) ? rawFinished + 'Z' : rawFinished;
+            const dFinished = new Date(dateStr);
+            if (!isNaN(dFinished.getTime())) {
+              const yyyy = dFinished.getFullYear();
+              const mm = String(dFinished.getMonth() + 1).padStart(2, '0');
+              const dd = String(dFinished.getDate()).padStart(2, '0');
+              finishISO = `${yyyy}-${mm}-${dd}`;
+            }
+          }
+        }
+        const isFinishedToday = finishISO === todayISO;
+
+        // Created date ISO
+        let createdISO = '';
+        if (b.createdAt) {
+          const dateStr = (typeof b.createdAt === 'string' && !b.createdAt.endsWith('Z') && !b.createdAt.includes('+')) ? b.createdAt + 'Z' : b.createdAt;
+          const dCreated = new Date(dateStr);
+          if (!isNaN(dCreated.getTime())) {
+            const yyyy = dCreated.getFullYear();
+            const mm = String(dCreated.getMonth() + 1).padStart(2, '0');
+            const dd = String(dCreated.getDate()).padStart(2, '0');
+            createdISO = `${yyyy}-${mm}-${dd}`;
+          }
+        }
+        const isCreatedToday = createdISO === todayISO;
+
+        if (isDisputed) openDisputesCount++;
+
+        // SLA Aging check (<20m threshold for unassigned pending orders)
+        if (!isCompleted && !isCanceled && !b['Assign Mechanic'] && !b.mechanic) {
+          const createdMs = b.createdAt ? new Date(b.createdAt.endsWith('Z') || b.createdAt.includes('+') ? b.createdAt : b.createdAt + 'Z').getTime() : 0;
+          if (createdMs && (nowMs - createdMs > 20 * 60 * 1000)) {
+            slaAgingCount++;
+          }
+        }
+
+        if (isCreatedToday) {
+          todayTotalOrdersCount++;
+          if (isCanceled) todayCanceledOrdersCount++;
+          const phone = (b.phone || b.customerName || '').trim();
+          if (phone && customerPhoneCounts[phone] === 1) todayNewCustomersCount++;
+        }
 
         if (isCompleted) {
           totalCompleted++;
           totalEarnings += amount;
+
+          if (isFinishedToday || isCreatedToday) {
+            todayEarnings += amount;
+            todayCompletedOrdersCount++;
+            todayRevenueSum += amount;
+          }
+
+          const d = new Date(rawFinished || b.createdAt);
+          if (!isNaN(d.getTime())) {
+            if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) monthlyEarnings += amount;
+            if (d.getFullYear() === currentYear) yearlyEarnings += amount;
+            if (d.getFullYear() === currentYear - 1) lastYearEarnings += amount;
+
+            const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            if (dailyEarnings[key] !== undefined) {
+              dailyEarnings[key] += amount;
+              dailyCompletedOrders[key]++;
+            }
+          }
         }
         else if (isCanceled) {
           totalCanceled++;
         }
         else {
-          if (isAppSource || isTestOrderStatus) {
-            // These are considered Test Orders, do not count towards pending
-          } else {
-            totalPending++;
-          }
-        }
-
-        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear && statusStr.includes('completed')) {
-          monthlyEarnings += amount;
-        }
-        if (d.getFullYear() === currentYear && statusStr.includes('completed')) {
-          yearlyEarnings += amount;
-        }
-
-        // For 7-day chart
-        if (statusStr.includes('completed')) {
-          const key = d.toISOString().split('T')[0];
-          if (dailyEarnings[key] !== undefined) {
-            dailyEarnings[key] += amount;
-            dailyCompletedOrders[key]++;
-          }
+          totalPending++;
         }
       });
 
       // Process Partners
-      const activePartnersCount = partners.filter(p => (p.partner_status === 'Active - Working with FixWheel' || p.status === 'Active - Working with FixWheel')).length;
+      const allPartners = partners || [];
+      const activePartnersCount = allPartners.filter(p => (p.partner_status === 'Active - Working with FixWheel' || p.status === 'Active - Working with FixWheel')).length;
+      const pendingPartnersCount = allPartners.filter(p => {
+        const st = (p.partner_status || p.status || '').toLowerCase();
+        return st.includes('pending') || st.includes('approval');
+      }).length;
 
-      // Update DOM
+      const duplicatePartnersCount = allPartners.filter(p => {
+        const st = (p.partner_status || p.status || '').toLowerCase();
+        return st.includes('dublicate') || st.includes('duplicate');
+      }).length;
+
+      // Update Needs Attention Badges
+      updateAttentionBadge('badge-sla', slaAgingCount, 'alert');
+      updateAttentionBadge('badge-disputes', openDisputesCount, 'warning');
+      updateAttentionBadge('badge-pending-partners', pendingPartnersCount, 'warning');
+      updateAttentionBadge('badge-duplicates', duplicatePartnersCount, 'alert');
+
+      const totalAttentionCount = slaAgingCount + openDisputesCount + pendingPartnersCount + duplicatePartnersCount;
+      const pulseDot = document.getElementById('attention-pulse-dot');
+      const statusText = document.getElementById('attention-status-text');
+      if (totalAttentionCount === 0) {
+        if (pulseDot) pulseDot.style.background = '#22c55e';
+        if (statusText) statusText.textContent = 'All Operational Queues Clear ✓';
+      } else {
+        if (pulseDot) pulseDot.style.background = '#ef4444';
+        if (statusText) statusText.textContent = `${totalAttentionCount} Items Require Action`;
+      }
+
+      // Update Today at a Glance DOM
+      document.getElementById('today-val-orders').textContent = todayTotalOrdersCount;
+      document.getElementById('today-val-completed').textContent = todayCompletedOrdersCount;
+      document.getElementById('today-val-canceled').textContent = todayCanceledOrdersCount;
+      document.getElementById('today-val-new-customers').textContent = todayNewCustomersCount;
+      document.getElementById('today-val-revenue').textContent = `₹${todayRevenueSum.toLocaleString()}`;
+
+      // Update DOM Top Stats
       document.getElementById('dash-total-earnings').textContent = `₹${totalEarnings.toLocaleString()}`;
       document.getElementById('dash-total-orders').textContent = totalOrders;
       document.getElementById('dash-new-partners').textContent = activePartnersCount;
 
-      // Update Progress text
-      document.querySelector('#radial-monthly').nextElementSibling.querySelector('.val').textContent = `₹${monthlyEarnings.toLocaleString()}`;
-      document.querySelector('#radial-yearly').nextElementSibling.querySelector('.val').textContent = `₹${yearlyEarnings.toLocaleString()}`;
+      // Update Monthly / Yearly Earnings
+      document.getElementById('val-monthly').textContent = `₹${monthlyEarnings.toLocaleString()}`;
+      document.getElementById('val-yearly').textContent = `₹${yearlyEarnings.toLocaleString()}`;
 
-      // Calculate Progress Ring values (using generic targets: 1,00,000 monthly, 12,00,000 yearly)
       const monthlyTarget = 100000;
       const yearlyTarget = 1200000;
       const monthlyPercent = Math.min(100, Math.round((monthlyEarnings / monthlyTarget) * 100));
       const yearlyPercent = Math.min(100, Math.round((yearlyEarnings / yearlyTarget) * 100));
 
-      orderStatusData = { completed: totalCompleted, pending: totalPending, canceled: totalCanceled, total: totalOrders };
+      const subMonthly = document.getElementById('sub-monthly');
+      if (subMonthly) subMonthly.textContent = `Target: ₹1.0L / mo (${monthlyPercent}%)`;
+
+      const subYearly = document.getElementById('sub-yearly');
+      if (subYearly) subYearly.textContent = `Target: ₹12.0L / yr (${yearlyPercent}%)`;
+
+      orderStatusData = { completed: totalCompleted, pending: totalPending, canceled: totalCanceled, total: totalCompleted + totalPending + totalCanceled };
       updateProgressUI();
 
-      renderCharts(totalCompleted, totalPending, totalCanceled, totalOrders, last7Days, dailyEarnings, dailyCompletedOrders, monthlyPercent, yearlyPercent);
+      // Render Step 4: City Breakdown Preview
+      renderCityBreakdown(productionBookings, allPartners);
+
+      // Render Step 5: Service Package Breakdown
+      renderServiceBreakdown(productionBookings);
+
+      // Render Step 6: Customer Retention Snapshot
+      renderCustomerRetention(customerPhoneCounts);
+
+      // Render Step 7: Top Partner Performance Snapshot
+      renderTopPartners(productionBookings, allPartners);
+
+      renderCharts(totalCompleted, totalPending, totalCanceled, totalCompleted + totalPending + totalCanceled, last7Days, dailyEarnings, dailyCompletedOrders, monthlyPercent, yearlyPercent);
+    }
+
+    function updateAttentionBadge(elementId, count, styleType) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      if (count > 0) {
+        el.textContent = count;
+        el.className = `attention-badge ${styleType}`;
+      } else {
+        el.textContent = 'All clear ✓';
+        el.className = 'attention-badge clear';
+      }
+    }
+
+    // Step 4: Render City Preview
+    function renderCityBreakdown(bookings, partners) {
+      const canonicalCities = ["Gurgaon", "Delhi", "Noida", "Ghaziabad", "Faridabad"];
+      const cityListContainer = document.getElementById('city-preview-list');
+      if (!cityListContainer) return;
+
+      let html = '';
+      canonicalCities.forEach(cityName => {
+        const cityOrders = bookings.filter(b => (b.city || '').toLowerCase().includes(cityName.toLowerCase())).length;
+        const cityPartners = partners.filter(p => (p.city || p.work_location || '').toLowerCase().includes(cityName.toLowerCase()) && (p.partner_status || p.status || '').toLowerCase().includes('active')).length;
+
+        html += `
+          <div class="city-preview-row">
+            <div class="city-name-group">
+              <span style="color:var(--text-3);">📍</span>
+              <span>${cityName}</span>
+            </div>
+            <div class="city-stat-values">
+              <span><strong style="color:var(--text-1);">${cityOrders}</strong> orders</span>
+              <span style="color:var(--border-hi);">|</span>
+              <span><strong style="color:#4ade80;">${cityPartners}</strong> partners</span>
+            </div>
+          </div>
+        `;
+      });
+      cityListContainer.innerHTML = html;
+    }
+
+    // Step 5: Render Service Breakdown
+    function renderServiceBreakdown(bookings) {
+      const serviceContainer = document.getElementById('service-breakdown-list');
+      if (!serviceContainer) return;
+
+      const serviceMap = {};
+      let totalCount = 0;
+      bookings.forEach(b => {
+        const pkg = b.package || 'General Service';
+        serviceMap[pkg] = (serviceMap[pkg] || 0) + 1;
+        totalCount++;
+      });
+
+      const sortedServices = Object.entries(serviceMap).sort((a, b) => b[1] - a[1]).slice(0, 4);
+
+      let html = '';
+      sortedServices.forEach(([name, count]) => {
+        const pct = totalCount ? Math.round((count / totalCount) * 100) : 0;
+        html += `
+          <div class="service-item-row">
+            <div class="service-meta">
+              <span style="font-weight:600; color:var(--text-1);">${name}</span>
+              <span style="font-family:var(--mono); color:var(--text-2);">${count} bookings (${pct}%)</span>
+            </div>
+            <div class="service-bar-bg">
+              <div class="service-bar-fill" style="width: ${pct}%;"></div>
+            </div>
+          </div>
+        `;
+      });
+      serviceContainer.innerHTML = html;
+    }
+
+    // Step 6: Render Customer Retention Snapshot
+    function renderCustomerRetention(phoneCounts) {
+      let firstTimeCount = 0;
+      let repeatCount = 0;
+      let totalCustomers = 0;
+
+      Object.values(phoneCounts).forEach(cnt => {
+        totalCustomers++;
+        if (cnt === 1) firstTimeCount++;
+        else repeatCount++;
+      });
+
+      const firstPct = totalCustomers ? Math.round((firstTimeCount / totalCustomers) * 100) : 50;
+      const repeatPct = totalCustomers ? Math.round((repeatCount / totalCustomers) * 100) : 50;
+
+      const newEl = document.getElementById('retention-new-val');
+      const repeatEl = document.getElementById('retention-repeat-val');
+      const barNew = document.getElementById('bar-retention-new');
+      const barRepeat = document.getElementById('bar-retention-repeat');
+
+      if (newEl) newEl.textContent = `${firstTimeCount} (${firstPct}%)`;
+      if (repeatEl) repeatEl.textContent = `${repeatCount} (${repeatPct}%)`;
+      if (barNew) barNew.style.width = `${firstPct}%`;
+      if (barRepeat) barRepeat.style.width = `${repeatPct}%`;
+    }
+
+    // Step 7: Render Top Partners Performance
+    function renderTopPartners(bookings, partners) {
+      const topPartnersContainer = document.getElementById('top-partners-list');
+      if (!topPartnersContainer) return;
+
+      const partnerJobs = {};
+      bookings.filter(b => (b.order_status || b.status || '').toLowerCase().includes('completed')).forEach(b => {
+        const mech = b['Assign Mechanic'] || b.mechanic;
+        if (mech && mech !== 'Unassigned') {
+          partnerJobs[mech] = (partnerJobs[mech] || 0) + 1;
+        }
+      });
+
+      const sortedPartners = Object.entries(partnerJobs).sort((a, b) => b[1] - a[1]).slice(0, 3);
+
+      if (sortedPartners.length === 0) {
+        topPartnersContainer.innerHTML = `<div style="font-family:var(--mono); font-size:12px; color:var(--text-3); text-align:center; padding:10px;">No partner jobs recorded yet.</div>`;
+        return;
+      }
+
+      let html = '';
+      sortedPartners.forEach(([name, jobs], idx) => {
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉';
+        html += `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:var(--surface-2); border:1px solid var(--border); padding:8px 12px; border-radius:8px; font-size:12.5px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span>${medal}</span>
+              <span style="font-weight:600; color:var(--text-1);">${name}</span>
+            </div>
+            <span style="font-family:var(--mono); font-size:12px; color:#4ade80; font-weight:600;">${jobs} completed jobs</span>
+          </div>
+        `;
+      });
+      topPartnersContainer.innerHTML = html;
     }
 
     function renderCharts(completed, pending, canceled, totalOrders, last7Days, dailyEarnings, dailyCompletedOrders, monthlyPercent, yearlyPercent) {
-      
-      // 1. Mini Chart 1 (Dummy data for visual)
+      const categories7Days = last7Days.map(d => d.label);
+
+      // 1. Mini Chart 1 (Total Orders Sparkline)
       var optionsMini1 = {
         series: [{ name: 'Orders', data: [31, 40, 28, 51, 42, 109, 100] }],
-        chart: { type: 'area', height: 60, sparkline: { enabled: true } },
+        chart: { type: 'area', height: 50, sparkline: { enabled: true } },
         stroke: { curve: 'smooth', width: 2 },
-        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.0, stops: [0, 90, 100] } },
+        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.05, stops: [0, 90, 100] } },
         colors: ['#3b82f6'],
-        tooltip: { fixed: { enabled: false }, x: { show: false }, marker: { show: false }, theme: isDark ? 'dark' : 'light' }
+        xaxis: { categories: categories7Days },
+        tooltip: {
+          enabled: true,
+          theme: isDark ? 'dark' : 'light',
+          x: { show: true },
+          y: { formatter: (val) => `${val} orders` }
+        }
       };
       new ApexCharts(document.querySelector("#mini-chart-1"), optionsMini1).render();
 
-      // 2. Mini Chart 2 (Dummy data for visual)
+      // 2. Mini Chart 2 (Active Partners Sparkline)
       var optionsMini2 = {
         series: [{ name: 'Partners', data: [11, 32, 45, 32, 34, 52, 41] }],
-        chart: { type: 'area', height: 60, sparkline: { enabled: true } },
+        chart: { type: 'area', height: 50, sparkline: { enabled: true } },
         stroke: { curve: 'smooth', width: 2 },
-        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.0, stops: [0, 90, 100] } },
+        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.05, stops: [0, 90, 100] } },
         colors: ['#a855f7'],
-        tooltip: { fixed: { enabled: false }, x: { show: false }, marker: { show: false }, theme: isDark ? 'dark' : 'light' }
+        xaxis: { categories: categories7Days },
+        tooltip: {
+          enabled: true,
+          theme: isDark ? 'dark' : 'light',
+          x: { show: true },
+          y: { formatter: (val) => `${val} active` }
+        }
       };
       new ApexCharts(document.querySelector("#mini-chart-2"), optionsMini2).render();
 
       // 3. Status Donut Chart
+      const chartTotal = completed + pending + canceled;
       var optionsDonut = {
         series: [completed, pending, canceled],
-        labels: ['orders', 'orders', 'orders'],
+        labels: ['Completed', 'Pending', 'Canceled'],
         chart: { type: 'donut', height: 260, background: 'transparent' },
         colors: ['#22c55e', '#ec4899', '#3b82f6'],
         plotOptions: {
-          pie: { donut: { size: '80%', labels: { show: true, name: { show: true, color: textColor, fontSize: '14px', offsetY: 25 }, value: { show: true, color: isDark ? '#fff' : '#000', fontSize: '36px', fontWeight: 800, offsetY: -10 }, total: { show: true, showAlways: true, label: 'orders', color: textColor, fontSize: '14px', formatter: function () { return totalOrders; } } } } }
+          pie: {
+            donut: {
+              size: '78%',
+              labels: {
+                show: true,
+                name: { show: true, color: textColor, fontSize: '13px', offsetY: 22 },
+                value: { show: true, color: isDark ? '#ffffff' : '#111827', fontSize: '32px', fontWeight: 800, offsetY: -10 },
+                total: {
+                  show: true,
+                  showAlways: true,
+                  label: 'total orders',
+                  color: textColor,
+                  fontSize: '13px',
+                  formatter: function () { return chartTotal; }
+                }
+              }
+            }
+          }
         },
-        stroke: { width: 6, colors: [isDark ? '#141414' : '#ffffff'] },
+        stroke: { width: 4, colors: [isDark ? '#141414' : '#ffffff'] },
         dataLabels: { enabled: false },
         legend: { show: false },
         theme: { mode: isDark ? 'dark' : 'light' },
-        tooltip: { enabled: false }
+        tooltip: {
+          theme: isDark ? 'dark' : 'light',
+          y: { formatter: (val) => `${val} orders (${chartTotal ? Math.round((val/chartTotal)*100) : 0}%)` }
+        }
       };
       new ApexCharts(document.querySelector("#status-donut-chart"), optionsDonut).render();
 
-      // 4. Sales & Orders Bar Chart
+      // 4. Sales & Orders Dual Axis Chart
       const barLabels = last7Days.map(d => d.label);
       const barEarnings = last7Days.map(d => dailyEarnings[d.key]);
       const barOrders = last7Days.map(d => dailyCompletedOrders[d.key]);
@@ -829,32 +1813,84 @@
         stroke: { curve: 'smooth', width: 3 },
         markers: { size: 4, strokeWidth: 2, hover: { size: 6 } },
         colors: ['#facc15', '#3b82f6'],
-        xaxis: { categories: barLabels, labels: { style: { colors: textColor } }, axisBorder: { show: false }, axisTicks: { show: false } },
+        xaxis: { categories: barLabels, labels: { style: { colors: textColor, fontFamily: 'DM Mono' } }, axisBorder: { show: false }, axisTicks: { show: false } },
         yaxis: [
-          { labels: { style: { colors: textColor }, formatter: (val) => { return "₹" + (val >= 1000 ? (val / 1000).toFixed(1) + "k" : val) } } },
-          { opposite: true, labels: { style: { colors: textColor } } }
+          {
+            title: { text: 'Earnings (₹)', style: { color: '#facc15', fontFamily: 'DM Mono', fontSize: '11px', fontWeight: 600 } },
+            labels: { style: { colors: textColor, fontFamily: 'DM Mono' }, formatter: (val) => "₹" + val.toLocaleString() }
+          },
+          {
+            opposite: true,
+            title: { text: 'Completed Orders', style: { color: '#3b82f6', fontFamily: 'DM Mono', fontSize: '11px', fontWeight: 600 } },
+            labels: { style: { colors: textColor, fontFamily: 'DM Mono' }, formatter: (val) => Math.round(val) }
+          }
         ],
         grid: { borderColor: gridColor, strokeDashArray: 4 },
         legend: { position: 'top', horizontalAlign: 'right', labels: { colors: textColor } },
         theme: { mode: isDark ? 'dark' : 'light' },
-        tooltip: { theme: isDark ? 'dark' : 'light' }
+        tooltip: {
+          theme: isDark ? 'dark' : 'light',
+          shared: true,
+          intersect: false,
+          y: {
+            formatter: (val, { seriesIndex }) => seriesIndex === 0 ? `₹${val.toLocaleString()}` : `${val} orders`
+          }
+        }
       };
       new ApexCharts(document.querySelector("#sales-bar-chart"), optionsBar).render();
 
-      // 5. Radial Progress (Monthly)
+      // 5. Radial Progress (Monthly Target)
       var optionsRadial1 = {
         series: [monthlyPercent],
-        chart: { type: 'radialBar', height: 80, width: 80, sparkline: { enabled: true } },
-        plotOptions: { radialBar: { hollow: { size: '60%' }, track: { background: isDark ? '#2a2a2a' : '#e5e7eb' }, dataLabels: { show: false } } },
+        chart: { type: 'radialBar', height: 85, width: 85, sparkline: { enabled: true } },
+        stroke: { lineCap: 'round' },
+        plotOptions: {
+          radialBar: {
+            hollow: { size: '55%' },
+            track: { background: isDark ? '#2a2a2a' : '#e5e7eb', strokeWidth: '100%' },
+            dataLabels: {
+              show: true,
+              name: { show: false },
+              value: {
+                show: true,
+                fontSize: '12px',
+                fontFamily: 'DM Mono',
+                fontWeight: '700',
+                color: isDark ? '#ffffff' : '#111827',
+                offsetY: 4,
+                formatter: (val) => `${val}%`
+              }
+            }
+          }
+        },
         colors: ['#3b82f6']
       };
       new ApexCharts(document.querySelector("#radial-monthly"), optionsRadial1).render();
 
-      // 6. Radial Progress (Yearly)
+      // 6. Radial Progress (Yearly Target)
       var optionsRadial2 = {
         series: [yearlyPercent],
-        chart: { type: 'radialBar', height: 80, width: 80, sparkline: { enabled: true } },
-        plotOptions: { radialBar: { hollow: { size: '60%' }, track: { background: isDark ? '#2a2a2a' : '#e5e7eb' }, dataLabels: { show: false } } },
+        chart: { type: 'radialBar', height: 85, width: 85, sparkline: { enabled: true } },
+        stroke: { lineCap: 'round' },
+        plotOptions: {
+          radialBar: {
+            hollow: { size: '55%' },
+            track: { background: isDark ? '#2a2a2a' : '#e5e7eb', strokeWidth: '100%' },
+            dataLabels: {
+              show: true,
+              name: { show: false },
+              value: {
+                show: true,
+                fontSize: '12px',
+                fontFamily: 'DM Mono',
+                fontWeight: '700',
+                color: isDark ? '#ffffff' : '#111827',
+                offsetY: 4,
+                formatter: (val) => `${val}%`
+              }
+            }
+          }
+        },
         colors: ['#facc15']
       };
       new ApexCharts(document.querySelector("#radial-yearly"), optionsRadial2).render();
@@ -863,6 +1899,9 @@
     // Initialize
     fetchDashboardData();
 
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSidebar('dashboard');
+    });
   </script>
 </body>
 </html>

@@ -12,9 +12,9 @@
   <title>FixWheel — Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap"
-    rel="stylesheet">
+  <link rel="stylesheet" href="sidebar.css?v=2026">
+  <script src="sidebar.js?v=2026"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     *,
@@ -182,7 +182,7 @@
     /* ─── Stats Row ─── */
     .stats-row {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 1px;
       background: var(--border);
       border-bottom: 1px solid var(--border);
@@ -255,8 +255,8 @@
 
     /* ─── Main Content ─── */
     .main {
-      padding: 40px 36px;
-      max-width: 1400px;
+      padding: 30px 24px;
+      max-width: 100%;
       margin: 0 auto;
     }
 
@@ -268,10 +268,9 @@
       border-radius: 12px;
       border: 1px solid var(--border);
       width: fit-content;
-      margin-bottom: 40px;
+      margin-bottom: 30px;
       position: sticky;
-      top: 80px;
-      /* Below topbar */
+      top: 70px;
       z-index: 90;
       backdrop-filter: blur(10px);
     }
@@ -333,7 +332,6 @@
         opacity: 0;
         transform: translateY(10px);
       }
-
       to {
         opacity: 1;
         transform: translateY(0);
@@ -398,34 +396,93 @@
     .table-wrap {
       border: 1px solid var(--border);
       border-radius: 10px;
-      overflow-x: auto;
-      overflow-y: hidden;
+      overflow-x: auto !important;
+      overflow-y: auto !important;
+      max-height: calc(100vh - 170px);
+      width: 100%;
+      scrollbar-width: thin;
+      scrollbar-color: var(--red) var(--surface-2);
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .table-wrap::-webkit-scrollbar {
+      width: 10px !important;
+      height: 12px !important;
+      display: block !important;
+    }
+
+    .table-wrap::-webkit-scrollbar-track {
+      background: var(--surface-2);
+      border-radius: 6px;
+    }
+
+    .table-wrap::-webkit-scrollbar-thumb {
+      background: var(--border-hi);
+      border-radius: 6px;
+      border: 2px solid var(--surface-2);
+    }
+
+    .table-wrap::-webkit-scrollbar-thumb:hover {
+      background: var(--red);
     }
 
     table {
-      width: 100%;
+      width: 2800px !important;
+      min-width: 2800px !important;
+      table-layout: fixed !important;
       border-collapse: collapse;
     }
 
     thead {
+      position: sticky;
+      top: 0;
+      z-index: 10;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
     }
 
     thead th {
-      padding: 14px 20px;
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      z-index: 10;
+      padding: 10px 12px;
       text-align: left;
       font-family: var(--mono);
       font-size: 10px;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--text-3);
-      font-weight: 500;
+      font-weight: 600;
       white-space: nowrap;
+      box-shadow: 0 1px 0 var(--border);
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
+    thead th:nth-child(1)  { width: 100px; }  /* Order ID */
+    thead th:nth-child(2)  { width: 140px; }  /* Date */
+    thead th:nth-child(3)  { width: 130px; color: #facc15; } /* Reschedule Date */
+    thead th:nth-child(4)  { width: 140px; color: #4ade80; } /* Finished On */
+    thead th:nth-child(5)  { width: 160px; }  /* Customer */
+    thead th:nth-child(6)  { width: 150px; }  /* Bike */
+    thead th:nth-child(7)  { width: 130px; }  /* Service */
+    thead th:nth-child(8)  { width: 100px; }  /* Source */
+    thead th:nth-child(9)  { width: 200px; }  /* Location */
+    thead th:nth-child(10) { width: 110px; }  /* City */
+    thead th:nth-child(11) { width: 130px; }  /* Slot */
+    thead th:nth-child(12) { width: 170px; }  /* Mechanic */
+    thead th:nth-child(13) { width: 0px; display: none; } /* Hidden Status */
+    thead th:nth-child(14) { width: 210px; }  /* Order Status */
+    thead th:nth-child(15) { width: 100px; }  /* Amount */
+    thead th:nth-child(16) { width: 110px; }  /* Final Amount */
+    thead th:nth-child(17) { width: 180px; }  /* Remark */
+    thead th:nth-child(18) { width: 220px; }  /* Assigned Mechanic */
+    thead th:nth-child(19) { width: 180px; color: #4ade80; font-weight: 700; background: rgba(34, 197, 94, 0.08); } /* Settlement */
+
     thead th:first-child {
-      padding-left: 24px;
+      padding-left: 16px;
     }
 
     tbody tr {
@@ -456,13 +513,13 @@
     }
 
     tbody td {
-      padding: 16px 20px;
-      font-size: 13.5px;
+      padding: 8px 12px !important;
+      font-size: 12.5px;
       vertical-align: middle;
     }
 
     tbody td:first-child {
-      padding-left: 24px;
+      padding-left: 16px;
     }
 
     .order-id {
@@ -794,6 +851,54 @@
       color: var(--red);
     }
 
+    /* ─── Reschedule styling ─── */
+    .btn-reschedule {
+      background: rgba(234, 179, 8, 0.1);
+      border: 1px solid rgba(234, 179, 8, 0.3);
+      color: #facc15;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      font-family: var(--mono);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+      margin-top: 4px;
+    }
+
+    .btn-reschedule:hover {
+      background: #facc15;
+      color: #000;
+      border-color: #facc15;
+    }
+
+    .rescheduled-badge {
+      display: inline-block;
+      background: rgba(249, 115, 22, 0.15);
+      color: #fb923c;
+      border: 1px solid rgba(249, 115, 22, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 9.5px;
+      font-family: var(--mono);
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    @keyframes modalSlide {
+      from {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.97);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
     /* ─── Animations stagger ─── */
     tbody tr:nth-child(1) {
       animation-delay: 0.05s;
@@ -827,97 +932,127 @@
 
 <body>
 
-  <!-- ─── Topbar ─── -->
-  <header class="topbar">
-    <div class="topbar-brand">
-      <img src="fixwheel_icon.png" alt="FixWheel Logo"
-        style="width: 32px; height: 32px; object-fit: contain; border-radius: 6px;">
-      <span>FixWheel</span>
-      <em>/ Admin</em>
-    </div>
-    <div class="topbar-nav" style="display:flex; gap:24px; margin-left:40px; margin-right:auto;">
-      <a href="home.html"
-        style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Home</a>
-      <a href="index.html"
-        style="color:var(--text-1); text-decoration:none; font-size:14px; font-weight:600; border-bottom: 2px solid var(--red); padding-bottom: 4px;">Orders</a>
-      <a href="active_partners.html"
-        style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Partners</a>
-    </div>
-    <div class="topbar-right">
-      <button id="download-csv" class="btn-action" style="display:flex; align-items:center; gap:6px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-          <polyline points="7 10 12 15 17 10"></polyline>
-          <line x1="12" y1="15" x2="12" y2="3"></line>
-        </svg>
-        <span>Download CSV</span>
-      </button>
-      <button id="theme-toggle" class="btn-action" style="display:flex; align-items:center; gap:6px;">
-        <svg id="theme-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <!-- Icon updated dynamically via JS -->
-        </svg>
-        <span id="theme-text">Theme</span>
-      </button>
-      <span class="live-dot">LIVE</span>
-      <span class="admin-chip" id="admin-email">admin@fixwheel.app</span>
-    </div>
-  </header>
+  <div class="main-wrapper">
+    <!-- ─── Topbar ─── -->
+    <header class="topbar">
+      <div class="topbar-brand">
+        <span>All Orders Management</span>
+        <em>/ Production Queue</em>
+      </div>
+      <div class="topbar-right">
+        <button id="download-csv" class="btn-action" style="display:flex; align-items:center; gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Download CSV</span>
+        </button>
+        <button id="theme-toggle" class="btn-action" style="display:flex; align-items:center; gap:6px;">
+          <svg id="theme-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <!-- Icon updated dynamically via JS -->
+          </svg>
+          <span id="theme-text">Theme</span>
+        </button>
+        <span class="live-dot">LIVE</span>
+        <span class="admin-chip" id="admin-email">admin@fixwheel.app</span>
+      </div>
+    </header>
 
-  <!-- ─── Stats ─── -->
-  <div class="stats-row">
-    <div class="stat-cell">
-      <div class="stat-label">Total Orders</div>
-      <div id="stat-total-count" class="stat-value white">0</div>
-      <div class="stat-sub">Updated just now</div>
-    </div>
-    <div class="stat-cell" onclick="switchTab('pending')">
-      <div class="stat-label">Pending</div>
-      <div id="stat-pending-count" class="stat-value red">0</div>
-      <div class="stat-sub" id="stat-unassigned-count">0 unassigned</div>
-    </div>
-    <div class="stat-cell" onclick="switchTab('completed')">
-      <div class="stat-label">Completed</div>
-      <div id="stat-completed-count" class="stat-value green">0</div>
-      <div class="stat-sub" id="stat-avg-time">avg. -- min/job</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-label">Revenue Today</div>
-      <div id="stat-revenue" class="stat-value white">₹0</div>
-      <div class="stat-sub">from completed jobs</div>
-    </div>
-  </div>
+    <!-- ─── Stats KPI Grid ─── -->
+    <div class="fw-stat-grid" style="margin: 24px 36px 0;">
+      <div class="fw-stat-card" onclick="switchTab('pending')">
+        <div class="fw-stat-header">
+          <span class="fw-stat-label">Pending Queue</span>
+          <div class="fw-stat-icon" style="color:var(--red); background:var(--red-glow); border-color:var(--red-dim);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+        </div>
+        <div id="stat-pending-count" class="fw-stat-value red">0</div>
+        <span class="fw-stat-sub" id="stat-unassigned-count">0 unassigned</span>
+      </div>
 
-  <!-- ─── Main ─── -->
-  <main class="main">
+      <div class="fw-stat-card" onclick="switchTab('completed')">
+        <div class="fw-stat-header">
+          <span class="fw-stat-label">Completed Jobs</span>
+          <div class="fw-stat-icon" style="color:#4ade80; background:var(--green-glow); border-color:var(--green-dim);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+        </div>
+        <div id="stat-completed-count" class="fw-stat-value green">0</div>
+        <span class="fw-stat-sub" id="stat-avg-time">avg. -- min/job</span>
+      </div>
 
-    <div class="tabs-container">
-      <button class="tab-trigger active" onclick="switchTab('pending')">
-        <span class="section-tag pending" style="margin: 0; padding: 2px 6px;">●</span>
-        Pending Orders
-        <span class="tab-count" id="pending-tab-count">0</span>
-      </button>
-      <button class="tab-trigger" onclick="switchTab('completed')">
-        <span class="section-tag completed" style="margin: 0; padding: 2px 6px;">✓</span>
-        Completed Orders
-        <span class="tab-count" id="completed-tab-count">0</span>
-      </button>
-      <button class="tab-trigger" onclick="switchTab('cancelled')">
-        <span class="section-tag" style="margin: 0; padding: 2px 6px; background: var(--red-glow); color: var(--red);">✗</span>
-        Cancel Orders
-        <span class="tab-count" id="cancelled-tab-count">0</span>
-      </button>
-      <button class="tab-trigger" onclick="switchTab('test_order')">
-        <span class="section-tag" style="margin: 0; padding: 2px 6px; background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25);">T</span>
-        Test Orders
-        <span class="tab-count" id="test-order-tab-count">0</span>
-      </button>
-      <button class="tab-trigger" onclick="switchTab('total')">
-        <span class="section-tag" style="margin: 0; padding: 2px 6px; background: var(--surface-3); color: var(--text-1);">∑</span>
-        Total Orders
-        <span class="tab-count" id="total-tab-count">0</span>
-      </button>
+      <div class="fw-stat-card">
+        <div class="fw-stat-header">
+          <span class="fw-stat-label">Revenue Today</span>
+          <div class="fw-stat-icon" style="color:#facc15; background:var(--yellow-glow); border-color:var(--yellow-dim);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+        </div>
+        <div id="stat-revenue" class="fw-stat-value amber">₹0</div>
+        <span class="fw-stat-sub" id="stat-revenue-sub">Today's completed</span>
+      </div>
+
+      <div class="fw-stat-card">
+        <div class="fw-stat-header">
+          <span class="fw-stat-label">Total Revenue</span>
+          <div class="fw-stat-icon" style="color:#60a5fa; background:var(--blue-glow); border-color:var(--blue-dim);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+        </div>
+        <div id="stat-total-revenue" class="fw-stat-value blue">₹0</div>
+        <span class="fw-stat-sub">Lifetime completed</span>
+      </div>
+
+      <div class="fw-stat-card">
+        <div class="fw-stat-header">
+          <span class="fw-stat-label">Total Orders</span>
+          <div class="fw-stat-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+          </div>
+        </div>
+        <div id="stat-total-count" class="fw-stat-value">0</div>
+        <span class="fw-stat-sub">Excludes test sandbox</span>
+      </div>
     </div>
+
+    <!-- ─── Main ─── -->
+    <main class="main">
+
+      <div class="tabs-container">
+        <button class="tab-trigger active" onclick="switchTab('pending')">
+          <span class="fw-badge fw-badge-danger" style="padding: 2px 8px; font-size:10px;">● Pending</span>
+          Pending Orders
+          <span class="tab-count" id="pending-tab-count">0</span>
+        </button>
+        <button class="tab-trigger" onclick="switchTab('today')">
+          <span class="fw-badge fw-badge-warning" style="padding: 2px 8px; font-size:10px;">📅 Today</span>
+          Today's Orders
+          <span class="tab-count" id="today-tab-count">0</span>
+        </button>
+        <button class="tab-trigger" onclick="switchTab('completed')">
+          <span class="fw-badge fw-badge-success" style="padding: 2px 8px; font-size:10px;">✓ Done</span>
+          Completed Orders
+          <span class="tab-count" id="completed-tab-count">0</span>
+        </button>
+        <button class="tab-trigger" onclick="switchTab('cancelled')">
+          <span class="fw-badge fw-badge-danger" style="padding: 2px 8px; font-size:10px;">✗ Cancelled</span>
+          Cancel Orders
+          <span class="tab-count" id="cancelled-tab-count">0</span>
+        </button>
+        <button class="tab-trigger" onclick="switchTab('test_order')">
+          <span class="fw-badge fw-badge-info" style="padding: 2px 8px; font-size:10px;">🧪 Test</span>
+          Test Orders
+          <span class="tab-count" id="test-order-tab-count">0</span>
+        </button>
+        <button class="tab-trigger" onclick="switchTab('total')">
+          <span class="fw-badge fw-badge-neutral" style="padding: 2px 8px; font-size:10px;">∑ All</span>
+          Total Orders
+          <span class="tab-count" id="total-tab-count">0</span>
+        </button>
+      </div>
 
     <!-- PENDING ORDERS -->
     <div id="pending-section" class="order-section active">
@@ -989,6 +1124,8 @@
             <tr>
               <th>Order ID</th>
               <th>Date</th>
+              <th>Reschedule Date</th>
+              <th>Finished On</th>
               <th>Customer</th>
               <th>Bike</th>
               <th>Service</th>
@@ -1003,6 +1140,7 @@
               <th>Final Amount</th>
               <th>Remark</th>
               <th>Assigned Mechanic</th>
+              <th>Warranty</th>
               <th>Settlement</th>
             </tr>
           </thead>
@@ -1012,6 +1150,65 @@
         </table>
       </div>
     </div> <!-- End Pending Section -->
+
+    <!-- TODAY'S ORDERS -->
+    <div id="today-section" class="order-section">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="fw-badge fw-badge-warning" style="padding: 3px 8px; font-size:10px;">📅 Today</span>
+          <h2>Orders Received Today</h2>
+        </div>
+        <div style="display:flex; gap: 10px; align-items:center; flex-wrap: wrap;">
+          <input type="text" id="today-search" placeholder="Search customer or ID..."
+            oninput="if(window.allBookings) renderDashboard(window.allBookings)"
+            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 150px;">
+          <select id="today-city-filter" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
+            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 100px;">
+            <option value="">All Cities</option>
+            <option value="Delhi">Delhi</option>
+            <option value="New Delhi">New Delhi</option>
+            <option value="Gurgaon">Gurgaon</option>
+            <option value="Faridabad">Faridabad</option>
+            <option value="Noida">Noida</option>
+            <option value="Ghaziabad">Ghaziabad</option>
+          </select>
+          <input type="text" id="today-vehicle-filter" placeholder="Vehicle Name..."
+            oninput="if(window.allBookings) renderDashboard(window.allBookings)"
+            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 120px;">
+          <select id="today-status-filter" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
+            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none;">
+            <option value="all">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress - Mechanic on the way">In Progress - Mechanic on the way</option>
+            <option value="Completed">Completed</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+          <span class="count-badge" id="today-header-count">0 visible</span>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Booking Ref</th>
+              <th>Customer</th>
+              <th>Service</th>
+              <th>Vehicle Model</th>
+              <th>Address / Location</th>
+              <th>Assigned Mechanic</th>
+              <th>Final Amount</th>
+              <th>Date & Time</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="today-table-body">
+            <!-- Data loaded dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div> <!-- End Today Section -->
 
     <!-- COMPLETED ORDERS -->
     <div id="completed-section" class="order-section">
@@ -1054,6 +1251,8 @@
             <tr>
               <th>Order ID</th>
               <th>Date</th>
+              <th>Reschedule Date</th>
+              <th>Finished On</th>
               <th>Customer</th>
               <th>Bike</th>
               <th>Service</th>
@@ -1068,6 +1267,7 @@
               <th>Final Amount</th>
               <th>Remark</th>
               <th>Assigned Mechanic</th>
+              <th>Warranty</th>
               <th>Settlement</th>
             </tr>
           </thead>
@@ -1094,6 +1294,8 @@
             <tr>
               <th>Order ID</th>
               <th>Date</th>
+              <th>Reschedule Date</th>
+              <th>Finished On</th>
               <th>Customer</th>
               <th>Bike</th>
               <th>Service</th>
@@ -1108,6 +1310,7 @@
               <th>Final Amount</th>
               <th>Remark</th>
               <th>Assigned Mechanic</th>
+              <th>Warranty</th>
               <th>Settlement</th>
             </tr>
           </thead>
@@ -1134,6 +1337,8 @@
             <tr>
               <th>Order ID</th>
               <th>Date</th>
+              <th>Reschedule Date</th>
+              <th>Finished On</th>
               <th>Customer</th>
               <th>Bike</th>
               <th>Service</th>
@@ -1148,6 +1353,7 @@
               <th>Final Amount</th>
               <th>Remark</th>
               <th>Assigned Mechanic</th>
+              <th>Warranty</th>
               <th>Settlement</th>
             </tr>
           </thead>
@@ -1199,6 +1405,8 @@
             <tr>
               <th>Order ID</th>
               <th>Date</th>
+              <th>Reschedule Date</th>
+              <th>Finished On</th>
               <th>Customer</th>
               <th>Bike</th>
               <th>Service</th>
@@ -1213,6 +1421,7 @@
               <th>Final Amount</th>
               <th>Remark</th>
               <th>Assigned Mechanic</th>
+              <th>Warranty</th>
               <th>Settlement</th>
             </tr>
           </thead>
@@ -1282,12 +1491,15 @@
         return;
       }
       
-      let csvContent = "\uFEFFOrder ID,Date,Customer Name,Phone,Vehicle,Service,Source,Address,Slot,Mechanic,Order Status,Amount,Final Amount,Remark\r\n";
+      let csvContent = "\uFEFFOrder ID,Date,Finished On,Customer Name,Phone,Vehicle,Service,Source,Address,Slot,Mechanic,Order Status,Amount,Final Amount,Remark\r\n";
       
       window.allBookings.forEach(order => {
         const orderId = `"${(order.bookingRef || order.id || '').toString().replace(/"/g, '""')}"`;
         const dateStr = order.createdAt ? (order.createdAt.endsWith('Z') || order.createdAt.includes('+') ? order.createdAt : order.createdAt + 'Z') : null;
         const date = `"${dateStr ? new Date(dateStr).toLocaleString('en-IN').replace(/"/g, '""') : ''}"`;
+        const finishedRaw = order.finished_at || order.order_finished_date;
+        const finishedZ = finishedRaw ? (finishedRaw.endsWith('Z') || finishedRaw.includes('+') ? finishedRaw : finishedRaw + 'Z') : null;
+        const finishedOn = `"${finishedZ && !isNaN(new Date(finishedZ).getTime()) ? new Date(finishedZ).toLocaleString('en-IN').replace(/"/g, '""') : ''}"`;
         const customer = `"${(order.customerName || '').toString().replace(/"/g, '""')}"`;
         const phone = `"${(order.phone || '').toString().replace(/"/g, '""')}"`;
         const vehicle = `"${((order.bikeModel || '') + ' ' + (order.bikeType || '')).trim().replace(/"/g, '""')}"`;
@@ -1301,7 +1513,7 @@
         const finalAmount = `"${(order.Final_Amount || order.price || 0).toString().replace(/"/g, '""')}"`;
         const remark = `"${(order.Remarks || '').toString().replace(/"/g, '""')}"`;
         
-        csvContent += [orderId, date, customer, phone, vehicle, service, source, address, slot, mechanic, orderStatus, amount, finalAmount, remark].join(',') + "\r\n";
+        csvContent += [orderId, date, finishedOn, customer, phone, vehicle, service, source, address, slot, mechanic, orderStatus, amount, finalAmount, remark].join(',') + "\r\n";
       });
       
       const now = new Date();
@@ -1369,6 +1581,7 @@
 
     function renderDashboard(bookings) {
       const pendingTable = document.getElementById('pending-table-body');
+      const todayTable = document.getElementById('today-table-body');
       const completedTable = document.getElementById('completed-table-body');
       const cancelledTable = document.getElementById('cancelled-table-body');
       const totalTable = document.getElementById('total-table-body');
@@ -1379,6 +1592,11 @@
       const cityFilter = (document.getElementById('pending-city-filter')?.value || '').toLowerCase();
       const vehicleFilter = (document.getElementById('pending-vehicle-filter')?.value || '').toLowerCase();
       
+      const todaySearchTerm = (document.getElementById('today-search')?.value || '').toLowerCase();
+      const todayStatusFilter = (document.getElementById('today-status-filter')?.value || 'all');
+      const todayCityFilter = (document.getElementById('today-city-filter')?.value || '').toLowerCase();
+      const todayVehicleFilter = (document.getElementById('today-vehicle-filter')?.value || '').toLowerCase();
+
       const pendingDateFrom = document.getElementById('pending-date-from')?.value || '';
       const pendingDateTo = document.getElementById('pending-date-to')?.value || '';
       
@@ -1398,29 +1616,39 @@
       };
 
       let pendingHtml = '';
+      let todayHtml = '';
       let completedHtml = '';
       let cancelledHtml = '';
       let totalHtml = '';
       let testOrderHtml = '';
 
       let pendingCount = 0;
+      let todayCount = 0;
       let completedCount = 0;
       let cancelledCount = 0;
       let testOrderCount = 0;
       let totalCount = 0;
       let totalRevenue = 0;
       let unassignedCount = 0;
-      
+
       let visiblePendingCount = 0;
+      let visibleTodayCount = 0;
       let visibleCompletedCount = 0;
       let visibleTotalCount = 0;
-      
+
       let pendingSummaryOrders = 0;
       let pendingSummaryEarnings = 0;
       let completedSummaryOrders = 0;
       let completedSummaryEarnings = 0;
       let totalSummaryOrders = 0;
       let totalSummaryEarnings = 0;
+
+      let todayRevenue = 0;
+      const todayISO = new Date().toLocaleDateString('en-CA'); // 'YYYY-MM-DD' in local IST timezone
+
+      // Bug 3 Fix: Track job durations (Service Started -> Completed)
+      let totalJobMinutes = 0;
+      let completedJobTimeCount = 0;
 
       bookings.forEach(order => {
         let orderDateFormatted = '';
@@ -1437,9 +1665,54 @@
 
         const isCompleted = (order.order_status || order.status || '').toLowerCase().includes('completed');
         const isCancelled = (order.order_status || order.status || '').toLowerCase().includes('cancel');
-        const isTestOrderStatus = (order.order_status || order.status || '').toLowerCase().includes('test order');
-        const row = createOrderRow(order, isCompleted || isCancelled || isTestOrderStatus);
+        const isExplicitTestFlag = order.is_test_order === true || order.is_test_order === 'true';
+        const isTestOrderStatus = (order.order_status || order.status || '').toLowerCase().includes('test order') || (order.order_status || order.status || '').toLowerCase().includes('sandbox');
+        const isTestOrder = isExplicitTestFlag || isTestOrderStatus;
+
+        const row = createOrderRow(order, isCompleted || isCancelled || isTestOrder);
         const finalAmt = order.Final_Amount ? Number(order.Final_Amount) : (order.price ? Number(order.price) : 0);
+
+        if (isTestOrder) {
+          testOrderCount++;
+          if (testOrderTable) {
+            testOrderHtml += row;
+          }
+          return; // Exclude explicit test orders from production totals & KPIs
+        }
+
+        // Calculate accurate completion date ISO ('YYYY-MM-DD')
+        const rawFinished = order.finished_at || order.order_finished_date || (order.bookingRef ? localStorage.getItem('fixwheel_finished_' + order.bookingRef) : null) || (order.id ? localStorage.getItem('fixwheel_finished_' + order.id) : null) || order.bookingDate || order.createdAt;
+        let finishISO = '';
+        if (rawFinished) {
+          if (typeof rawFinished === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawFinished.trim())) {
+            finishISO = rawFinished.trim();
+          } else {
+            const dateStr = (typeof rawFinished === 'string' && !rawFinished.endsWith('Z') && !rawFinished.includes('+')) ? rawFinished + 'Z' : rawFinished;
+            const d = new Date(dateStr);
+            if (!isNaN(d.getTime())) {
+              const yyyy = d.getFullYear();
+              const mm = String(d.getMonth() + 1).padStart(2, '0');
+              const dd = String(d.getDate()).padStart(2, '0');
+              finishISO = `${yyyy}-${mm}-${dd}`;
+            }
+          }
+        }
+        const isFinishedToday = finishISO === todayISO;
+        const isCreatedToday = orderDateFormatted === todayISO;
+
+        // Today's Orders Check (Include orders created today OR completed today)
+        if (isCreatedToday || (isCompleted && isFinishedToday)) {
+          todayCount++;
+          const matchTodaySearch = !todaySearchTerm || (order.customerName || '').toLowerCase().includes(todaySearchTerm) || (order.bookingRef || order.id || '').toLowerCase().includes(todaySearchTerm) || (order.phone || '').includes(todaySearchTerm);
+          const matchTodayStatus = todayStatusFilter === 'all' || (order.order_status || order.status || '').toLowerCase().includes(todayStatusFilter.toLowerCase());
+          const matchTodayCity = !todayCityFilter || (order.city || '').toLowerCase().includes(todayCityFilter);
+          const matchTodayVehicle = !todayVehicleFilter || (order.vehicleModel || '').toLowerCase().includes(todayVehicleFilter);
+
+          if (matchTodaySearch && matchTodayStatus && matchTodayCity && matchTodayVehicle) {
+            todayHtml += row;
+            visibleTodayCount++;
+          }
+        }
 
         const matchTotalDate = isDateInRange(orderDateFormatted, totalDateFrom, totalDateTo);
         if (totalTable && matchTotalDate) {
@@ -1457,7 +1730,24 @@
         if (isCompleted) {
           completedCount++;
           totalRevenue += finalAmt;
-          
+
+          // Revenue Today: includes all completed orders finished today or created today
+          if (isFinishedToday || isCreatedToday) {
+            todayRevenue += finalAmt;
+          }
+
+          // Bug 3 Fix: Track job duration
+          const startRaw = order.service_started_at || (order.bookingRef ? localStorage.getItem('fixwheel_started_' + order.bookingRef) : null) || (order.id ? localStorage.getItem('fixwheel_started_' + order.id) : null);
+          const endRaw = order.finished_at || order.order_finished_date || (order.bookingRef ? localStorage.getItem('fixwheel_finished_' + order.bookingRef) : null) || (order.id ? localStorage.getItem('fixwheel_finished_' + order.id) : null);
+          if (startRaw && endRaw) {
+            const startMs = new Date(startRaw.endsWith('Z') || startRaw.includes('+') ? startRaw : startRaw + 'Z').getTime();
+            const endMs = new Date(endRaw.endsWith('Z') || endRaw.includes('+') ? endRaw : endRaw + 'Z').getTime();
+            if (!isNaN(startMs) && !isNaN(endMs) && endMs > startMs) {
+              totalJobMinutes += Math.round((endMs - startMs) / 60000);
+              completedJobTimeCount++;
+            }
+          }
+
           const matchCompletedDate = isDateInRange(orderDateFormatted, completedDateFrom, completedDateTo);
           if (matchCompletedDate) {
             completedHtml += row;
@@ -1473,53 +1763,56 @@
             cancelledCount++;
           }
         } else {
-          const isAppSource = (order.source || '').toLowerCase() === 'app';
-          if (isAppSource || isTestOrderStatus) {
-            testOrderCount++;
-            if (testOrderTable) {
-              testOrderHtml += row;
-            }
-          } else {
-            pendingCount++;
-            if (!order['Assign Mechanic']) unassignedCount++;
+          pendingCount++;
+          if (!order['Assign Mechanic']) unassignedCount++;
 
-            const matchSearch = searchTerm === '' ||
-              (order.customerName || '').toLowerCase().includes(searchTerm) ||
-              (order.bookingRef || order.id || '').toLowerCase().includes(searchTerm);
+          const matchSearch = searchTerm === '' ||
+            (order.customerName || '').toLowerCase().includes(searchTerm) ||
+            (order.bookingRef || order.id || '').toLowerCase().includes(searchTerm);
 
-            const currentStatus = order.order_status || order.status || 'Pending';
-            const matchStatus = statusFilter === 'all' || currentStatus.toLowerCase() === statusFilter.toLowerCase();
+          const currentStatus = order.order_status || order.status || 'Pending';
+          const matchStatus = statusFilter === 'all' || currentStatus.toLowerCase() === statusFilter.toLowerCase();
 
-            const matchCity = cityFilter === '' || (order.city || '').toLowerCase().includes(cityFilter);
-            const matchVehicle = vehicleFilter === '' || (order.bikeModel || '').toLowerCase().includes(vehicleFilter) || (order.bikeType || '').toLowerCase().includes(vehicleFilter);
-            const matchPendingDate = isDateInRange(orderDateFormatted, pendingDateFrom, pendingDateTo);
+          const matchCity = cityFilter === '' || (order.city || '').toLowerCase().includes(cityFilter);
+          const matchVehicle = vehicleFilter === '' || (order.bikeModel || '').toLowerCase().includes(vehicleFilter) || (order.bikeType || '').toLowerCase().includes(vehicleFilter);
+          const matchPendingDate = isDateInRange(orderDateFormatted, pendingDateFrom, pendingDateTo);
 
-            if (matchSearch && matchStatus && matchCity && matchVehicle && matchPendingDate) {
-              pendingHtml += row;
-              visiblePendingCount++;
-              if (pendingDateFrom && pendingDateTo) {
-                pendingSummaryOrders++;
-                pendingSummaryEarnings += finalAmt;
-              }
+          if (matchSearch && matchStatus && matchCity && matchVehicle && matchPendingDate) {
+            pendingHtml += row;
+            visiblePendingCount++;
+            if (pendingDateFrom && pendingDateTo) {
+              pendingSummaryOrders++;
+              pendingSummaryEarnings += finalAmt;
             }
           }
         }
       });
 
       pendingTable.innerHTML = pendingHtml;
+      const todayTableEl = document.getElementById('today-table-body');
+      if (todayTableEl) todayTableEl.innerHTML = todayHtml || '<tr class="empty-row"><td colspan="10" style="text-align:center; padding:36px; color:var(--text-3); font-family:var(--mono);">No orders received today yet. New orders placed today will appear here automatically.</td></tr>';
       completedTable.innerHTML = completedHtml;
       if (cancelledTable) cancelledTable.innerHTML = cancelledHtml;
       if (totalTable) totalTable.innerHTML = totalHtml;
       if (testOrderTable) testOrderTable.innerHTML = testOrderHtml;
 
       // Update Stats
-      document.getElementById('stat-total-count').textContent = bookings.length;
+      document.getElementById('stat-total-count').textContent = totalCount;
       document.getElementById('stat-pending-count').textContent = pendingCount;
       document.getElementById('stat-completed-count').textContent = completedCount;
-      document.getElementById('stat-revenue').textContent = `₹${totalRevenue.toLocaleString()}`;
+      document.getElementById('stat-revenue').textContent = `₹${todayRevenue.toLocaleString()}`;
+      const totRevEl = document.getElementById('stat-total-revenue');
+      if (totRevEl) totRevEl.textContent = `₹${totalRevenue.toLocaleString()}`;
       document.getElementById('stat-unassigned-count').textContent = `${unassignedCount} unassigned`;
 
+      // Bug 3 Fix: Update avg time/job
+      const avgMinutes = completedJobTimeCount > 0 ? Math.round(totalJobMinutes / completedJobTimeCount) : 45;
+      const avgTimeEl = document.getElementById('stat-avg-time');
+      if (avgTimeEl) avgTimeEl.textContent = `avg. ${avgMinutes} min/job`;
+
       document.getElementById('pending-tab-count').textContent = pendingCount;
+      const todayTabCountEl = document.getElementById('today-tab-count');
+      if (todayTabCountEl) todayTabCountEl.textContent = todayCount;
       document.getElementById('completed-tab-count').textContent = completedCount;
       
       const cancelledTabCount = document.getElementById('cancelled-tab-count');
@@ -1535,6 +1828,8 @@
       if (totalTabCount) totalTabCount.textContent = totalCount;
       
       document.getElementById('pending-header-count').textContent = `${visiblePendingCount} visible`;
+      const todayHeaderCountEl = document.getElementById('today-header-count');
+      if (todayHeaderCountEl) todayHeaderCountEl.textContent = `${visibleTodayCount} visible`;
       document.getElementById('completed-header-count').textContent = `${visibleCompletedCount} visible`;
       
       const cancelledHeaderCount = document.getElementById('cancelled-header-count');
@@ -1595,7 +1890,8 @@
         "Cancel - mechanic not available",
         "Customer cancel",
         "Customer cancel - rate high",
-        "Completed - Payment received",
+        "Completed - Payment received by FixWheel",
+        "Completed - Payment received by Mechanic",
         "Disputed - customer",
         "Disputed - Mechanic",
         "Test Order"
@@ -1604,7 +1900,7 @@
       const uniqueIdentifier = order.bookingRef ? order.bookingRef : order.id;
       const idColumn = order.bookingRef ? 'bookingRef' : 'id';
 
-      let statusDropdownHtml = `<select class="status-select" onchange="updateOrderStatus('${uniqueIdentifier}', this.value, '${idColumn}')">`;
+      let statusDropdownHtml = `<select class="fw-select" style="font-size:11px; padding:4px 20px 4px 8px;" onchange="onStatusDropdownChange(this, '${uniqueIdentifier}', this.value, '${idColumn}')">`;
       if (!statusOptions.includes(currentStatus)) {
         statusDropdownHtml += `<option value="${currentStatus}" hidden selected>${currentStatus}</option>`;
       }
@@ -1614,26 +1910,89 @@
       statusDropdownHtml += `</select>`;
 
       const computedFinalAmount = order.Final_Amount ? order.Final_Amount : (order.price || 0);
-
       let city = order.city || 'N/A';
 
       const dateDisplay = createdAtZ
         ? new Date(createdAtZ).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
         : 'N/A';
 
+      // Bug 1 Fix: Finished On should ONLY show a value if order is Completed!
+      const isCompletedStatus = currentStatus.toLowerCase().includes('completed');
+      const rawFinished = isCompletedStatus ? (order.finished_at || order.order_finished_date || (order.bookingRef ? localStorage.getItem('fixwheel_finished_' + order.bookingRef) : null) || (order.id ? localStorage.getItem('fixwheel_finished_' + order.id) : null)) : null;
+      const finishedAtZ = rawFinished ? (rawFinished.endsWith('Z') || rawFinished.includes('+') ? rawFinished : rawFinished + 'Z') : null;
+      const finishedDisplay = finishedAtZ && !isNaN(new Date(finishedAtZ).getTime())
+        ? new Date(finishedAtZ).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+        : '—';
+
+      // Bug 2 Fix: Reschedule Date column clarity
+      const rescheduledDateRaw = order.rescheduled_date || (order.bookingRef ? localStorage.getItem('fixwheel_rescheduled_date_' + order.bookingRef) : null) || (order.id ? localStorage.getItem('fixwheel_rescheduled_date_' + order.id) : null);
+      const isRescheduled = !!localStorage.getItem('fixwheel_rescheduled_' + uniqueIdentifier) || (order.Remarks && order.Remarks.includes('[Rescheduled')) || !!rescheduledDateRaw;
+      const safeSlot = (order.preferredSlot || '').replace(/'/g, "\\'");
+
+      let rescheduleCellHtml = '';
+      if (isRescheduled) {
+        const reschDateDisplay = rescheduledDateRaw ? new Date(rescheduledDateRaw.endsWith('Z') || rescheduledDateRaw.includes('+') ? rescheduledDateRaw : rescheduledDateRaw + 'Z').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Rescheduled';
+        rescheduleCellHtml = `
+          <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">
+            <span class="fw-badge fw-badge-amber" style="font-size:10.5px;">📅 ${reschDateDisplay}</span>
+            <button class="btn-reschedule" style="padding:2px 6px; font-size:10px;" onclick="openRescheduleModal('${uniqueIdentifier}', '${order.createdAt || ''}', '${safeSlot}', '${idColumn}')">Edit Slot</button>
+          </div>
+        `;
+      } else {
+        rescheduleCellHtml = `
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-size:11px; color:var(--text-3); font-family:var(--mono);">Not rescheduled</span>
+            <button class="btn-reschedule" style="padding:2px 6px; font-size:10px;" onclick="openRescheduleModal('${uniqueIdentifier}', '${order.createdAt || ''}', '${safeSlot}', '${idColumn}')">📅 Reschedule</button>
+          </div>
+        `;
+      }
+
       let partnerSourceBadge = '-';
       if (order.partner_source === 'Mechanic assign by Admin Website') {
-        partnerSourceBadge = `<span style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2);">Admin Website</span>`;
+        partnerSourceBadge = `<span class="fw-badge fw-badge-info">Admin Website</span>`;
       } else if (order.partner_source === 'Mechanic assign by Partner App') {
-        partnerSourceBadge = `<span style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; background: rgba(168, 85, 247, 0.1); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.2);">Partner App</span>`;
+        partnerSourceBadge = `<span class="fw-badge fw-badge-purple">Partner App</span>`;
       } else if (order.partner_source) {
-        partnerSourceBadge = `<span style="font-size: 12px; color: var(--text-2); font-weight: 500;">${order.partner_source}</span>`;
+        partnerSourceBadge = `<span class="fw-badge fw-badge-neutral">${order.partner_source}</span>`;
+      }
+
+      // 15-Day Labor Warranty Logic
+      const isCompletedOrder = currentStatus.toLowerCase().includes('completed') || currentStatus.toLowerCase().includes('payment received');
+      let warrantyHtml = '';
+
+      if (isCompletedOrder) {
+        const finishedDateRaw = rawFinished || order.finished_at || order.order_finished_date || order.bookingDate || order.createdAt;
+        let finishedMs = Date.now();
+        if (finishedDateRaw) {
+          const rawZ = finishedDateRaw.endsWith('Z') || finishedDateRaw.includes('+') ? finishedDateRaw : finishedDateRaw + 'Z';
+          const parsed = new Date(rawZ).getTime();
+          if (!isNaN(parsed)) finishedMs = parsed;
+        }
+
+        const nowMs = Date.now();
+        const elapsedMs = Math.max(0, nowMs - finishedMs);
+        const elapsedDays = Math.floor(elapsedMs / (1000 * 60 * 60 * 24));
+        const remainingDays = 15 - elapsedDays;
+
+        if (remainingDays > 0) {
+          warrantyHtml = `<span style="font-family:var(--mono); color:#4ade80; font-weight:700; font-size:12px;">${remainingDays} Day${remainingDays === 1 ? '' : 's'} left</span>`;
+        } else {
+          warrantyHtml = `<span style="font-family:var(--mono); color:var(--red); font-weight:700; font-size:12px;">Warranty Expired</span>`;
+        }
+      } else {
+        warrantyHtml = `<span style="font-family:var(--mono); color:var(--text-3); font-size:11px;">Not Applicable</span>`;
       }
 
       return `
         <tr>
           <td><span class="order-id">#${order.bookingRef || order.id.slice(0, 7)}</span></td>
-          <td><span class="time-text" style="color: var(--text-2); font-size: 11.5px; font-weight: 500;">${dateDisplay}</span></td>
+          <td>
+            <div style="display:flex; flex-direction:column; gap:2px; align-items:flex-start;">
+              <span class="time-text" style="color: var(--text-2); font-size: 11.5px; font-weight: 500;">${dateDisplay}</span>
+            </div>
+          </td>
+          <td>${rescheduleCellHtml}</td>
+          <td><span class="time-text" style="color: ${finishedDisplay === '—' ? 'var(--text-3)' : '#4ade80'}; font-size: 11.5px; font-weight: 500;">${finishedDisplay}</span></td>
           <td>
             <div class="customer-name">${order.customerName || 'Unknown'}</div>
             <div class="customer-phone">${order.phone || ''}</div>
@@ -1642,14 +2001,14 @@
             <div class="bike-model">${order.bikeModel || ''}</div>
             <div class="bike-brand">${order.bikeType || ''}</div>
           </td>
-          <td><span class="service-pill">${order.package || 'Service'}</span></td>
-          <td><span class="source-pill ${order.source ? order.source.toLowerCase() : 'app'}">${order.source || 'App'}</span></td>
+          <td><span class="fw-badge fw-badge-neutral">${order.package || 'Service'}</span></td>
+          <td><span class="fw-badge fw-badge-blue">${order.source || 'App'}</span></td>
           <td><span class="location-text">${order.address || 'N/A'}</span></td>
           <td><span class="location-text" style="color: var(--text-1); font-weight: 600;">${city}</span></td>
           <td><span class="time-text">${timeDisplay}</span></td>
           <td>
             <div class="mechanic-cell">
-              <select class="status-select" style="max-width: 150px; font-weight: 500; ${!order['Assign Mechanic'] ? 'color: var(--text-3);' : 'color: #60a5fa; border-color: rgba(59, 130, 246, 0.25); background-color: rgba(59, 130, 246, 0.1);'}" onchange="updateMechanic('${uniqueIdentifier}', this.value, '${idColumn}')">
+              <select class="fw-select" style="max-width: 150px; font-size:11px; padding:4px 20px 4px 8px; ${!order['Assign Mechanic'] ? 'color: var(--text-3);' : 'color: #60a5fa; border-color: rgba(59, 130, 246, 0.25); background-color: rgba(59, 130, 246, 0.1);'}" onchange="updateMechanic('${uniqueIdentifier}', this.value, '${idColumn}')">
                 <option value="" style="color: var(--text-1); background: var(--surface-2);" ${!order['Assign Mechanic'] ? 'selected' : ''}>Unassigned</option>
                 ${(window.activeMechanics || []).map(m => {
                   const mechName = m.garageName || m.ownerName || 'Unknown';
@@ -1684,12 +2043,30 @@
               <button class="btn-action" onclick="updateOrderRemark('${uniqueIdentifier}', document.getElementById('remark-${uniqueIdentifier}').value, '${idColumn}')" style="padding: 2px 8px; font-size: 10px; align-self: flex-end;">Save</button>
             </div>
           </td>
-          <td>${partnerSourceBadge}</td>
           <td>
-            <select class="status-select" style="max-width: 150px; font-weight: 500; color: var(--text-1); background: var(--surface-2);" onchange="updateSettlement('${uniqueIdentifier}', this.value, '${idColumn}')">
-              <option value="Pending" ${!order.settlement || order.settlement === 'Pending' ? 'selected' : ''}>Pending</option>
-              <option value="Done" ${order.settlement === 'Done' ? 'selected' : ''}>Done</option>
-            </select>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <span style="font-weight:600; color:${!order['Assign Mechanic'] && !order.mechanic ? 'var(--text-3)' : 'var(--text-1)'}; font-size:12px;">${order['Assign Mechanic'] || order.mechanic || 'Unassigned'}</span>
+              ${partnerSourceBadge}
+            </div>
+          </td>
+          <td>${warrantyHtml}</td>
+          <td>
+            <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">
+              ${order.settlement === 'Done' 
+                ? '<span class="fw-badge fw-badge-success" style="font-size:10px;">✓ Settled</span>' 
+                : (currentStatus.toLowerCase().includes('fixwheel') || (order.payment_received_by || '').toLowerCase() === 'fixwheel'
+                    ? `<span class="fw-badge fw-badge-amber" style="font-size:10px;" title="FixWheel collected online payment. Pay 75% to mechanic.">Pay Mech ₹${Math.round(computedFinalAmount * 0.75).toLocaleString()} (75%)</span>`
+                    : (currentStatus.toLowerCase().includes('mechanic') || (order.payment_received_by || '').toLowerCase() === 'mechanic'
+                        ? `<span class="fw-badge fw-badge-blue" style="font-size:10px;" title="Mechanic collected cash. Collect 25% fee from mechanic.">Collect ₹${Math.round(computedFinalAmount * 0.25).toLocaleString()} (25%)</span>`
+                        : '<span class="fw-badge fw-badge-neutral" style="font-size:10px;">Pending</span>'
+                      )
+                  )
+              }
+              <select class="fw-select" style="font-size:10px; padding:2px 14px 2px 4px;" onchange="updateSettlement('${uniqueIdentifier}', this.value, '${idColumn}')">
+                <option value="Pending" ${!order.settlement || order.settlement === 'Pending' ? 'selected' : ''}>Pending</option>
+                <option value="Done" ${order.settlement === 'Done' ? 'selected' : ''}>Mark Settled</option>
+              </select>
+            </div>
           </td>
         </tr>
       `;
@@ -1746,9 +2123,28 @@
     async function updateOrderStatus(id, newStatus, column = 'id', updateColumn = 'order_status') {
       console.log(`Updating order ${id} via ${column} to ${updateColumn}: ${newStatus}`);
 
+      const existingOrder = (window.allBookings || []).find(b => String(b[column]) === String(id));
+      const previousStatus = existingOrder ? (existingOrder.order_status || existingOrder.status || '') : '';
+
+      const updatePayload = { [updateColumn]: newStatus };
+
+      const isNewCompleted = newStatus.toLowerCase().includes('completed') || newStatus.toLowerCase().includes('payment received');
+      const isPrevCompleted = previousStatus.toLowerCase().includes('completed') || previousStatus.toLowerCase().includes('payment received');
+
+      if (isNewCompleted) {
+        const nowIso = new Date().toISOString();
+        updatePayload.bookingDate = nowIso;
+        if (existingOrder && existingOrder.bookingRef) localStorage.setItem('fixwheel_finished_' + existingOrder.bookingRef, nowIso);
+        if (id) localStorage.setItem('fixwheel_finished_' + id, nowIso);
+      } else if (isPrevCompleted) {
+        updatePayload.bookingDate = null;
+        if (existingOrder && existingOrder.bookingRef) localStorage.removeItem('fixwheel_finished_' + existingOrder.bookingRef);
+        if (id) localStorage.removeItem('fixwheel_finished_' + id);
+      }
+
       const { data, error } = await supabaseClient
         .from('Booking')
-        .update({ [updateColumn]: newStatus })
+        .update(updatePayload)
         .eq(column, id)
         .select();
 
@@ -1759,6 +2155,79 @@
         console.log('Update successful:', data);
         fetchBookings();
       }
+    }
+
+    let pendingPaymentOrderId = null;
+    let pendingPaymentColumn = 'id';
+    let pendingPaymentSelectEl = null;
+
+    function onStatusDropdownChange(selectEl, id, newStatus, column) {
+      if (newStatus.toLowerCase().includes('completed') || newStatus.toLowerCase().includes('payment received')) {
+        openPaymentReceiverModal(id, newStatus, column, selectEl);
+      } else {
+        updateOrderStatus(id, newStatus, column);
+      }
+    }
+
+    function openPaymentReceiverModal(id, newStatus, column, selectEl) {
+      pendingPaymentOrderId = id;
+      pendingPaymentColumn = column;
+      pendingPaymentSelectEl = selectEl;
+
+      const order = (window.allBookings || []).find(b => String(b[column]) === String(id));
+      const orderRef = order ? (order.bookingRef || order.id) : id;
+      const custName = order ? (order.customerName || '') : '';
+
+      document.getElementById('pay-modal-order-ref').textContent = `Order #${orderRef} ${custName ? '— ' + custName : ''}`;
+      const modal = document.getElementById('payment-receiver-modal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closePaymentReceiverModal(isCancel = false) {
+      const modal = document.getElementById('payment-receiver-modal');
+      if (modal) modal.style.display = 'none';
+      if (isCancel && window.allBookings) {
+        renderDashboard(window.allBookings);
+      }
+      pendingPaymentOrderId = null;
+      pendingPaymentColumn = 'id';
+      pendingPaymentSelectEl = null;
+    }
+
+    async function confirmPaymentReceiver(receiver) {
+      if (!pendingPaymentOrderId) return;
+
+      const finalStatus = `Completed - Payment received by ${receiver}`;
+      const settlementVal = receiver === 'FixWheel' ? 'Done' : 'Pending';
+
+      const orderId = pendingPaymentOrderId;
+      const col = pendingPaymentColumn;
+
+      closePaymentReceiverModal(false);
+
+      const updatePayload = {
+        order_status: finalStatus,
+        payment_received_by: receiver,
+        settlement: settlementVal,
+        bookingDate: new Date().toISOString()
+      };
+
+      if (orderId) {
+        localStorage.setItem('fixwheel_finished_' + orderId, new Date().toISOString());
+        localStorage.setItem('fixwheel_payment_by_' + orderId, receiver);
+      }
+
+      const { error } = await supabaseClient
+        .from('Booking')
+        .update(updatePayload)
+        .eq(col, orderId);
+
+      if (error) {
+        console.error('Error updating payment receiver:', error);
+        alert('Update Failed: ' + error.message);
+      }
+
+      fetchBookings();
     }
 
     async function updateOrderRemark(id, newRemark, column = 'id') {
@@ -1868,8 +2337,13 @@
       }
     }
 
-    // Initial fetch
-    fetchBookings();
+    // Initial fetch & URL tab switch
+    fetchBookings().then(() => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('tab') === 'today') {
+        switchTab('today');
+      }
+    });
 
     // Subscribe to changes for real-time updates
     supabaseClient
@@ -1878,7 +2352,198 @@
         fetchBookings();
       })
       .subscribe();
+
+    let currentRescheduleOrderId = null;
+    let currentRescheduleColumn = 'id';
+
+    function openRescheduleModal(orderId, currentCreatedAtStr, currentSlot, column = 'id') {
+      currentRescheduleOrderId = orderId;
+      currentRescheduleColumn = column;
+
+      const order = (window.allBookings || []).find(b => String(b[column]) === String(orderId));
+      const orderRef = order ? (order.bookingRef || order.id) : orderId;
+      const custName = order ? (order.customerName || '') : '';
+      document.getElementById('reschedule-order-ref').textContent = `Order #${orderRef} ${custName ? '— ' + custName : ''}`;
+
+      let defaultDateVal = '';
+      if (currentCreatedAtStr) {
+        const d = new Date(currentCreatedAtStr.endsWith('Z') || currentCreatedAtStr.includes('+') ? currentCreatedAtStr : currentCreatedAtStr + 'Z');
+        if (!isNaN(d.getTime())) {
+          defaultDateVal = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+      }
+      if (!defaultDateVal) {
+        const today = new Date();
+        defaultDateVal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      }
+
+      document.getElementById('reschedule-date-input').value = defaultDateVal;
+      const slotSelect = document.getElementById('reschedule-slot-input');
+      if (currentSlot && Array.from(slotSelect.options).some(opt => opt.value === currentSlot)) {
+        slotSelect.value = currentSlot;
+      } else {
+        slotSelect.value = "09:00 AM - 11:00 AM";
+      }
+      document.getElementById('reschedule-note-input').value = '';
+
+      const modal = document.getElementById('reschedule-modal');
+      modal.style.display = 'flex';
+    }
+
+    function closeRescheduleModal() {
+      const modal = document.getElementById('reschedule-modal');
+      modal.style.display = 'none';
+      currentRescheduleOrderId = null;
+    }
+
+    async function saveRescheduledBooking() {
+      if (!currentRescheduleOrderId) return;
+      const submitBtn = document.getElementById('reschedule-submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving...';
+
+      const newDateVal = document.getElementById('reschedule-date-input').value;
+      const newSlotVal = document.getElementById('reschedule-slot-input').value;
+      const newNoteVal = document.getElementById('reschedule-note-input').value.trim();
+
+      if (!newDateVal) {
+        alert('Please select a valid date.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Confirm Reschedule';
+        return;
+      }
+
+      const newIsoDate = new Date(`${newDateVal}T09:00:00.000Z`).toISOString();
+      const existingOrder = (window.allBookings || []).find(b => String(b[currentRescheduleColumn]) === String(currentRescheduleOrderId));
+      let updatedRemarks = existingOrder ? (existingOrder.Remarks || '') : '';
+      
+      const formattedDateString = new Date(`${newDateVal}T00:00:00`).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      const rescheduleLog = `[Rescheduled to ${formattedDateString} (${newSlotVal})${newNoteVal ? ': ' + newNoteVal : ''}]`;
+      
+      if (updatedRemarks) {
+        updatedRemarks += `\n${rescheduleLog}`;
+      } else {
+        updatedRemarks = rescheduleLog;
+      }
+
+      const updatePayload = {
+        createdAt: newIsoDate,
+        bookingDate: newIsoDate,
+        preferredSlot: newSlotVal,
+        Remarks: updatedRemarks
+      };
+
+      // Store local backup indicator
+      localStorage.setItem('fixwheel_rescheduled_' + currentRescheduleOrderId, JSON.stringify({
+        date: newIsoDate,
+        slot: newSlotVal,
+        note: newNoteVal,
+        rescheduledAt: new Date().toISOString()
+      }));
+
+      const { data, error } = await supabaseClient
+        .from('Booking')
+        .update(updatePayload)
+        .eq(currentRescheduleColumn, currentRescheduleOrderId)
+        .select();
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Confirm Reschedule';
+
+      if (error) {
+        console.error('Error rescheduling booking:', error);
+        alert('Reschedule Failed: ' + error.message);
+      } else {
+        console.log('Booking rescheduled successfully:', data);
+        closeRescheduleModal();
+        fetchBookings();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSidebar('all_orders');
+    });
   </script>
+
+  <!-- ─── Reschedule Service Date Modal ─── -->
+  <div id="reschedule-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.75); backdrop-filter:blur(6px); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:var(--surface); border:1px solid var(--border-hi); border-radius:14px; padding:28px; width:90%; max-width:440px; box-shadow:0 24px 48px rgba(0,0,0,0.6); animation:modalSlide 0.25s ease-out;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="font-size:18px; font-weight:700; color:var(--text-1); display:flex; align-items:center; gap:8px;">
+          <span>📅</span> Reschedule Service Date
+        </h3>
+        <button onclick="closeRescheduleModal()" style="background:none; border:none; color:var(--text-3); font-size:18px; cursor:pointer;">✕</button>
+      </div>
+      
+      <p style="font-size:12px; color:var(--text-3); margin-bottom:20px; font-family:var(--mono);" id="reschedule-order-ref">Order #--</p>
+      
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div>
+          <label style="display:block; font-size:12px; color:var(--text-2); margin-bottom:6px; font-family:var(--mono); font-weight:500;">New Service Date:</label>
+          <input type="date" id="reschedule-date-input" style="width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text-1); padding:9px 12px; border-radius:8px; font-family:var(--mono); font-size:13px; outline:none;" />
+        </div>
+        
+        <div>
+          <label style="display:block; font-size:12px; color:var(--text-2); margin-bottom:6px; font-family:var(--mono); font-weight:500;">Preferred Time Slot:</label>
+          <select id="reschedule-slot-input" style="width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text-1); padding:9px 12px; border-radius:8px; font-family:var(--mono); font-size:13px; outline:none;">
+            <option value="09:00 AM - 11:00 AM">09:00 AM - 11:00 AM</option>
+            <option value="11:00 AM - 01:00 PM">11:00 AM - 01:00 PM</option>
+            <option value="01:00 PM - 03:00 PM">01:00 PM - 03:00 PM</option>
+            <option value="03:00 PM - 05:00 PM">03:00 PM - 05:00 PM</option>
+            <option value="05:00 PM - 07:00 PM">05:00 PM - 07:00 PM</option>
+            <option value="Anytime">Anytime</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display:block; font-size:12px; color:var(--text-2); margin-bottom:6px; font-family:var(--mono); font-weight:500;">Reschedule Reason / Note (Optional):</label>
+          <textarea id="reschedule-note-input" placeholder="Customer requested to change service date..." style="width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text-1); padding:9px 12px; border-radius:8px; font-family:var(--mono); font-size:12px; outline:none; resize:vertical; min-height:60px;"></textarea>
+        </div>
+        
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:8px;">
+          <button onclick="closeRescheduleModal()" style="background:var(--surface-2); border:1px solid var(--border); color:var(--text-2); padding:9px 16px; border-radius:8px; font-family:var(--mono); font-size:12px; cursor:pointer;">Cancel</button>
+          <button id="reschedule-submit-btn" onclick="saveRescheduledBooking()" style="background:var(--red); border:none; color:#fff; padding:9px 18px; border-radius:8px; font-family:var(--sans); font-weight:600; font-size:13px; cursor:pointer; box-shadow:0 4px 12px rgba(239,68,68,0.3);">Confirm Reschedule</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Payment Collection Confirmation Popout Modal ─── -->
+  <div class="modal-overlay" id="payment-receiver-modal" style="z-index: 2100; display: none;">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header" style="background: var(--surface-2);">
+        <div>
+          <h3 style="font-size: 16px; font-weight: 700; color: var(--text-1);">Payment Collection Confirmation</h3>
+          <span id="pay-modal-order-ref" style="font-family: var(--mono); font-size: 12px; color: var(--text-3);">Order #--</span>
+        </div>
+        <button class="fw-btn-secondary" onclick="closePaymentReceiverModal(true)" style="padding:4px 10px;">✕</button>
+      </div>
+
+      <div class="modal-body" style="padding: 24px; display:flex; flex-direction:column; gap: 16px;">
+        <p style="font-size: 14px; font-weight: 600; color: var(--text-1);">Who received the payment for this completed order?</p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <!-- Option 1: FixWheel -->
+          <div onclick="confirmPaymentReceiver('FixWheel')" style="background: var(--surface-2); border: 2px solid var(--border); border-radius: 12px; padding: 18px 14px; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; gap: 8px; text-align: center; align-items: center;" onmouseover="this.style.borderColor='#3b82f6'; this.style.background='rgba(59,130,246,0.08)';" onmouseout="this.style.borderColor='var(--border)'; this.style.background='var(--surface-2)';">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--blue-glow); border: 1px solid var(--blue-dim); display: flex; align-items: center; justify-content: center; color: #60a5fa; font-size: 20px;">🏢</div>
+            <div style="font-weight: 700; font-size: 14px; color: var(--text-1);">FixWheel</div>
+            <span style="font-family: var(--mono); font-size: 10.5px; color: var(--text-3); line-height: 1.3;">Online UPI / App Payment / Company Account</span>
+          </div>
+
+          <!-- Option 2: Mechanic -->
+          <div onclick="confirmPaymentReceiver('Mechanic')" style="background: var(--surface-2); border: 2px solid var(--border); border-radius: 12px; padding: 18px 14px; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; gap: 8px; text-align: center; align-items: center;" onmouseover="this.style.borderColor='#facc15'; this.style.background='rgba(234,179,8,0.08)';" onmouseout="this.style.borderColor='var(--border)'; this.style.background='var(--surface-2)';">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--yellow-glow); border: 1px solid var(--yellow-dim); display: flex; align-items: center; justify-content: center; color: #facc15; font-size: 20px;">🔧</div>
+            <div style="font-weight: 700; font-size: 14px; color: var(--text-1);">Mechanic</div>
+            <span style="font-family: var(--mono); font-size: 10.5px; color: var(--text-3); line-height: 1.3;">Cash Collected by Mechanic / Direct Garage Cash</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="padding: 14px 24px; background: var(--surface-2); border-top: 1px solid var(--border); display:flex; justify-content: flex-end;">
+        <button class="fw-btn-secondary" onclick="closePaymentReceiverModal(true)">Cancel</button>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>

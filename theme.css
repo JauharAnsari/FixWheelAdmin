@@ -1,0 +1,283 @@
+/* FixWheel Admin Dashboard — Shared Design System Tokens & Components */
+
+:root {
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --surface-2: #1e1e1e;
+  --surface-3: #262626;
+  --border: #2a2a2a;
+  --border-hi: #3f3f3f;
+  
+  /* Semantic Status Colors */
+  --red: #ef4444;
+  --red-dim: #991b1b;
+  --red-glow: rgba(239, 68, 68, 0.15);
+  
+  --green: #22c55e;
+  --green-dim: #166534;
+  --green-glow: rgba(34, 197, 94, 0.15);
+  
+  --yellow: #facc15;
+  --yellow-dim: #854d0e;
+  --yellow-glow: rgba(250, 204, 21, 0.15);
+  
+  --blue: #3b82f6;
+  --blue-dim: #1e40af;
+  --blue-glow: rgba(59, 130, 246, 0.15);
+  
+  --purple: #a855f7;
+  --purple-dim: #6b21a8;
+  --purple-glow: rgba(168, 85, 247, 0.15);
+
+  --text-1: #ffffff;
+  --text-2: #a1a1aa;
+  --text-3: #71717a;
+  
+  --topbar-bg: rgba(10, 10, 10, 0.85);
+  --mono: 'DM Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
+
+[data-theme="light"] {
+  --bg: #f3f4f6;
+  --surface: #ffffff;
+  --surface-2: #f9fafb;
+  --surface-3: #e5e7eb;
+  --border: #e5e7eb;
+  --border-hi: #d1d5db;
+  --text-1: #111827;
+  --text-2: #4b5563;
+  --text-3: #6b7280;
+  --topbar-bg: rgba(255, 255, 255, 0.85);
+}
+
+/* ─── Unified Status Badges / Pills ─── */
+.fw-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.fw-badge-success, .fw-badge-green {
+  background: var(--green-glow);
+  color: #4ade80;
+  border: 1px solid var(--green-dim);
+}
+
+.fw-badge-warning, .fw-badge-amber {
+  background: var(--yellow-glow);
+  color: #facc15;
+  border: 1px solid var(--yellow-dim);
+}
+
+.fw-badge-danger, .fw-badge-red {
+  background: var(--red-glow);
+  color: var(--red);
+  border: 1px solid var(--red-dim);
+}
+
+.fw-badge-info, .fw-badge-blue {
+  background: var(--blue-glow);
+  color: #60a5fa;
+  border: 1px solid var(--blue-dim);
+}
+
+.fw-badge-purple {
+  background: var(--purple-glow);
+  color: #c084fc;
+  border: 1px solid var(--purple-dim);
+}
+
+.fw-badge-neutral {
+  background: var(--surface-3);
+  color: var(--text-2);
+  border: 1px solid var(--border-hi);
+}
+
+/* ─── Unified Stat Card Component ─── */
+.fw-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1100px) {
+  .fw-stat-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .fw-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.fw-stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.fw-stat-card:hover {
+  border-color: var(--border-hi);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.fw-stat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fw-stat-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.fw-stat-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-2);
+}
+
+.fw-stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  font-family: var(--sans);
+  line-height: 1;
+  color: var(--text-1);
+}
+
+.fw-stat-value.green { color: #4ade80; }
+.fw-stat-value.amber { color: #facc15; }
+.fw-stat-value.red   { color: var(--red); }
+.fw-stat-value.blue  { color: #60a5fa; }
+
+.fw-stat-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+/* ─── Unified Form Controls ─── */
+.fw-input, .fw-select, .fw-date-input {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-1);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.fw-select {
+  padding-right: 28px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  cursor: pointer;
+}
+
+.fw-input:focus, .fw-select:focus, .fw-date-input:focus {
+  border-color: var(--border-hi);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.05);
+}
+
+/* ─── Unified Data Table Styling ─── */
+.fw-table-wrap {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  max-height: calc(100vh - 200px);
+  background: var(--surface);
+  scrollbar-width: thin;
+  scrollbar-color: var(--red) var(--surface-2);
+}
+
+.fw-table-wrap::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.fw-table-wrap::-webkit-scrollbar-track {
+  background: var(--surface-2);
+}
+
+.fw-table-wrap::-webkit-scrollbar-thumb {
+  background: var(--border-hi);
+  border-radius: 5px;
+}
+
+.fw-table-wrap::-webkit-scrollbar-thumb:hover {
+  background: var(--red);
+}
+
+.fw-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.fw-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-2);
+  z-index: 10;
+  padding: 12px 14px;
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+
+.fw-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  transition: background 0.15s;
+}
+
+.fw-table tbody tr:hover {
+  background: var(--surface-2);
+}
+
+.fw-table tbody td {
+  padding: 12px 14px;
+  font-size: 13px;
+  vertical-align: middle;
+}

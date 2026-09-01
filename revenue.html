@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    if (sessionStorage.getItem('fixwheel_admin_logged_in') !== 'true' && localStorage.getItem('fixwheel_admin_logged_in') !== 'true') {
+      window.location.replace('login.html');
+    }
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FixWheel — Revenue Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="sidebar.css">
+  <script src="sidebar.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg:        #0a0a0a;
+      --surface:   #141414;
+      --surface-2: #1e1e1e;
+      --surface-3: #262626;
+      --border:    #2a2a2a;
+      --border-hi: #3f3f3f;
+      --red:       #ef4444;
+      --red-dim:   #991b1b;
+      --red-glow:  rgba(239, 68, 68, 0.15);
+      --green:     #22c55e;
+      --green-dim: #166534;
+      --green-glow:rgba(34, 197, 94, 0.15);
+      --yellow:    #facc15;
+      --yellow-glow: rgba(250, 204, 21, 0.15);
+      --text-1:    #ffffff;
+      --text-2:    #a1a1aa;
+      --text-3:    #71717a;
+      --topbar-bg: rgba(10, 10, 10, 0.85);
+      --mono:      'DM Mono', monospace;
+      --sans:      'Syne', sans-serif;
+    }
+
+    [data-theme="light"] {
+      --bg:        #f3f4f6;
+      --surface:   #ffffff;
+      --surface-2: #f9fafb;
+      --surface-3: #e5e7eb;
+      --border:    #e5e7eb;
+      --border-hi: #d1d5db;
+      --text-1:    #111827;
+      --text-2:    #4b5563;
+      --text-3:    #6b7280;
+      --topbar-bg: rgba(255, 255, 255, 0.85);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-1);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ─── Topbar ─── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--topbar-bg);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 36px;
+      height: 60px;
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-brand span {
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .topbar-brand em {
+      font-style: normal;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-3);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .live-dot {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--green);
+      background: var(--green-glow);
+      border: 1px solid var(--green-dim);
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+
+    .live-dot::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    .admin-chip {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-2);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+
+    .btn-action {
+      background: transparent;
+      border: 1px solid var(--border-hi);
+      color: var(--text-2);
+      padding: 5px 12px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-family: var(--mono);
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: all 0.15s;
+    }
+
+    .btn-action:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    /* ─── Main Content Layout ─── */
+    .main {
+      padding: 28px 36px;
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Time Window Controls */
+    .controls-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 16px 20px;
+      border-radius: 10px;
+    }
+
+    .time-pills {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .time-btn {
+      background: var(--surface-2);
+      border: 1px solid var(--border-hi);
+      color: var(--text-2);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .time-btn:hover {
+      color: var(--text-1);
+      border-color: var(--text-2);
+    }
+
+    .time-btn.active {
+      background: var(--green-glow);
+      color: var(--green);
+      border-color: var(--green-dim);
+    }
+
+    .date-pickers {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-2);
+    }
+
+    .date-input {
+      background: var(--surface-2);
+      border: 1px solid var(--border-hi);
+      color: var(--text-1);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 12px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* ─── Stat Cards Grid ─── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-3);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text-1);
+      font-family: var(--sans);
+    }
+
+    .stat-sub {
+      font-family: var(--mono);
+      font-size: 11px;
+      margin-top: 8px;
+      color: var(--text-2);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ─── Charts Section ─── */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+    }
+
+    .chart-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .chart-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-1);
+    }
+
+    /* ─── Table ─── */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 1100px;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      text-align: left;
+    }
+
+    th {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--text-3);
+      text-transform: uppercase;
+      padding: 12px 16px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tbody tr:hover { background: var(--surface-2); }
+  </style>
+</head>
+<body>
+
+  <div class="main-wrapper">
+    <!-- ─── Topbar ─── -->
+    <header class="topbar">
+      <div class="topbar-brand">
+        <span>Finance</span>
+        <em>/ Revenue Analytics & GMV Audit</em>
+      </div>
+      <div class="topbar-right">
+        <button id="theme-toggle" class="btn-action" style="display:flex; align-items:center; gap:6px;">
+          <svg id="theme-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+          <span id="theme-text">Theme</span>
+        </button>
+        <span class="live-dot">LIVE</span>
+        <span class="admin-chip" id="admin-email">admin@fixwheel.app</span>
+      </div>
+    </header>
+
+    <!-- ─── Main Content ─── -->
+    <main class="main">
+
+      <!-- ─── Controls Bar ─── -->
+      <div class="controls-row">
+        <div class="time-pills" id="time-pills">
+          <button class="time-btn" onclick="setWindow('today')">Today</button>
+          <button class="time-btn" onclick="setWindow('week')">This Week (7d)</button>
+          <button class="time-btn" onclick="setWindow('month')">This Month (30d)</button>
+          <button class="time-btn" onclick="setWindow('year')">This Year (YTD)</button>
+          <button class="time-btn active" onclick="setWindow('all')">All-Time</button>
+        </div>
+
+        <div class="date-pickers">
+          <span>From:</span>
+          <input type="date" id="date-from" class="date-input" onchange="onCustomDateChange()">
+          <span>To:</span>
+          <input type="date" id="date-to" class="date-input" onchange="onCustomDateChange()">
+        </div>
+      </div>
+
+      <!-- ─── Stat Cards Grid ─── -->
+      <div class="stats-grid">
+        <!-- Card 1: GMV -->
+        <div class="stat-card">
+          <div class="stat-label">GMV (Gross Merchandise Value)</div>
+          <div class="stat-value" id="val-gmv" style="color:var(--green);">₹0</div>
+          <div class="stat-sub" id="sub-gmv">
+            <span id="growth-gmv" style="color:var(--green); font-weight:700;">+0%</span>
+            <span>vs prior period</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Net Revenue / Platform Margin -->
+        <div class="stat-card">
+          <div class="stat-label">Platform Net Revenue / Commission</div>
+          <div class="stat-value" style="font-size:16px; color:var(--text-3); margin-top:6px;">Not available</div>
+          <div class="stat-sub" style="color:var(--text-3);">
+            ⚠️ Commission rate not configured
+          </div>
+        </div>
+
+        <!-- Card 3: Completed Orders Count -->
+        <div class="stat-card">
+          <div class="stat-label">Completed Orders</div>
+          <div class="stat-value" id="val-completed-count">0</div>
+          <div class="stat-sub" id="sub-completed-count">
+            <span style="color:var(--text-2);">Realized paid transactions</span>
+          </div>
+        </div>
+
+        <!-- Card 4: Average Order Value -->
+        <div class="stat-card">
+          <div class="stat-label">Average Order Value (AOV)</div>
+          <div class="stat-value" id="val-aov" style="color:#60a5fa;">₹0</div>
+          <div class="stat-sub">
+            <span>GMV ÷ Completed Orders</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Charts Row ─── -->
+      <div class="charts-row">
+        <!-- 30-Day GMV Trend Chart -->
+        <div class="chart-card">
+          <div class="chart-card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+              <div class="chart-title" id="trend-chart-title">30-Day GMV Daily Trend</div>
+              <span style="font-family:var(--mono); font-size:11px; color:var(--text-3);">Realized Completion Date</span>
+            </div>
+            <div style="display:flex; gap:4px; background:var(--surface-2); border:1px solid var(--border-hi); padding:3px; border-radius:20px;">
+              <button class="btn-trend-mode" id="btn-mode-daily" onclick="setTrendMode('daily')" style="border:none; background:var(--green-glow); color:var(--green); font-family:var(--mono); font-size:11px; padding:4px 10px; border-radius:16px; cursor:pointer; font-weight:600; transition:all 0.15s;">Daily GMV</button>
+              <button class="btn-trend-mode" id="btn-mode-cumulative" onclick="setTrendMode('cumulative')" style="border:none; background:transparent; color:var(--text-3); font-family:var(--mono); font-size:11px; padding:4px 10px; border-radius:16px; cursor:pointer; font-weight:600; transition:all 0.15s;">Cumulative Total</button>
+            </div>
+          </div>
+          <div id="trend-line-chart"></div>
+        </div>
+
+        <!-- City GMV Breakdown -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-title">GMV by City</div>
+          </div>
+          <div id="city-donut-chart"></div>
+        </div>
+      </div>
+
+      <!-- Service Breakdown Chart -->
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div class="chart-title">GMV & Completed Orders by Service Package</div>
+        </div>
+        <div id="service-bar-chart"></div>
+      </div>
+
+      <!-- ─── Completed Revenue Audit Table ─── -->
+      <div class="chart-card" style="padding:0; overflow:hidden;">
+        <div style="padding:20px 24px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+          <h3 style="font-size:15px; font-weight:700;">Completed Paid Transactions Audit</h3>
+          <span style="font-family:var(--mono); font-size:11px; color:var(--text-3);" id="table-subtitle">0 orders</span>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Booking Ref</th>
+                <th>Finished Date</th>
+                <th>Customer</th>
+                <th>City</th>
+                <th>Service Package</th>
+                <th>Price</th>
+                <th>Final Amount (GMV)</th>
+                <th>Settlement</th>
+              </tr>
+            </thead>
+            <tbody id="revenue-table-body">
+              <tr><td colspan="8" style="text-align:center; padding:30px; color:var(--text-3); font-family:var(--mono);">Loading transactions...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    // Theme toggle initialization
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    function updateThemeIcon() {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      document.getElementById('theme-text').textContent = isLight ? 'Dark' : 'Light';
+    }
+    themeToggleBtn?.addEventListener('click', () => {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      if (isLight) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+      }
+      updateThemeIcon();
+      calculateAndRender();
+    });
+    updateThemeIcon();
+
+    // Supabase Client
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let rawCompletedBookings = [];
+    let currentWindow = 'all';
+    let trendChartMode = 'daily'; // 'daily' or 'cumulative'
+    let trendChartInstance = null;
+    let cityChartInstance = null;
+    let serviceChartInstance = null;
+
+    async function fetchRevenueData() {
+      const { data: bookings, error } = await supabaseClient.from('Booking').select('*');
+
+      if (error) {
+        console.error("Revenue query error:", error);
+        return;
+      }
+
+      // Filter ONLY Completed - Payment received orders & exclude explicit test orders
+      rawCompletedBookings = (bookings || []).filter(b => {
+        const st = (b.order_status || b.status || '').toLowerCase();
+        const isTest = b.is_test_order === true || b.is_test_order === 'true' || st.includes('test order') || st.includes('sandbox');
+        return !isTest && (st.includes('completed') || st.includes('payment received'));
+      });
+
+      calculateAndRender();
+    }
+
+    function setTrendMode(mode) {
+      trendChartMode = mode;
+      const btnDaily = document.getElementById('btn-mode-daily');
+      const btnCumulative = document.getElementById('btn-mode-cumulative');
+
+      if (btnDaily && btnCumulative) {
+        btnDaily.style.background = mode === 'daily' ? 'var(--green-glow)' : 'transparent';
+        btnDaily.style.color = mode === 'daily' ? 'var(--green)' : 'var(--text-3)';
+        
+        btnCumulative.style.background = mode === 'cumulative' ? 'rgba(96, 165, 250, 0.15)' : 'transparent';
+        btnCumulative.style.color = mode === 'cumulative' ? '#60a5fa' : 'var(--text-3)';
+      }
+
+      const titleEl = document.getElementById('trend-chart-title');
+      if (titleEl) {
+        titleEl.textContent = mode === 'daily' 
+          ? '30-Day GMV Daily Trend' 
+          : '30-Day Cumulative Total Money Growth';
+      }
+
+      calculateAndRender();
+    }
+
+    function setWindow(w) {
+      currentWindow = w;
+      document.querySelectorAll('#time-pills .time-btn').forEach(btn => btn.classList.remove('active'));
+      if (w === 'today') document.querySelectorAll('#time-pills .time-btn')[0].classList.add('active');
+      else if (w === 'week') document.querySelectorAll('#time-pills .time-btn')[1].classList.add('active');
+      else if (w === 'month') document.querySelectorAll('#time-pills .time-btn')[2].classList.add('active');
+      else if (w === 'year') document.querySelectorAll('#time-pills .time-btn')[3].classList.add('active');
+      else if (w === 'all') document.querySelectorAll('#time-pills .time-btn')[4].classList.add('active');
+
+      document.getElementById('date-from').value = '';
+      document.getElementById('date-to').value = '';
+
+      calculateAndRender();
+    }
+
+    function onCustomDateChange() {
+      const fromVal = document.getElementById('date-from').value;
+      const toVal = document.getElementById('date-to').value;
+
+      if (fromVal || toVal) {
+        currentWindow = 'custom';
+        document.querySelectorAll('#time-pills .time-btn').forEach(btn => btn.classList.remove('active'));
+        calculateAndRender();
+      }
+    }
+
+    function getBookingDate(b) {
+      const finished = b.finished_at || b.order_finished_date || b.createdAt;
+      if (!finished) return 0;
+      return new Date(finished.endsWith('Z') || finished.includes('+') ? finished : finished + 'Z').getTime();
+    }
+
+    function filterByWindow(list, windowType, dateFrom, dateTo) {
+      const now = new Date();
+
+      if (windowType === 'today') {
+        const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+        return list.filter(b => getBookingDate(b) >= startToday);
+      } else if (windowType === 'week') {
+        const weekMs = 7 * 24 * 60 * 60 * 1000;
+        return list.filter(b => (now.getTime() - getBookingDate(b)) <= weekMs);
+      } else if (windowType === 'month') {
+        const monthMs = 30 * 24 * 60 * 60 * 1000;
+        return list.filter(b => (now.getTime() - getBookingDate(b)) <= monthMs);
+      } else if (windowType === 'year') {
+        const startYear = new Date(now.getFullYear(), 0, 1).getTime();
+        return list.filter(b => getBookingDate(b) >= startYear);
+      } else if (windowType === 'custom') {
+        const fromMs = dateFrom ? new Date(dateFrom).getTime() : 0;
+        const toMs = dateTo ? new Date(dateTo + 'T23:59:59').getTime() : Date.now();
+        return list.filter(b => {
+          const t = getBookingDate(b);
+          return t >= fromMs && t <= toMs;
+        });
+      }
+
+      return list;
+    }
+
+    function calculatePriorPeriodList(windowType) {
+      const now = Date.now();
+      const dayMs = 24 * 60 * 60 * 1000;
+
+      if (windowType === 'today') {
+        const startToday = new Date().setHours(0,0,0,0);
+        const startYesterday = startToday - dayMs;
+        return rawCompletedBookings.filter(b => {
+          const t = getBookingDate(b);
+          return t >= startYesterday && t < startToday;
+        });
+      } else if (windowType === 'week') {
+        const weekMs = 7 * dayMs;
+        return rawCompletedBookings.filter(b => {
+          const t = getBookingDate(b);
+          return t >= (now - 2 * weekMs) && t < (now - weekMs);
+        });
+      } else if (windowType === 'month') {
+        const monthMs = 30 * dayMs;
+        return rawCompletedBookings.filter(b => {
+          const t = getBookingDate(b);
+          return t >= (now - 2 * monthMs) && t < (now - monthMs);
+        });
+      }
+
+      return [];
+    }
+
+    function calculateAndRender() {
+      const fromVal = document.getElementById('date-from').value;
+      const toVal = document.getElementById('date-to').value;
+
+      const activeList = filterByWindow(rawCompletedBookings, currentWindow, fromVal, toVal);
+      const priorList = calculatePriorPeriodList(currentWindow);
+
+      const totalGmv = activeList.reduce((sum, b) => sum + (Number(b.Final_Amount) || Number(b.price) || 0), 0);
+      const priorGmv = priorList.reduce((sum, b) => sum + (Number(b.Final_Amount) || Number(b.price) || 0), 0);
+
+      let growthPct = 0;
+      if (priorGmv > 0) {
+        growthPct = Math.round(((totalGmv - priorGmv) / priorGmv) * 100);
+      }
+
+      const completedCount = activeList.length;
+      const aov = completedCount > 0 ? Math.round(totalGmv / completedCount) : 0;
+
+      document.getElementById('val-gmv').textContent = `₹${totalGmv.toLocaleString()}`;
+      document.getElementById('val-completed-count').textContent = completedCount;
+      document.getElementById('val-aov').textContent = `₹${aov.toLocaleString()}`;
+
+      const growthEl = document.getElementById('growth-gmv');
+      if (priorGmv === 0 && currentWindow !== 'all') {
+        growthEl.textContent = `N/A`;
+        growthEl.style.color = 'var(--text-3)';
+      } else if (growthPct >= 0) {
+        growthEl.textContent = `+${growthPct}%`;
+        growthEl.style.color = 'var(--green)';
+      } else {
+        growthEl.textContent = `${growthPct}%`;
+        growthEl.style.color = 'var(--red)';
+      }
+
+      document.getElementById('table-subtitle').textContent = `${completedCount} completed orders`;
+
+      renderTable(activeList);
+      renderCharts(activeList);
+    }
+
+    function renderTable(list) {
+      const tbody = document.getElementById('revenue-table-body');
+      let html = '';
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--text-3); font-family:var(--mono);">No completed transactions in selected period.</td></tr>`;
+        return;
+      }
+
+      const sorted = [...list].sort((a, b) => getBookingDate(b) - getBookingDate(a));
+
+      sorted.forEach(b => {
+        const finishedTs = getBookingDate(b);
+        const finishedStr = finishedTs ? new Date(finishedTs).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
+        const finalAmt = Number(b.Final_Amount) || Number(b.price) || 0;
+        const price = Number(b.price) || 0;
+
+        const settlement = b.settlement || 'Pending';
+        const settleBadge = settlement === 'Done' 
+          ? `<span style="color:#4ade80; font-weight:600; font-family:var(--mono);">✓ Done</span>`
+          : `<span style="color:var(--text-3); font-family:var(--mono);">Pending</span>`;
+
+        html += `
+          <tr>
+            <td><span style="font-family:var(--mono); font-weight:700; color:var(--text-1);">#${b.bookingRef || (b.id ? b.id.slice(0,7) : 'N/A')}</span></td>
+            <td><span style="font-family:var(--mono); font-size:11.5px; color:var(--text-2);">${finishedStr}</span></td>
+            <td><span style="font-weight:600; color:var(--text-1);">${b.customerName || 'Customer'}</span></td>
+            <td><span style="font-family:var(--mono); font-size:11px; color:var(--text-3);">${b.city || 'N/A'}</span></td>
+            <td><span style="background:var(--surface-2); border:1px solid var(--border); padding:3px 8px; border-radius:4px; font-size:11px; font-family:var(--mono);">${b.package || 'Service'}</span></td>
+            <td><span style="font-family:var(--mono); color:var(--text-2);">₹${price.toLocaleString()}</span></td>
+            <td><span style="font-family:var(--mono); font-weight:700; color:var(--green);">₹${finalAmt.toLocaleString()}</span></td>
+            <td>${settleBadge}</td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    function renderCharts(activeList = rawCompletedBookings) {
+      const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+      const textColor = isDark ? '#a1a1aa' : '#4b5563';
+      const gridColor = isDark ? '#2a2a2a' : '#e5e7eb';
+
+      // 1. Daily & Cumulative 30-Day Trend Chart
+      const last30Days = [];
+      const dailyGmv = [];
+      const cumulativeGmv = [];
+      let runningTotal = 0;
+
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+        last30Days.push(dateStr);
+
+        const start = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        const end = start + 24 * 60 * 60 * 1000;
+
+        const dayGmv = rawCompletedBookings
+          .filter(b => {
+            const t = getBookingDate(b);
+            return t >= start && t < end;
+          })
+          .reduce((sum, b) => sum + (Number(b.Final_Amount) || Number(b.price) || 0), 0);
+
+        dailyGmv.push(dayGmv);
+        runningTotal += dayGmv;
+        cumulativeGmv.push(runningTotal);
+      }
+
+      const isCumulative = trendChartMode === 'cumulative';
+      const chartSeriesData = isCumulative ? cumulativeGmv : dailyGmv;
+      const chartColor = isCumulative ? '#60a5fa' : '#22c55e';
+      const seriesName = isCumulative ? 'Cumulative Total Money (₹)' : 'Daily GMV (₹)';
+
+      if (trendChartInstance) trendChartInstance.destroy();
+      const optionsTrend = {
+        series: [{ name: seriesName, data: chartSeriesData }],
+        chart: { type: 'area', height: 260, background: 'transparent', toolbar: { show: false } },
+        colors: [chartColor],
+        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05, stops: [0, 90, 100] } },
+        stroke: { curve: 'smooth', width: 2 },
+        dataLabels: { enabled: false },
+        xaxis: { categories: last30Days, labels: { style: { colors: textColor, fontFamily: 'DM Mono' } }, axisBorder: { show: false } },
+        yaxis: { labels: { style: { colors: textColor, fontFamily: 'DM Mono' }, formatter: (v) => `₹${v.toLocaleString()}` } },
+        grid: { borderColor: gridColor, strokeDashArray: 4 },
+        tooltip: { 
+          theme: isDark ? 'dark' : 'light',
+          y: {
+            formatter: function(val, { dataPointIndex }) {
+              const dailyAmt = dailyGmv[dataPointIndex];
+              return isCumulative 
+                ? `Total: ₹${val.toLocaleString()} (+₹${dailyAmt.toLocaleString()} on this day)` 
+                : `₹${val.toLocaleString()}`;
+            }
+          }
+        }
+      };
+      trendChartInstance = new ApexCharts(document.querySelector("#trend-line-chart"), optionsTrend);
+      trendChartInstance.render();
+
+      // 2. City Breakdown Chart
+      const cities = ["Gurgaon", "Delhi", "Noida", "Ghaziabad", "Faridabad"];
+      const cityValues = cities.map(c => {
+        return activeList
+          .filter(b => (b.city || '').toLowerCase().includes(c.toLowerCase()))
+          .reduce((sum, b) => sum + (Number(b.Final_Amount) || Number(b.price) || 0), 0);
+      });
+
+      if (cityChartInstance) cityChartInstance.destroy();
+      const optionsCity = {
+        series: cityValues,
+        labels: cities,
+        chart: { type: 'donut', height: 260, background: 'transparent' },
+        colors: ['#ef4444', '#60a5fa', '#facc15', '#a855f7', '#22c55e'],
+        stroke: { width: 0 },
+        legend: { position: 'bottom', labels: { colors: textColor } },
+        dataLabels: { enabled: false },
+        tooltip: { theme: isDark ? 'dark' : 'light', y: { formatter: (v) => `₹${v.toLocaleString()}` } }
+      };
+      cityChartInstance = new ApexCharts(document.querySelector("#city-donut-chart"), optionsCity);
+      cityChartInstance.render();
+
+      // 3. Service Package Breakdown Chart
+      const serviceMap = {};
+      activeList.forEach(b => {
+        const pkg = b.package || 'General Service';
+        const amt = Number(b.Final_Amount) || Number(b.price) || 0;
+        serviceMap[pkg] = (serviceMap[pkg] || 0) + amt;
+      });
+
+      const serviceNames = Object.keys(serviceMap);
+      const serviceGmv = Object.values(serviceMap);
+
+      if (serviceChartInstance) serviceChartInstance.destroy();
+      const optionsService = {
+        series: [{ name: 'GMV (₹)', data: serviceGmv }],
+        chart: { type: 'bar', height: 220, background: 'transparent', toolbar: { show: false } },
+        plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '50%' } },
+        colors: ['#60a5fa'],
+        dataLabels: { enabled: false },
+        xaxis: { categories: serviceNames, labels: { style: { colors: textColor, fontFamily: 'DM Mono' }, formatter: (v) => `₹${v}` } },
+        yaxis: { labels: { style: { colors: textColor, fontFamily: 'Syne' } } },
+        grid: { borderColor: gridColor, strokeDashArray: 4 },
+        tooltip: { theme: isDark ? 'dark' : 'light', y: { formatter: (v) => `₹${v.toLocaleString()}` } }
+      };
+      serviceChartInstance = new ApexCharts(document.querySelector("#service-bar-chart"), optionsService);
+      serviceChartInstance.render();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSidebar('revenue');
+      fetchRevenueData();
+    });
+  </script>
+</body>
+</html>

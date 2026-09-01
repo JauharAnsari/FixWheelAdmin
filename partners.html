@@ -8,11 +8,17 @@
   </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>FixWheel — Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=2026" />
+  <link rel="stylesheet" href="theme.css?v=2027">
+  <link rel="stylesheet" href="sidebar.css?v=2027">
+  <script src="sidebar.js?v=2027"></script>
 
   <style>
     *, *::before, *::after {
@@ -288,14 +294,10 @@
     .stat-sub {
       font-family: var(--mono);
       font-size: 10px;
-      color: var(--text-3);
-      margin-top: 6px;
-    }
-
-    /* ─── Main Content ─── */
+      color: var(--text-    /* ─── Main Content ─── */
     .main {
-      padding: 40px 36px;
-      max-width: 1400px;
+      padding: 30px 24px;
+      max-width: 100%;
       margin: 0 auto;
     }
 
@@ -368,7 +370,7 @@
 
     @keyframes sectionFade {
       from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
     /* ─── Section Header ─── */
@@ -429,27 +431,85 @@
     .table-wrap {
       border: 1px solid var(--border);
       border-radius: 10px;
-      overflow-x: auto;
+      overflow-x: auto !important;
+      overflow-y: auto !important;
+      max-height: calc(100vh - 170px);
+      width: 100%;
+      scrollbar-width: thin;
+      scrollbar-color: var(--red) var(--surface-2);
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .table-wrap::-webkit-scrollbar {
+      width: 10px !important;
+      height: 12px !important;
+      display: block !important;
+    }
+
+    .table-wrap::-webkit-scrollbar-track {
+      background: var(--surface-2);
+      border-radius: 6px;
+    }
+
+    .table-wrap::-webkit-scrollbar-thumb {
+      background: var(--border-hi);
+      border-radius: 6px;
+      border: 2px solid var(--surface-2);
+    }
+
+    .table-wrap::-webkit-scrollbar-thumb:hover {
+      background: var(--red);
     }
 
     table {
-      width: 100%;
+      width: 1900px !important;
+      min-width: 1900px !important;
+      table-layout: fixed !important;
       border-collapse: collapse;
     }
 
     thead {
+      position: sticky;
+      top: 0;
+      z-index: 10;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
     }
 
     thead th {
-      padding: 14px 20px;
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      z-index: 10;
+      padding: 12px 14px;
       text-align: left;
       font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 0.1em;
+      font-size: 10.5px;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--text-3);
+      font-weight: 600;
+      white-space: nowrap;
+      box-shadow: 0 1px 0 var(--border);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    thead th:nth-child(1)  { width: 110px; } /* Partner Ref */
+    thead th:nth-child(2)  { width: 180px; } /* Garage Name */
+    thead th:nth-child(3)  { width: 150px; } /* Owner Name */
+    thead th:nth-child(4)  { width: 140px; } /* Phone */
+    thead th:nth-child(5)  { width: 110px; } /* Vehicle Type */
+    thead th:nth-child(6)  { width: 220px; } /* Address */
+    thead th:nth-child(7)  { width: 110px; } /* City */
+    thead th:nth-child(8)  { width: 260px; } /* Status dropdown */
+    thead th:nth-child(9)  { width: 90px; }  /* License */
+    thead th:nth-child(10) { width: 90px; }  /* Garage */
+    thead th:nth-child(11) { width: 190px; } /* Remark */
+    thead th:nth-child(12) { width: 110px; } /* Action */
+
+    thead th:first-child { padding-left: 16px; });
       font-weight: 500;
     }
 
@@ -711,19 +771,14 @@
 </head>
 <body>
 
-  <!-- ─── Topbar ─── -->
-  <header class="topbar">
-    <div class="topbar-brand">
-      <img src="fixwheel_icon.png" alt="FixWheel Logo" style="width: 32px; height: 32px; object-fit: contain; border-radius: 6px;">
-      <span>FixWheel</span>
-      <em>/ Admin</em>
-    </div>
-    <div class="topbar-nav" style="display:flex; gap:24px; margin-left:40px; margin-right:auto;">
-      <a href="home.html" style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Home</a>
-      <a href="index.html" style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Orders</a>
-      <a href="active_partners.html" style="color:var(--text-1); text-decoration:none; font-size:14px; font-weight:600; border-bottom: 2px solid var(--red); padding-bottom: 4px;">Partners</a>
-    </div>
-    <div class="topbar-right">
+  <div class="main-wrapper">
+    <!-- ─── Topbar ─── -->
+    <header class="topbar">
+      <div class="topbar-brand">
+        <span>Total Partners Directory</span>
+        <em>/ Registered Garages & Mechanics</em>
+      </div>
+      <div class="topbar-right">
       <button id="download-csv" class="btn-action" style="display:flex; align-items:center; gap:6px;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -751,43 +806,74 @@
     </div>
   </header>
 
-  <!-- ─── Stats ─── -->
-  <div class="stats-row">
-    <div class="stat-cell" onclick="window.location.href='partners.html'">
-      <div class="stat-label">Total Partners</div>
-      <div id="stat-total-count" class="stat-value white">0</div>
-      <div class="stat-sub">Registered garages</div>
+  <!-- ─── Stats KPI Grid ─── -->
+  <div class="fw-stat-grid" style="margin: 24px 36px 0;">
+    <div class="fw-stat-card" style="border-color: var(--blue-dim); background: linear-gradient(135deg, rgba(59,130,246,0.08) 0%, var(--surface) 100%);">
+      <div class="fw-stat-header">
+        <span class="fw-stat-label">Total Partners</span>
+        <div class="fw-stat-icon" style="color:#60a5fa; background:var(--blue-glow); border-color:var(--blue-dim);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        </div>
+      </div>
+      <div id="stat-total-count" class="fw-stat-value blue">0</div>
+      <span class="fw-stat-sub">Registered garages directory</span>
     </div>
-    <div class="stat-cell" onclick="window.location.href='active_partners.html'">
-      <div class="stat-label">Active Partners</div>
-      <div id="stat-active-count" class="stat-value green">0</div>
-      <div class="stat-sub">Currently active</div>
+
+    <div class="fw-stat-card" onclick="window.location.href='active_partners.html?v=2027'">
+      <div class="fw-stat-header">
+        <span class="fw-stat-label">Active Partners</span>
+        <div class="fw-stat-icon" style="color:#4ade80; background:var(--green-glow); border-color:var(--green-dim);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+      </div>
+      <div id="stat-active-count" class="fw-stat-value green">0</div>
+      <span class="fw-stat-sub">Click to view Active Partners</span>
     </div>
-    <div class="stat-cell" onclick="window.location.href='dublicate_partners.html'">
-      <div class="stat-label">Dublicate Partners</div>
-      <div id="stat-duplicate-count" class="stat-value red">0</div>
-      <div class="stat-sub">Dublicate accounts</div>
+
+    <div class="fw-stat-card" onclick="window.location.href='dublicate_partners.html?v=2027'">
+      <div class="fw-stat-header">
+        <span class="fw-stat-label">Duplicate Accounts</span>
+        <div class="fw-stat-icon" style="color:var(--red); background:var(--red-glow); border-color:var(--red-dim);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </div>
+      </div>
+      <div id="stat-duplicate-count" class="fw-stat-value red">0</div>
+      <span class="fw-stat-sub">Flagged duplicates</span>
     </div>
-    <div class="stat-cell" onclick="openActivePartnerMap()">
-      <div class="stat-label">Active Partner Location</div>
-      <div id="stat-map-icon" class="stat-value white">📍</div>
-      <div class="stat-sub">View on Map</div>
+
+    <div class="fw-stat-card" onclick="openActivePartnerMap()">
+      <div class="fw-stat-header">
+        <span class="fw-stat-label">Partner Map</span>
+        <div class="fw-stat-icon" style="color:#60a5fa; background:var(--blue-glow); border-color:var(--blue-dim);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+      </div>
+      <div id="stat-map-icon" class="fw-stat-value blue" style="font-size: 20px;">📍 View Map</div>
+      <span class="fw-stat-sub">Interactive Geo Location</span>
     </div>
   </div>
 
   <!-- ─── Main ─── -->
   <main class="main">
     <div id="partners-section" class="order-section active">
+      <div style="margin-bottom: 12px;">
+        <a href="active_partners.html" class="btn-action" style="display:inline-flex; align-items:center; gap:6px; border-color:var(--border-hi); padding:6px 14px; border-radius:6px; font-weight:600; text-decoration:none;">
+          ← Back to Active Partners
+        </a>
+      </div>
       <div class="section-header">
         <div class="section-title">
-          <span class="section-tag pending">● Partners</span>
-          <h2>FixWheel Partners</h2>
+          <span class="fw-badge fw-badge-neutral" style="padding: 3px 8px; font-size:10px;">● Total Directory</span>
+          <h2>Total Registered Partners (All Statuses)</h2>
         </div>
         <div style="display:flex; gap: 10px; align-items:center;">
           <input type="text" id="partner-search" placeholder="Search Garage or Owner Name..." oninput="if(window.allPartners) renderDashboard(window.allPartners)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 220px;">
-          <select id="partner-status-filter" onchange="if(window.allPartners) renderDashboard(window.allPartners)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none;">
-            <option value="all">All Status</option>
-            <option value="inactive">Inactive</option>
+          <select id="partner-status-filter" class="fw-select" onchange="if(window.allPartners) renderDashboard(window.allPartners)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none;">
+            <option value="all">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="pending">Pending Onboarding</option>
+            <option value="deactivated">Deactivated</option>
+            <option value="duplicate">Duplicate</option>
           </select>
           <span class="count-badge" id="partner-header-count">0 partners</span>
         </div>
@@ -938,7 +1024,7 @@
 
       partnerTable.innerHTML = '';
 
-      let totalCount = 0;
+      let totalCount = partners.length;
       let activeCount = 0;
       let duplicateCount = 0;
       let visibleCount = 0;
@@ -949,10 +1035,6 @@
         const isDuplicate = statusValue === 'Dublicate Partner';
         if (isActive) activeCount++;
         if (isDuplicate) duplicateCount++;
-        else totalCount++;
-
-        // Exclude active and duplicate partners from showing in this table
-        if (isActive || isDuplicate) return;
 
         const matchSearch = searchTerm === '' || 
            (p.garageName || '').toLowerCase().includes(searchTerm) || 
@@ -962,8 +1044,12 @@
         let matchStatus = true;
         if (statusFilter === 'active') {
           matchStatus = isActive;
-        } else if (statusFilter === 'inactive') {
-          matchStatus = !isActive;
+        } else if (statusFilter === 'pending') {
+          matchStatus = statusValue === 'Pending- OnBoarding';
+        } else if (statusFilter === 'deactivated') {
+          matchStatus = statusValue.toLowerCase().includes('deactivate');
+        } else if (statusFilter === 'duplicate') {
+          matchStatus = isDuplicate;
         }
 
         if (matchSearch && matchStatus) {
@@ -1262,5 +1348,11 @@
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSidebar('all_partners');
+    });
+  </script>
 </body>
 </html>

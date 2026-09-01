@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    if (sessionStorage.getItem('fixwheel_admin_logged_in') !== 'true' && localStorage.getItem('fixwheel_admin_logged_in') !== 'true') {
+      window.location.replace('login.html');
+    }
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>FixWheel — Customer List</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="theme.css?v=2027">
+  <link rel="stylesheet" href="sidebar.css?v=2027">
+  <script src="sidebar.js?v=2027"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-1);
+      font-family: var(--sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── Topbar ─── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--topbar-bg);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 36px;
+      height: 60px;
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-brand span {
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .topbar-brand em {
+      font-style: normal;
+      color: var(--text-3);
+      font-size: 13px;
+      font-family: var(--mono);
+      font-weight: 400;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .live-dot {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--green);
+      font-weight: 500;
+    }
+
+    .live-dot::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    .admin-chip {
+      background: var(--surface-2);
+      border: 1px solid var(--border-hi);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-family: var(--mono);
+      color: var(--text-2);
+    }
+
+    /* ─── Main Content Layout ─── */
+    .main {
+      padding: 24px 36px;
+      min-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .fw-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 0;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title h2 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Table Wrap & Cells */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow-x: auto;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .table-wrap::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .table-wrap::-webkit-scrollbar-track {
+      background: var(--surface-2);
+      border-radius: 4px;
+    }
+
+    .table-wrap::-webkit-scrollbar-thumb {
+      background: var(--border-hi);
+      border-radius: 4px;
+    }
+
+    .table-wrap::-webkit-scrollbar-thumb:hover {
+      background: var(--text-3);
+    }
+
+    table {
+      width: 100%;
+      min-width: 1050px;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    thead th {
+      background: var(--surface-2);
+      color: var(--text-3);
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: var(--surface-2);
+    }
+
+    tbody td {
+      padding: 14px 18px;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    .cust-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(59, 130, 246, 0.12);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .cust-info-cell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .cust-name {
+      font-weight: 600;
+      color: var(--text-1);
+    }
+
+    .cust-id-badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-3);
+    }
+
+    .address-preview {
+      max-width: 280px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--text-2);
+      font-size: 12.5px;
+    }
+
+    .fw-btn-action {
+      background: transparent;
+      border: 1px solid var(--border-hi);
+      color: var(--text-2);
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: var(--sans);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .fw-btn-action:hover {
+      background: var(--surface-3);
+      color: var(--text-1);
+      border-color: var(--text-2);
+    }
+
+    .fw-btn-secondary {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .fw-btn-secondary:hover {
+      background: var(--surface-3);
+      color: var(--text-1);
+      border-color: var(--border-hi);
+    }
+
+    /* Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 650px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface-2);
+    }
+
+    .modal-body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      background: var(--surface-2);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .meta-box-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      background: var(--surface-2);
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .meta-item label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+      text-transform: uppercase;
+    }
+
+    .meta-item span {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-1);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-wrapper">
+    <!-- ─── Topbar ─── -->
+    <header class="topbar">
+      <div class="topbar-brand">
+        <span>Customer Directory</span>
+        <em>/ Registered Rider Profiles</em>
+      </div>
+      <div class="topbar-right">
+        <button id="download-csv" class="fw-btn-secondary" style="display:flex; align-items:center; gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Export CSV</span>
+        </button>
+        <button id="theme-toggle" class="fw-btn-secondary">Theme</button>
+        <span class="live-dot">LIVE</span>
+        <span class="admin-chip" id="admin-email">admin@fixwheel.app</span>
+      </div>
+    </header>
+
+    <!-- ─── Main Content ─── -->
+    <main class="main">
+      <!-- Top KPI Stat Cards Grid -->
+      <div class="fw-stat-grid">
+        <div class="fw-stat-card">
+          <div class="fw-stat-header">
+            <span class="fw-stat-label">Total Customers</span>
+            <div class="fw-stat-icon" style="color:#60a5fa; background:var(--blue-glow); border-color:var(--blue-dim);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </div>
+          </div>
+          <div id="stat-total-customers" class="fw-stat-value blue">0</div>
+          <span class="fw-stat-sub">Registered rider profiles</span>
+        </div>
+
+        <div class="fw-stat-card">
+          <div class="fw-stat-header">
+            <span class="fw-stat-label">Verified Phones</span>
+            <div class="fw-stat-icon" style="color:#4ade80; background:var(--green-glow); border-color:var(--green-dim);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </div>
+          </div>
+          <div id="stat-verified-phones" class="fw-stat-value green">0</div>
+          <span class="fw-stat-sub">Active phone contacts</span>
+        </div>
+
+        <div class="fw-stat-card">
+          <div class="fw-stat-header">
+            <span class="fw-stat-label">Saved Addresses</span>
+            <div class="fw-stat-icon" style="color:#facc15; background:var(--yellow-glow); border-color:var(--yellow-dim);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+          </div>
+          <div id="stat-saved-addresses" class="fw-stat-value amber">0</div>
+          <span class="fw-stat-sub">Locations configured</span>
+        </div>
+
+        <div class="fw-stat-card">
+          <div class="fw-stat-header">
+            <span class="fw-stat-label">Total Bookings</span>
+            <div class="fw-stat-icon" style="color:#c084fc; background:var(--purple-glow); border-color:var(--purple-dim);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+          </div>
+          <div id="stat-total-bookings" class="fw-stat-value" style="color:#c084fc;">0</div>
+          <span class="fw-stat-sub">Service orders placed</span>
+        </div>
+      </div>
+
+      <!-- Section Header & Filter Controls -->
+      <div class="section-header">
+        <div class="section-title">
+          <span class="fw-badge fw-badge-info">● Riders</span>
+          <h2>Customer Directory & User Profiles</h2>
+        </div>
+
+        <div class="filter-bar">
+          <input type="text" id="customer-search" class="fw-input" placeholder="Search customer, phone, email, address..." style="min-width: 280px;" oninput="renderCustomerTable()">
+          
+          <select id="phone-filter" class="fw-select" onchange="renderCustomerTable()">
+            <option value="all">All Customers</option>
+            <option value="has_phone">With Phone Number</option>
+            <option value="no_phone">Phone Empty / Missing</option>
+          </select>
+
+          <span class="fw-badge fw-badge-neutral" id="customer-visible-count">0 visible</span>
+        </div>
+      </div>
+
+      <!-- Table Section -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Customer ID</th>
+              <th>Full Name</th>
+              <th>Phone Number</th>
+              <th>Email Address</th>
+              <th>Saved Address</th>
+              <th>Registered Date</th>
+              <th>Orders Placed</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="customers-table-body">
+            <!-- Loaded dynamically from Supabase User_Profile -->
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- ─── Customer Details Modal ─── -->
+  <div class="modal-overlay" id="customer-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3 id="modal-cust-name" style="font-size:16px; font-weight:700;">Customer Details</h3>
+          <span id="modal-cust-id" style="font-size:12px; font-family:var(--mono); color:var(--text-3);">#CUST-001</span>
+        </div>
+        <button class="fw-btn-secondary" onclick="closeModal()" style="padding:4px 10px;">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="meta-box-grid">
+          <div class="meta-item">
+            <label>Full Name</label>
+            <span id="modal-cust-fullname">--</span>
+          </div>
+          <div class="meta-item">
+            <label>Phone Number</label>
+            <span id="modal-cust-phone">--</span>
+          </div>
+          <div class="meta-item">
+            <label>Email Address</label>
+            <span id="modal-cust-email">--</span>
+          </div>
+          <div class="meta-item">
+            <label>Joined Date</label>
+            <span id="modal-cust-joined">--</span>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-family:var(--mono); font-size:11px; color:var(--text-3); text-transform:uppercase;">Saved Delivery / Service Address</label>
+          <div id="modal-cust-address" style="background:var(--surface-2); border:1px solid var(--border); padding:14px; border-radius:8px; font-size:13px; line-height:1.5; color:var(--text-1); margin-top:6px;">
+            --
+          </div>
+        </div>
+
+        <div>
+          <label style="font-family:var(--mono); font-size:11px; color:var(--text-3); text-transform:uppercase;">Service Order History</label>
+          <div id="modal-cust-orders-list" style="margin-top:6px; display:flex; flex-direction:column; gap:8px;">
+            <!-- Order history items dynamically populated -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="fw-btn-secondary" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Supabase Client
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    window.allCustomers = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSidebar('customer_list');
+      fetchCustomers();
+
+      // Theme toggle
+      document.getElementById('theme-toggle')?.addEventListener('click', () => {
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        if (isLight) {
+          document.documentElement.removeAttribute('data-theme');
+          localStorage.setItem('theme', 'dark');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          localStorage.setItem('theme', 'light');
+        }
+      });
+
+      // CSV Export
+      document.getElementById('download-csv')?.addEventListener('click', exportCSV);
+    });
+
+    const initialUserProfiles = [
+      { id: 1, created_at: "2026-08-26T07:10:03.047188+00:00", full_name: "kinjal", phone_number: "9876543210", address: "Ffg, 67, 4H64+9QP, Holta, Palampur, HP", email: "rkinjal091@gmail.com" },
+      { id: 2, created_at: "2026-08-26T15:34:12.788449+00:00", full_name: "Jauhar Ansari", phone_number: "7838677350", address: "1920, Army, 4H64+9QP, Holta, Palampur, HP", email: "ja54321ander@gmail.com" },
+      { id: 3, created_at: "2026-08-26T15:38:25.566530+00:00", full_name: "Yashmin Praveen", phone_number: "9876543213", address: "6262, Army, 4H64+9QP, Holta, Palampur, HP", email: "sameerjauhar@gmail.com" },
+      { id: 4, created_at: "2026-08-26T18:32:05.545512+00:00", full_name: "Zakir Khan", phone_number: "EMPTY", address: "NULL", email: "zakirkhan983@gmail.com" },
+      { id: 5, created_at: "2026-08-26T18:45:47.180346+00:00", full_name: "Krishna Singh Chauhan", phone_number: "EMPTY", address: "NULL", email: "krishnasingh983@gmail.com" }
+    ];
+
+    async function fetchCustomers() {
+      const [{ data: userProfiles, error: userError }, { data: bookings, error: bookingError }] = await Promise.all([
+        supabaseClient.from('User_Profile').select('*').order('created_at', { ascending: false }),
+        supabaseClient.from('Booking').select('*')
+      ]);
+
+      if (userError) {
+        console.error('Error fetching User_Profile table:', userError);
+      }
+
+      const profilesToRender = (userProfiles && userProfiles.length > 0) ? userProfiles : initialUserProfiles;
+
+      window.allCustomers = profilesToRender.map((u, idx) => {
+        const userPhoneClean = (u.phone_number || '').replace(/\D/g, '');
+        const userNameLower = (u.full_name || '').toLowerCase().trim();
+
+        // Match user's bookings from Booking table
+        const userBookings = (bookings || []).filter(b => {
+          const bPhoneClean = (b.phone || '').replace(/\D/g, '');
+          const bNameLower = (b.customerName || '').toLowerCase().trim();
+          return (userPhoneClean && bPhoneClean && userPhoneClean.length >= 10 && bPhoneClean.length >= 10 && userPhoneClean.slice(-10) === bPhoneClean.slice(-10)) ||
+                 (userNameLower && bNameLower && userNameLower === bNameLower);
+        });
+
+        const isPhoneEmpty = !u.phone_number || u.phone_number === 'EMPTY' || u.phone_number.trim() === '';
+        const isAddressEmpty = !u.address || u.address === 'NULL' || u.address.trim() === '';
+
+        return {
+          id: u.id || (idx + 1),
+          refId: 'CUST-' + String(u.id || (idx + 1)).padStart(3, '0'),
+          fullName: u.full_name || 'Unnamed User',
+          phone: isPhoneEmpty ? 'EMPTY' : u.phone_number,
+          email: (!u.email || u.email === 'NULL') ? 'Not Provided' : u.email,
+          address: isAddressEmpty ? 'No Address Saved' : u.address,
+          createdAt: u.created_at ? new Date(u.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Just Now',
+          isPhoneEmpty: isPhoneEmpty,
+          isAddressEmpty: isAddressEmpty,
+          userBookings: userBookings
+        };
+      });
+
+      renderCustomerTable();
+    }
+
+    function renderCustomerTable() {
+      const tbody = document.getElementById('customers-table-body');
+      const search = (document.getElementById('customer-search')?.value || '').toLowerCase();
+      const phoneFilter = document.getElementById('phone-filter')?.value || 'all';
+
+      tbody.innerHTML = '';
+
+      if (!window.allCustomers || window.allCustomers.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 48px 24px; color: var(--text-3);">
+              <div style="font-size: 28px; margin-bottom: 8px;">👤</div>
+              <div style="font-size: 14px; font-weight: 600; color: var(--text-1);">No customer profiles found in database</div>
+              <div style="font-size: 12px; margin-top: 4px; font-family: var(--mono);">User profiles registered in FixWheel app will appear here automatically.</div>
+            </td>
+          </tr>
+        `;
+        document.getElementById('stat-total-customers').textContent = '0';
+        document.getElementById('stat-verified-phones').textContent = '0';
+        document.getElementById('stat-saved-addresses').textContent = '0';
+        document.getElementById('stat-total-bookings').textContent = '0';
+        document.getElementById('customer-visible-count').textContent = '0 visible';
+        return;
+      }
+
+      let visible = 0;
+      let verifiedPhonesCount = 0;
+      let savedAddressesCount = 0;
+      let totalBookingsCount = 0;
+
+      window.allCustomers.forEach(c => {
+        if (!c.isPhoneEmpty) verifiedPhonesCount++;
+        if (!c.isAddressEmpty) savedAddressesCount++;
+        totalBookingsCount += c.userBookings.length;
+
+        const matchSearch = !search || 
+          c.fullName.toLowerCase().includes(search) || 
+          c.phone.toLowerCase().includes(search) || 
+          c.email.toLowerCase().includes(search) || 
+          c.address.toLowerCase().includes(search) || 
+          c.refId.toLowerCase().includes(search);
+
+        const matchPhone = phoneFilter === 'all' || 
+          (phoneFilter === 'has_phone' && !c.isPhoneEmpty) || 
+          (phoneFilter === 'no_phone' && c.isPhoneEmpty);
+
+        if (matchSearch && matchPhone) {
+          visible++;
+          const initial = c.fullName.charAt(0).toUpperCase();
+
+          tbody.innerHTML += `
+            <tr>
+              <td><span class="cust-id-badge">${c.refId}</span></td>
+              <td>
+                <div class="cust-info-cell">
+                  <div class="cust-avatar">${initial}</div>
+                  <div class="cust-name">${c.fullName}</div>
+                </div>
+              </td>
+              <td>
+                ${c.isPhoneEmpty 
+                  ? '<span class="fw-badge fw-badge-neutral" style="color:var(--text-3);">EMPTY</span>' 
+                  : `<span style="font-family:var(--mono); font-weight:600; color:var(--text-1);">${c.phone}</span>`}
+              </td>
+              <td><span style="font-family:var(--mono); font-size:12px; color:var(--text-2);">${c.email}</span></td>
+              <td><div class="address-preview" title="${c.address}">${c.address}</div></td>
+              <td><span style="font-family:var(--mono); font-size:11.5px; color:var(--text-3);">${c.createdAt}</span></td>
+              <td>
+                <span class="fw-badge ${c.userBookings.length > 0 ? 'fw-badge-info' : 'fw-badge-neutral'}">
+                  ${c.userBookings.length} order${c.userBookings.length === 1 ? '' : 's'}
+                </span>
+              </td>
+              <td>
+                <button class="fw-btn-action" style="padding:4px 10px; font-size:11px;" onclick="openCustomerModal(${c.id})">View Profile</button>
+              </td>
+            </tr>
+          `;
+        }
+      });
+
+      document.getElementById('stat-total-customers').textContent = window.allCustomers.length;
+      document.getElementById('stat-verified-phones').textContent = verifiedPhonesCount;
+      document.getElementById('stat-saved-addresses').textContent = savedAddressesCount;
+      document.getElementById('stat-total-bookings').textContent = totalBookingsCount;
+      document.getElementById('customer-visible-count').textContent = `${visible} visible`;
+    }
+
+    function openCustomerModal(id) {
+      const c = (window.allCustomers || []).find(item => item.id === id);
+      if (!c) return;
+
+      document.getElementById('modal-cust-name').textContent = c.fullName;
+      document.getElementById('modal-cust-id').textContent = c.refId;
+      document.getElementById('modal-cust-fullname').textContent = c.fullName;
+      document.getElementById('modal-cust-phone').textContent = c.phone;
+      document.getElementById('modal-cust-email').textContent = c.email;
+      document.getElementById('modal-cust-joined').textContent = c.createdAt;
+      document.getElementById('modal-cust-address').textContent = c.address;
+
+      const ordersListEl = document.getElementById('modal-cust-orders-list');
+      if (c.userBookings.length === 0) {
+        ordersListEl.innerHTML = '<div style="font-size:12px; color:var(--text-3); font-family:var(--mono); background:var(--surface-2); padding:10px; border-radius:6px; border:1px solid var(--border);">No service orders placed yet by this customer.</div>';
+      } else {
+        ordersListEl.innerHTML = c.userBookings.map(b => `
+          <div style="background:var(--surface-2); border:1px solid var(--border); padding:10px 14px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:600; font-size:13px;">#${b.bookingRef || b.id} — ${b.package || 'Service'}</div>
+              <div style="font-family:var(--mono); font-size:11px; color:var(--text-3); margin-top:2px;">${b.bikeModel || ''} · ${b.city || ''}</div>
+            </div>
+            <div style="text-align:right;">
+              <span class="fw-badge ${ (b.order_status || b.status || '').toLowerCase().includes('completed') ? 'fw-badge-success' : 'fw-badge-warning' }">${b.order_status || b.status || 'Pending'}</span>
+              <div style="font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text-1); margin-top:3px;">₹${b.Final_Amount || b.price || 0}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      document.getElementById('customer-modal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('customer-modal').classList.remove('active');
+    }
+
+    function exportCSV() {
+      if (!window.allCustomers || window.allCustomers.length === 0) return;
+      let csv = "Customer ID,Full Name,Phone,Email,Address,Registered Date,Total Orders\n";
+      window.allCustomers.forEach(c => {
+        csv += `"${c.refId}","${c.fullName}","${c.phone}","${c.email}","${c.address.replace(/"/g, '""')}","${c.createdAt}","${c.userBookings.length}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `customer_directory_${Date.now()}.csv`;
+      link.click();
+    }
+  </script>
+</body>
+</html>

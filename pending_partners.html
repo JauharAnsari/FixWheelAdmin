@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script>
+    if (sessionStorage.getItem('fixwheel_admin_logged_in') !== 'true' && localStorage.getItem('fixwheel_admin_logged_in') !== 'true') window.location.replace('login.html');
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FixWheel — Pending Approval</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="sidebar.css">
+  <script src="sidebar.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #0a0a0a; --surface: #141414; --surface-2: #1e1e1e; --border: #2a2a2a; --border-hi: #3f3f3f; --red: #ef4444; --red-dim: #991b1b; --red-glow: rgba(239, 68, 68, 0.15); --text-1: #ffffff; --text-2: #a1a1aa; --text-3: #71717a; --topbar-bg: rgba(10, 10, 10, 0.85); --mono: 'DM Mono', monospace; --sans: 'Syne', sans-serif; }
+    [data-theme="light"] { --bg: #f3f4f6; --surface: #ffffff; --surface-2: #f9fafb; --border: #e5e7eb; --text-1: #111827; --text-2: #4b5563; --text-3: #6b7280; --topbar-bg: rgba(255, 255, 255, 0.85); }
+    body { background: var(--bg); color: var(--text-1); font-family: var(--sans); }
+  </style>
+  <script> if (localStorage.getItem('theme') === 'light') document.documentElement.setAttribute('data-theme', 'light'); </script>
+</head>
+<body>
+  <div class="main-wrapper">
+    <header class="topbar">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-weight:700; font-size:15px; text-transform:uppercase;">Partners</span>
+        <span style="font-family:var(--mono); color:var(--text-3); font-size:12px;">/ Pending Approval</span>
+      </div>
+      <div class="topbar-right" style="display:flex; align-items:center; gap:20px;">
+        <div style="display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; color:var(--text-2);">LIVE</div>
+        <button id="theme-toggle" style="cursor:pointer; background:var(--surface-2); border:1px solid var(--border-hi); color:var(--text-2); padding:5px 12px; border-radius:20px; font-family:var(--mono); font-size:12px;">Theme</button>
+        <div style="background:var(--surface-2); border:1px solid var(--border-hi); border-radius:20px; padding:5px 14px; font-size:12px; font-family:var(--mono); color:var(--text-2);">admin@fixwheel.in</div>
+      </div>
+    </header>
+    <main class="placeholder-container">
+      <div class="placeholder-card">
+        <div class="placeholder-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+        </div>
+        <h1 class="placeholder-title">Pending Partner Approvals</h1>
+        <p class="placeholder-desc">Partner onboarding queue, document verification (Aadhaar/PAN/GST), and verification approvals.</p>
+        <span class="placeholder-badge">Coming Soon</span>
+      </div>
+    </main>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSidebar('pending_partners');
+      document.getElementById('theme-toggle')?.addEventListener('click', () => {
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        if (isLight) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('theme', 'dark'); }
+        else { document.documentElement.setAttribute('data-theme', 'light'); localStorage.setItem('theme', 'light'); }
+      });
+    });
+  </script>
+</body>
+</html>

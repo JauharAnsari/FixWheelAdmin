@@ -12,6 +12,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="sidebar.css">
+  <script src="sidebar.js"></script>
 
   <style>
     *, *::before, *::after {
@@ -642,19 +644,14 @@
 </head>
 <body>
 
-  <!-- ─── Topbar ─── -->
-  <header class="topbar">
-    <div class="topbar-brand">
-      <img src="fixwheel_icon.png" alt="FixWheel Logo" style="width: 32px; height: 32px; object-fit: contain; border-radius: 6px;">
-      <span>FixWheel</span>
-      <em>/ Admin</em>
-    </div>
-    <div class="topbar-nav" style="display:flex; gap:24px; margin-left:40px; margin-right:auto;">
-      <a href="home.html" style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Home</a>
-      <a href="index.html" style="color:var(--text-3); text-decoration:none; font-size:14px; font-weight:600; padding-bottom: 4px;">Orders</a>
-      <a href="active_partners.html" style="color:var(--text-1); text-decoration:none; font-size:14px; font-weight:600; border-bottom: 2px solid var(--red); padding-bottom: 4px;">Partners</a>
-    </div>
-    <div class="topbar-right">
+  <div class="main-wrapper">
+    <!-- ─── Topbar ─── -->
+    <header class="topbar">
+      <div class="topbar-brand">
+        <span>Duplicate Partners</span>
+        <em>/ Data Integrity Audit</em>
+      </div>
+      <div class="topbar-right">
       <button id="theme-toggle" class="btn-action" style="display:flex; align-items:center; gap:6px;">
         <svg id="theme-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <!-- Icon updated dynamically via JS -->
@@ -930,6 +927,11 @@
         fetchPartners();
       })
       .subscribe();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSidebar('duplicates');
+    });
   </script>
+  </div>
 </body>
 </html>

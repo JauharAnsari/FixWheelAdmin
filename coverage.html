@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    if (sessionStorage.getItem('fixwheel_admin_logged_in') !== 'true' && localStorage.getItem('fixwheel_admin_logged_in') !== 'true') {
+      window.location.replace('login.html');
+    }
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FixWheel — Cities & Localities Coverage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="sidebar.css">
+  <script src="sidebar.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg:        #0a0a0a;
+      --surface:   #141414;
+      --surface-2: #1e1e1e;
+      --surface-3: #262626;
+      --border:    #2a2a2a;
+      --border-hi: #3f3f3f;
+      --red:       #ef4444;
+      --red-dim:   #991b1b;
+      --red-glow:  rgba(239, 68, 68, 0.15);
+      --green:     #22c55e;
+      --green-dim: #166534;
+      --green-glow:rgba(34, 197, 94, 0.15);
+      --yellow:    #facc15;
+      --yellow-glow: rgba(250, 204, 21, 0.15);
+      --text-1:    #ffffff;
+      --text-2:    #a1a1aa;
+      --text-3:    #71717a;
+      --topbar-bg: rgba(10, 10, 10, 0.85);
+      --mono:      'DM Mono', monospace;
+      --sans:      'Syne', sans-serif;
+    }
+
+    [data-theme="light"] {
+      --bg:        #f3f4f6;
+      --surface:   #ffffff;
+      --surface-2: #f9fafb;
+      --surface-3: #e5e7eb;
+      --border:    #e5e7eb;
+      --border-hi: #d1d5db;
+      --text-1:    #111827;
+      --text-2:    #4b5563;
+      --text-3:    #6b7280;
+      --topbar-bg: rgba(255, 255, 255, 0.85);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-1);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ─── Topbar ─── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--topbar-bg);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 36px;
+      height: 60px;
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-brand span {
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .topbar-brand em {
+      font-style: normal;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-3);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .live-dot {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--green);
+      background: var(--green-glow);
+      border: 1px solid var(--green-dim);
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+
+    .live-dot::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    .admin-chip {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-2);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+
+    .btn-action {
+      background: transparent;
+      border: 1px solid var(--border-hi);
+      color: var(--text-2);
+      padding: 5px 12px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-family: var(--mono);
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: all 0.15s;
+    }
+
+    .btn-action:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    /* ─── City Summary Cards (Clickable Quick Filters) ─── */
+    .city-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .city-card {
+      background: var(--surface);
+      padding: 16px 20px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .city-card:hover {
+      background: var(--surface-2);
+    }
+
+    .city-card.active {
+      background: var(--surface-2);
+      border-bottom: 2px solid var(--red);
+    }
+
+    .city-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-1);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .city-metric {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-2);
+      margin-top: 3px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .city-coverage-pct {
+      font-size: 15px;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
+    /* ─── Main Content ─── */
+    .main {
+      padding: 24px 36px;
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ─── Classified Tabs & Filters ─── */
+    .tabs-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: var(--surface);
+      border: 1px solid var(--border-hi);
+      color: var(--text-2);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-1);
+      border-color: var(--text-2);
+    }
+
+    .tab-btn.active {
+      background: var(--red-glow);
+      color: var(--red);
+      border-color: var(--red-dim);
+    }
+
+    .tab-badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      background: rgba(255,255,255,0.08);
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+
+    .search-input {
+      background: var(--surface);
+      border: 1px solid var(--border-hi);
+      color: var(--text-1);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-family: var(--sans);
+      outline: none;
+      width: 220px;
+    }
+
+    .search-input:focus { border-color: var(--red); }
+
+    /* ─── Grouped City Cards ─── */
+    .city-group-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .city-group-header {
+      background: var(--surface-2);
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .city-group-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    /* ─── Table ─── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      text-align: left;
+    }
+
+    th {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--text-3);
+      text-transform: uppercase;
+      padding: 10px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tbody tr:hover { background: var(--surface-2); }
+
+    .locality-name { font-weight: 700; color: var(--text-1); }
+    .city-tag { font-family: var(--mono); font-size: 11px; color: var(--text-3); }
+
+    /* Status Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .badge.danger {
+      background: var(--red-glow);
+      color: var(--red);
+      border: 1px solid var(--red-dim);
+    }
+
+    .badge.warning {
+      background: var(--yellow-glow);
+      color: var(--yellow);
+      border: 1px solid rgba(250, 204, 21, 0.3);
+    }
+
+    .badge.done {
+      background: var(--green-glow);
+      color: #4ade80;
+      border: 1px solid var(--green-dim);
+    }
+
+    .badge.neutral {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-3);
+      border: 1px solid var(--border-hi);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-wrapper">
+    <!-- ─── Topbar ─── -->
+    <header class="topbar">
+      <div class="topbar-brand">
+        <span>Cities & Localities Coverage</span>
+        <em>/ Operational Fulfillment Audit</em>
+      </div>
+      <div class="topbar-right">
+        <button id="theme-toggle" class="btn-action" style="display:flex; align-items:center; gap:6px;">
+          <svg id="theme-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          </svg>
+          <span id="theme-text">Theme</span>
+        </button>
+        <span class="live-dot">LIVE</span>
+        <span class="admin-chip" id="admin-email">admin@fixwheel.app</span>
+      </div>
+    </header>
+
+    <!-- ─── City Summary Cards (Clickable Quick Filters) ─── -->
+    <div class="city-grid" id="city-summary-grid">
+      <!-- Populated via JS -->
+    </div>
+
+    <!-- ─── Main Content ─── -->
+    <main class="main">
+
+      <!-- ─── Classification Tabs & Filters ─── -->
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <!-- City Tabs -->
+          <div class="tabs-bar" id="city-tabs-bar">
+            <button class="tab-btn active" onclick="selectCityTab('all')">
+              All Cities <span class="tab-badge" id="badge-all">39</span>
+            </button>
+            <button class="tab-btn" onclick="selectCityTab('Gurgaon')">
+              Gurgaon <span class="tab-badge" id="badge-gurgaon">12</span>
+            </button>
+            <button class="tab-btn" onclick="selectCityTab('Delhi')">
+              Delhi <span class="tab-badge" id="badge-delhi">10</span>
+            </button>
+            <button class="tab-btn" onclick="selectCityTab('Noida')">
+              Noida <span class="tab-badge" id="badge-noida">7</span>
+            </button>
+            <button class="tab-btn" onclick="selectCityTab('Ghaziabad')">
+              Ghaziabad <span class="tab-badge" id="badge-ghaziabad">5</span>
+            </button>
+            <button class="tab-btn" onclick="selectCityTab('Faridabad')">
+              Faridabad <span class="tab-badge" id="badge-faridabad">5</span>
+            </button>
+          </div>
+
+          <!-- Search Input -->
+          <input type="text" id="locality-search" class="search-input" placeholder="🔍 Search locality..." onkeyup="renderClassifiedViews()">
+        </div>
+
+        <!-- Status Filter Pills -->
+        <div class="tabs-bar" style="border:none; padding-bottom:0;" id="status-tabs-bar">
+          <span style="font-family:var(--mono); font-size:11px; color:var(--text-3); align-self:center;">Filter Status:</span>
+          <button class="tab-btn active" onclick="selectStatusFilter('all')" id="status-pill-all">
+            All Localities
+          </button>
+          <button class="tab-btn" onclick="selectStatusFilter('No Partners')" id="status-pill-danger" style="border-color:var(--red-dim);">
+            🔴 Unserved / No Partners <span class="tab-badge" id="badge-unserved">0</span>
+          </button>
+          <button class="tab-btn" onclick="selectStatusFilter('Thin')" id="status-pill-warning" style="border-color:rgba(250, 204, 21, 0.3);">
+            🟡 Mechanic Bottleneck <span class="tab-badge" id="badge-thin">0</span>
+          </button>
+          <button class="tab-btn" onclick="selectStatusFilter('Covered')" id="status-pill-covered" style="border-color:var(--green-dim);">
+            🟢 High Fulfillment <span class="tab-badge" id="badge-covered">0</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ─── Grouped City Cards Container ─── -->
+      <div id="classified-cities-container" style="display:flex; flex-direction:column; gap:20px;">
+        <!-- Populated via JS -->
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    // Theme toggle initialization
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    function updateThemeIcon() {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      document.getElementById('theme-text').textContent = isLight ? 'Dark' : 'Light';
+    }
+    themeToggleBtn?.addEventListener('click', () => {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      if (isLight) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+      }
+      updateThemeIcon();
+    });
+    updateThemeIcon();
+
+    // Supabase Client
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Canonical NCR Public Site Localities per city
+    const PUBLIC_LOCALITIES = [
+      // Gurgaon
+      { name: "Palam Vihar", city: "Gurgaon", keywords: ["palam vihar"] },
+      { name: "Cyber City", city: "Gurgaon", keywords: ["cyber city", "dlf cyber"] },
+      { name: "DLF Phase 1", city: "Gurgaon", keywords: ["dlf phase 1", "dlf 1"] },
+      { name: "DLF Phase 2", city: "Gurgaon", keywords: ["dlf phase 2", "dlf 2"] },
+      { name: "DLF Phase 3", city: "Gurgaon", keywords: ["dlf phase 3", "dlf 3"] },
+      { name: "DLF Phase 4", city: "Gurgaon", keywords: ["dlf phase 4", "dlf 4"] },
+      { name: "DLF Phase 5", city: "Gurgaon", keywords: ["dlf phase 5", "dlf 5"] },
+      { name: "Sohna Road", city: "Gurgaon", keywords: ["sohna road", "sohna"] },
+      { name: "Sushant Lok", city: "Gurgaon", keywords: ["sushant lok"] },
+      { name: "Golf Course Road", city: "Gurgaon", keywords: ["golf course"] },
+      { name: "Sector 56", city: "Gurgaon", keywords: ["sec 56", "sector 56"] },
+      { name: "Sector 14", city: "Gurgaon", keywords: ["sec 14", "sector 14"] },
+
+      // Delhi
+      { name: "Connaught Place", city: "Delhi", keywords: ["cp", "connaught place"] },
+      { name: "Dwarka", city: "Delhi", keywords: ["dwarka"] },
+      { name: "Janakpuri", city: "Delhi", keywords: ["janakpuri"] },
+      { name: "Rohini", city: "Delhi", keywords: ["rohini"] },
+      { name: "Saket", city: "Delhi", keywords: ["saket"] },
+      { name: "Laxmi Nagar", city: "Delhi", keywords: ["laxmi nagar"] },
+      { name: "Lajpat Nagar", city: "Delhi", keywords: ["lajpat nagar"] },
+      { name: "Pitampura", city: "Delhi", keywords: ["pitampura"] },
+      { name: "Vasant Kunj", city: "Delhi", keywords: ["vasant kunj"] },
+      { name: "Karol Bagh", city: "Delhi", keywords: ["karol bagh"] },
+
+      // Noida
+      { name: "Sector 62", city: "Noida", keywords: ["sector 62", "sec 62"] },
+      { name: "Sector 18 / Atta", city: "Noida", keywords: ["sector 18", "sec 18", "atta"] },
+      { name: "Sector 63", city: "Noida", keywords: ["sector 63", "sec 63"] },
+      { name: "Sector 50", city: "Noida", keywords: ["sector 50", "sec 50"] },
+      { name: "Greater Noida West", city: "Noida", keywords: ["greater noida", "noida extension"] },
+      { name: "Sector 137", city: "Noida", keywords: ["sector 137", "sec 137"] },
+      { name: "Sector 15", city: "Noida", keywords: ["sector 15", "sec 15"] },
+
+      // Ghaziabad
+      { name: "Indirapuram", city: "Ghaziabad", keywords: ["indirapuram"] },
+      { name: "Vaishali", city: "Ghaziabad", keywords: ["vaishali"] },
+      { name: "Vasundhara", city: "Ghaziabad", keywords: ["vasundhara"] },
+      { name: "Raj Nagar Extension", city: "Ghaziabad", keywords: ["raj nagar"] },
+      { name: "Crossings Republik", city: "Ghaziabad", keywords: ["crossings republik"] },
+
+      // Faridabad
+      { name: "NIT Faridabad", city: "Faridabad", keywords: ["nit"] },
+      { name: "Sector 15", city: "Faridabad", keywords: ["sector 15", "sec 15"] },
+      { name: "Sector 16", city: "Faridabad", keywords: ["sector 16", "sec 16"] },
+      { name: "Green Fields", city: "Faridabad", keywords: ["green fields"] },
+      { name: "Greater Faridabad", city: "Faridabad", keywords: ["sector 82", "greater faridabad"] }
+    ];
+
+    let computedLocalityData = [];
+    let rawPartners = [];
+    let rawBookings = [];
+    let selectedCity = 'all';
+    let selectedStatus = 'all';
+
+    async function fetchCoverageData() {
+      const [{ data: partners, error: pErr }, { data: bookings, error: bErr }] = await Promise.all([
+        supabaseClient.from('Partner').select('*'),
+        supabaseClient.from('Booking').select('*')
+      ]);
+
+      if (pErr) console.error("Partner query error:", pErr);
+      if (bErr) console.error("Booking query error:", bErr);
+
+      rawPartners = partners || [];
+      rawBookings = bookings || [];
+
+      const activePartners = rawPartners.filter(p => {
+        const s = (p.partner_status || p.status || '').toLowerCase();
+        return s.includes('active') && !s.includes('deactivate');
+      });
+
+      computedLocalityData = PUBLIC_LOCALITIES.map(loc => {
+        const cityLower = loc.city.toLowerCase();
+
+        const cityPartnerCount = activePartners.filter(p => (p.city || '').toLowerCase().includes(cityLower)).length;
+
+        const matchingPartners = activePartners.filter(p => {
+          const pCity = (p.city || '').toLowerCase();
+          const pAddress = (p.address || '').toLowerCase();
+          if (!pCity.includes(cityLower) && !pAddress.includes(cityLower)) return false;
+          return loc.keywords.some(kw => pAddress.includes(kw) || pCity.includes(kw));
+        });
+
+        const partnerCount = matchingPartners.length > 0 ? matchingPartners.length : (cityPartnerCount > 0 ? 1 : 0);
+
+        const matchingBookings = rawBookings.filter(b => {
+          const bCity = (b.city || '').toLowerCase();
+          const bAddress = (b.address || '').toLowerCase();
+          if (!bCity.includes(cityLower) && !bAddress.includes(cityLower)) return false;
+          return loc.keywords.some(kw => bAddress.includes(kw) || bCity.includes(kw));
+        });
+
+        const totalOrders = matchingBookings.length;
+
+        const completedOrders = matchingBookings.filter(b => {
+          const st = (b.order_status || b.status || '').toLowerCase();
+          return st.includes('completed') || st.includes('payment received');
+        }).length;
+
+        const mechanicCancelledOrders = matchingBookings.filter(b => {
+          const st = (b.order_status || b.status || '').toLowerCase();
+          return st.includes('mechanic not available') || st.includes('cancel - spare parts');
+        }).length;
+
+        const completionPct = totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0;
+        const cancelPct = totalOrders > 0 ? Math.round((mechanicCancelledOrders / totalOrders) * 100) : 0;
+
+        let status = 'Covered';
+        let severity = 3;
+
+        if (cityPartnerCount === 0 || partnerCount === 0) {
+          status = 'No Partners';
+          severity = 1;
+        } else if (mechanicCancelledOrders > 0 || (totalOrders > 0 && completionPct < 60)) {
+          status = 'Thin'; // Mechanic bottleneck
+          severity = 2;
+        }
+
+        return {
+          ...loc,
+          partnerCount,
+          totalOrders,
+          completedOrders,
+          mechanicCancelledOrders,
+          completionPct,
+          cancelPct,
+          status,
+          severity
+        };
+      });
+
+      updateCountsAndBadges();
+      renderCityCards(activePartners, rawBookings);
+      renderClassifiedViews();
+    }
+
+    function updateCountsAndBadges() {
+      const unserved = computedLocalityData.filter(l => l.status === 'No Partners').length;
+      const thin = computedLocalityData.filter(l => l.status === 'Thin').length;
+      const covered = computedLocalityData.filter(l => l.status === 'Covered').length;
+
+      document.getElementById('badge-unserved').textContent = unserved;
+      document.getElementById('badge-thin').textContent = thin;
+      document.getElementById('badge-covered').textContent = covered;
+    }
+
+    function renderCityCards(activePartners, bookings) {
+      const cities = ["Gurgaon", "Delhi", "Noida", "Ghaziabad", "Faridabad"];
+      const grid = document.getElementById('city-summary-grid');
+      let gridHtml = '';
+
+      cities.forEach(city => {
+        const cityLocs = computedLocalityData.filter(l => l.city === city);
+        const totalLocs = cityLocs.length;
+        const cityPartners = activePartners.filter(p => (p.city || '').toLowerCase().includes(city.toLowerCase())).length;
+
+        const cityBookings = bookings.filter(b => (b.city || '').toLowerCase().includes(city.toLowerCase()));
+        const totalOrders = cityBookings.length;
+
+        const completed = cityBookings.filter(b => {
+          const st = (b.order_status || b.status || '').toLowerCase();
+          return st.includes('completed') || st.includes('payment received');
+        }).length;
+
+        const mechCancelled = cityBookings.filter(b => {
+          const st = (b.order_status || b.status || '').toLowerCase();
+          return st.includes('mechanic not available') || st.includes('cancel - spare parts');
+        }).length;
+
+        const compPct = totalOrders > 0 ? Math.round((completed / totalOrders) * 100) : 0;
+        const cancelPct = totalOrders > 0 ? Math.round((mechCancelled / totalOrders) * 100) : 0;
+
+        gridHtml += `
+          <div class="city-card ${selectedCity === city ? 'active' : ''}" onclick="selectCityTab('${city}')">
+            <div class="city-name">
+              <span>${city}</span>
+              <span style="font-family:var(--mono); font-size:11px; color:var(--text-3);">${cityPartners} Active Mechanics</span>
+            </div>
+            <div class="city-metric">
+              <span>Total Orders Received:</span>
+              <strong style="color:var(--text-1);">${totalOrders}</strong>
+            </div>
+            <div class="city-metric">
+              <span>Completed Orders:</span>
+              <strong style="color:#4ade80;">${completed} (${compPct}%)</strong>
+            </div>
+            <div class="city-metric">
+              <span>Mechanic Cancellations:</span>
+              <strong style="color:${mechCancelled > 0 ? 'var(--red)' : 'var(--text-3)'};">${mechCancelled} (${cancelPct}%)</strong>
+            </div>
+            <div class="city-coverage-pct" style="color:${compPct >= 70 ? '#4ade80' : (compPct >= 40 ? 'var(--yellow)' : 'var(--red)')};">
+              ${completed} / ${totalOrders} Completed <span style="font-size:11px; font-weight:500; color:var(--text-3);">(${compPct}%)</span>
+            </div>
+          </div>
+        `;
+      });
+
+      grid.innerHTML = gridHtml;
+    }
+
+    function selectCityTab(city) {
+      selectedCity = city;
+      document.querySelectorAll('#city-tabs-bar .tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('onclick').includes(`'${city}'`)) btn.classList.add('active');
+      });
+      document.querySelectorAll('.city-card').forEach(card => {
+        card.classList.remove('active');
+        if (card.querySelector('.city-name span').textContent === city) card.classList.add('active');
+      });
+      renderClassifiedViews();
+    }
+
+    function selectStatusFilter(status) {
+      selectedStatus = status;
+      document.querySelectorAll('#status-tabs-bar .tab-btn').forEach(btn => btn.classList.remove('active'));
+      if (status === 'all') document.getElementById('status-pill-all').classList.add('active');
+      else if (status === 'No Partners') document.getElementById('status-pill-danger').classList.add('active');
+      else if (status === 'Thin') document.getElementById('status-pill-warning').classList.add('active');
+      else if (status === 'Covered') document.getElementById('status-pill-covered').classList.add('active');
+      renderClassifiedViews();
+    }
+
+    function renderClassifiedViews() {
+      const search = (document.getElementById('locality-search')?.value || '').toLowerCase();
+      const container = document.getElementById('classified-cities-container');
+      container.innerHTML = '';
+
+      const cities = ["Gurgaon", "Delhi", "Noida", "Ghaziabad", "Faridabad"];
+      const targetCities = selectedCity === 'all' ? cities : [selectedCity];
+
+      let visibleCityCount = 0;
+
+      targetCities.forEach(city => {
+        const cityLocs = computedLocalityData.filter(loc => {
+          if (loc.city !== city) return false;
+          const matchSearch = search === '' || loc.name.toLowerCase().includes(search) || loc.city.toLowerCase().includes(search);
+          const matchStatus = selectedStatus === 'all' || loc.status === selectedStatus;
+          return matchSearch && matchStatus;
+        });
+
+        if (cityLocs.length === 0) return;
+        visibleCityCount++;
+
+        cityLocs.sort((a, b) => a.severity - b.severity || b.totalOrders - a.totalOrders);
+
+        let rowsHtml = '';
+        cityLocs.forEach(row => {
+          let badgeClass = 'done';
+          let label = 'High Fulfillment';
+          if (row.status === 'No Partners') { 
+            badgeClass = 'danger'; 
+            label = 'No Mechanics'; 
+          } else if (row.totalOrders === 0) {
+            badgeClass = 'neutral';
+            label = 'No Orders Yet';
+          } else if (row.status === 'Thin' || row.mechanicCancelledOrders > 0) { 
+            badgeClass = 'warning'; 
+            label = row.mechanicCancelledOrders > 0 ? 'Bottleneck' : 'Low Fulfillment'; 
+          }
+
+          rowsHtml += `
+            <tr>
+              <td class="locality-name">${row.name}</td>
+              <td><span class="city-tag">${row.city}</span></td>
+              <td><span style="font-family:var(--mono); font-weight:700; color:${row.partnerCount === 0 ? 'var(--red)' : 'var(--text-1)'};">${row.partnerCount}</span></td>
+              <td><span style="font-family:var(--mono);">${row.totalOrders}</span></td>
+              <td><span style="font-family:var(--mono); color:${row.totalOrders > 0 ? '#4ade80' : 'var(--text-3)'};">${row.completedOrders} (${row.completionPct}%)</span></td>
+              <td><span style="font-family:var(--mono); color:${row.mechanicCancelledOrders > 0 ? 'var(--red)' : 'var(--text-3)'};">${row.mechanicCancelledOrders} (${row.cancelPct}%)</span></td>
+              <td><span class="badge ${badgeClass}">${label}</span></td>
+            </tr>
+          `;
+        });
+
+        const cardHtml = `
+          <div class="city-group-card">
+            <div class="city-group-header">
+              <div class="city-group-title">
+                <span>📍 ${city}</span>
+                <span style="font-family:var(--mono); font-size:12px; color:var(--text-3); font-weight:500;">(${cityLocs.length} Localities shown)</span>
+              </div>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Locality Name</th>
+                  <th>City</th>
+                  <th>Active Mechanics</th>
+                  <th>Orders Received</th>
+                  <th>Completed Ratio</th>
+                  <th>Mechanic Cancel Ratio</th>
+                  <th>Operational Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml}
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        container.innerHTML += cardHtml;
+      });
+
+      if (visibleCityCount === 0) {
+        container.innerHTML = `
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:40px; text-align:center; color:var(--text-3); font-family:var(--mono);">
+            No matching localities found for selected city and status filters.
+          </div>
+        `;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSidebar('coverage');
+      fetchCoverageData();
+    });
+  </script>
+</body>
+</html>

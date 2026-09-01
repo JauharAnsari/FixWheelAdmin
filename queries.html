@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    if (sessionStorage.getItem('fixwheel_admin_logged_in') !== 'true' && localStorage.getItem('fixwheel_admin_logged_in') !== 'true') {
+      window.location.replace('login.html');
+    }
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>FixWheel — Customer Queries</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="theme.css?v=2027">
+  <link rel="stylesheet" href="sidebar.css?v=2027">
+  <script src="sidebar.js?v=2027"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-1);
+      font-family: var(--sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── Topbar ─── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--topbar-bg);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 36px;
+      height: 60px;
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-brand span {
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .topbar-brand em {
+      font-style: normal;
+      color: var(--text-3);
+      font-size: 13px;
+      font-family: var(--mono);
+      font-weight: 400;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .live-dot {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--green);
+      font-weight: 500;
+    }
+
+    .live-dot::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    .admin-chip {
+      background: var(--surface-2);
+      border: 1px solid var(--border-hi);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-family: var(--mono);
+      color: var(--text-2);
+    }
+
+    /* ─── Main Content Layout ─── */
+    .main {
+      padding: 24px 36px;
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title h2 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Table wrap & cells */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    thead th {
+      background: var(--surface-2);
+      color: var(--text-3);
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: var(--surface-2);
+    }
+
+    tbody td {
+      padding: 14px 18px;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    .query-id {
+      font-family: var(--mono);
+      font-weight: 600;
+      color: var(--text-2);
+      font-size: 12px;
+    }
+
+    .customer-name {
+      font-weight: 600;
+      color: var(--text-1);
+    }
+
+    .customer-sub {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-3);
+      margin-top: 2px;
+    }
+
+    .query-text-preview {
+      max-width: 320px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--text-2);
+      font-size: 12.5px;
+    }
+
+    /* Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 650px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface-2);
+    }
+
+    .modal-body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      background: var(--surface-2);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .meta-box-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      background: var(--surface-2);
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .meta-item label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+      text-transform: uppercase;
+    }
+
+    .meta-item span {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-1);
+    }
+
+    .fw-btn-action {
+      background: transparent;
+      border: 1px solid var(--border-hi);
+      color: var(--text-2);
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: var(--sans);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .fw-btn-action:hover {
+      background: var(--surface-3);
+      color: var(--text-1);
+      border-color: var(--text-2);
+    }
+
+    .fw-btn-primary {
+      background: var(--red);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .fw-btn-primary:hover {
+      background: #dc2626;
+    }
+
+    .fw-btn-secondary {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .fw-btn-secondary:hover {
+      background: var(--surface-3);
+      color: var(--text-1);
+      border-color: var(--border-hi);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-wrapper">
+    <!-- ─── Topbar ─── -->
+    <header class="topbar">
+      <div class="topbar-brand">
+        <span>Customer Queries</span>
+        <em>/ Support Request Inbox</em>
+      </div>
+      <div class="topbar-right">
+        <button id="download-csv" class="fw-btn-secondary" style="display:flex; align-items:center; gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Export CSV</span>
+        </button>
+        <button id="theme-toggle" class="fw-btn-secondary">Theme</button>
+        <span class="live-dot">LIVE</span>
+        <span class="admin-chip">admin@fixwheel.app</span>
+      </div>
+    </header>
+
+    <!-- ─── Main Content ─── -->
+    <main class="main">
+      <!-- Top KPI Stat Cards -->
+      <div class="fw-stat-grid">
+        <div class="fw-stat-card">
+          <div class="fw-stat-header">
+            <span class="fw-stat-label">Total Queries</span>
+            <div class="fw-stat-icon" style="color:#60a5fa; background:var(--blue-glow); border-color:var(--blue-dim);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            </div>
+          </div>
+          <div id="stat-total-queries" class="fw-stat-value blue">18</div>
+          <span class="fw-stat-sub">Lifetime support tickets</span>
+        </div>
+
+        <div class="fw-stat-card">
+          <div class="fw-stat-header">
+            <span class="fw-stat-label">Pending Response</span>
+            <div class="fw-stat-icon" style="color:#facc15; background:var(--yellow-glow); border-color:var(--yellow-dim);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+          </div>
+          <div id="stat-pending-queries" class="fw-stat-value amber">5</div>
+          <span class="fw-stat-sub">Awaiting agent reply</span>
+        </div>
+
+        <div class="fw-stat-card">
+          <div class="fw-stat-header">
+            <span class="fw-stat-label">In Progress</span>
+            <div class="fw-stat-icon" style="color:#60a5fa; background:var(--blue-glow); border-color:var(--blue-dim);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            </div>
+          </div>
+          <div id="stat-in-progress" class="fw-stat-value blue">4</div>
+          <span class="fw-stat-sub">Under investigation</span>
+        </div>
+
+        <div class="fw-stat-card">
+          <div class="fw-stat-header">
+            <span class="fw-stat-label">Resolved</span>
+            <div class="fw-stat-icon" style="color:#4ade80; background:var(--green-glow); border-color:var(--green-dim);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+          </div>
+          <div id="stat-resolved-queries" class="fw-stat-value green">9</div>
+          <span class="fw-stat-sub">Successfully closed</span>
+        </div>
+
+        <div class="fw-stat-card">
+          <div class="fw-stat-header">
+            <span class="fw-stat-label">Avg Response</span>
+            <div class="fw-stat-icon" style="color:#c084fc; background:var(--purple-glow); border-color:var(--purple-dim);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+          </div>
+          <div class="fw-stat-value" style="color:#c084fc;">12 min</div>
+          <span class="fw-stat-sub">First touch SLA</span>
+        </div>
+      </div>
+
+      <!-- Section Header & Filter Controls -->
+      <div class="section-header">
+        <div class="section-title">
+          <span class="fw-badge fw-badge-info">● Helpdesk</span>
+          <h2>Customer Support Queries</h2>
+        </div>
+
+        <div class="filter-bar">
+          <input type="text" id="query-search" class="fw-input" placeholder="Search customer, phone, or query ID..." style="min-width: 240px;" oninput="renderQueries()">
+          
+          <select id="category-filter" class="fw-select" onchange="renderQueries()">
+            <option value="all">All Categories</option>
+            <option value="Booking & Scheduling">Booking & Scheduling</option>
+            <option value="Billing & Payments">Billing & Payments</option>
+            <option value="Mechanic Delay">Mechanic Delay</option>
+            <option value="Refund Request">Refund Request</option>
+            <option value="Technical Issue">Technical Issue</option>
+          </select>
+
+          <select id="status-filter" class="fw-select" onchange="renderQueries()">
+            <option value="all">All Statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Closed">Closed</option>
+          </select>
+
+          <span class="fw-badge fw-badge-neutral" id="query-visible-count">0 visible</span>
+        </div>
+      </div>
+
+      <!-- Table Section -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Query Ref</th>
+              <th>Date / Time</th>
+              <th>Customer</th>
+              <th>Category</th>
+              <th>Query Message</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="queries-table-body">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- ─── Query Preview / Reply Modal ─── -->
+  <div class="modal-overlay" id="query-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3 id="modal-query-ref" style="font-size:16px; font-weight:700; font-family:var(--mono);">QR-1001</h3>
+          <span id="modal-query-cat" style="font-size:12px; color:var(--text-3);">Booking & Scheduling</span>
+        </div>
+        <button class="fw-btn-secondary" onclick="closeModal()" style="padding:4px 10px;">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="meta-box-grid">
+          <div class="meta-item">
+            <label>Customer</label>
+            <span id="modal-customer-name">Rohan Sharma</span>
+          </div>
+          <div class="meta-item">
+            <label>Phone</label>
+            <span id="modal-customer-phone">+91 98112 34567</span>
+          </div>
+          <div class="meta-item">
+            <label>Related Booking</label>
+            <span id="modal-order-ref">FXW-P-7987</span>
+          </div>
+          <div class="meta-item">
+            <label>Priority / Status</label>
+            <span id="modal-priority-status">High / Pending</span>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-family:var(--mono); font-size:11px; color:var(--text-3); text-transform:uppercase;">Customer Message</label>
+          <div id="modal-query-message" style="background:var(--surface-2); border:1px solid var(--border); padding:14px; border-radius:8px; font-size:13.5px; line-height:1.5; color:var(--text-1); margin-top:6px;">
+            Mechanic assigned for 10:00 AM hasn't arrived yet. Please send updated ETA.
+          </div>
+        </div>
+
+        <div>
+          <label style="font-family:var(--mono); font-size:11px; color:var(--text-3); text-transform:uppercase;">Admin Response / Notes</label>
+          <textarea id="modal-reply-input" class="fw-input" style="width:100%; height:80px; margin-top:6px; resize:vertical;" placeholder="Type response to send to customer or add internal resolution note..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="fw-btn-secondary" onclick="closeModal()">Close</button>
+        <button class="fw-btn-primary" onclick="resolveCurrentQuery()">Send Reply & Resolve</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Supabase Client
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let queries = [];
+    let currentQueryId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSidebar('queries');
+      fetchQueries();
+
+      // Theme toggle
+      document.getElementById('theme-toggle')?.addEventListener('click', () => {
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        if (isLight) {
+          document.documentElement.removeAttribute('data-theme');
+          localStorage.setItem('theme', 'dark');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          localStorage.setItem('theme', 'light');
+        }
+      });
+
+      // CSV export
+      document.getElementById('download-csv')?.addEventListener('click', exportCSV);
+    });
+
+    async function fetchQueries() {
+      const { data, error } = await supabaseClient
+        .from('Query')
+        .select('*');
+
+      if (error) {
+        console.error('Error fetching customer queries from Supabase Query table:', error);
+      }
+
+      queries = (data || []).map((q, idx) => {
+        let dateStr = 'Just Now';
+        if (q.created_at || q.createdAt) {
+          const d = new Date(q.created_at || q.createdAt);
+          if (!isNaN(d.getTime())) {
+            dateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+          }
+        }
+
+        return {
+          id: String(q.id || q.query_id || ('QR-' + String(idx + 1).padStart(4, '0'))),
+          date: dateStr,
+          name: q.name || q.customerName || 'Customer',
+          phone: q.phone || q.phone_number || 'N/A',
+          email: q.email || 'N/A',
+          orderRef: q.orderRef || q.bookingRef || q.order_id || 'N/A',
+          category: q.category || q.type || 'General Support',
+          message: q.message || q.query || q.comment || 'No message content provided',
+          priority: q.priority || 'Medium',
+          status: q.status || 'Pending'
+        };
+      });
+
+      renderQueries();
+    }
+
+    function renderQueries() {
+      const tbody = document.getElementById('queries-table-body');
+      const search = (document.getElementById('query-search')?.value || '').toLowerCase();
+      const category = document.getElementById('category-filter')?.value || 'all';
+      const status = document.getElementById('status-filter')?.value || 'all';
+
+      tbody.innerHTML = '';
+
+      if (queries.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 48px 24px; color: var(--text-3);">
+              <div style="font-size: 28px; margin-bottom: 8px;">📩</div>
+              <div style="font-size: 14px; font-weight: 600; color: var(--text-1);">No customer queries found in database</div>
+              <div style="font-size: 12px; margin-top: 4px; font-family: var(--mono);">Any query submitted to the Supabase 'Query' table will appear here automatically.</div>
+            </td>
+          </tr>
+        `;
+        document.getElementById('stat-total-queries').textContent = '0';
+        document.getElementById('stat-pending-queries').textContent = '0';
+        document.getElementById('stat-in-progress').textContent = '0';
+        document.getElementById('stat-resolved-queries').textContent = '0';
+        document.getElementById('query-visible-count').textContent = '0 visible';
+        return;
+      }
+
+      let visible = 0;
+      let pendingCount = 0;
+      let inProgressCount = 0;
+      let resolvedCount = 0;
+
+      queries.forEach(q => {
+        if (q.status === 'Pending') pendingCount++;
+        if (q.status === 'In Progress') inProgressCount++;
+        if (q.status === 'Resolved' || q.status === 'Closed') resolvedCount++;
+
+        const matchSearch = !search || q.name.toLowerCase().includes(search) || q.phone.includes(search) || q.id.toLowerCase().includes(search) || q.message.toLowerCase().includes(search);
+        const matchCategory = category === 'all' || q.category === category;
+        const matchStatus = status === 'all' || q.status === status;
+
+        if (matchSearch && matchCategory && matchStatus) {
+          visible++;
+          const priorityBadgeClass = q.priority === 'High' ? 'fw-badge-danger' : (q.priority === 'Medium' ? 'fw-badge-warning' : 'fw-badge-neutral');
+          const statusBadgeClass = q.status === 'Pending' ? 'fw-badge-warning' : (q.status === 'In Progress' ? 'fw-badge-info' : 'fw-badge-success');
+
+          tbody.innerHTML += `
+            <tr>
+              <td><span class="query-id">${q.id}</span></td>
+              <td style="font-family:var(--mono); font-size:11.5px; color:var(--text-2);">${q.date}</td>
+              <td>
+                <div class="customer-name">${q.name}</div>
+                <div class="customer-sub">${q.phone} ${q.email !== 'N/A' ? '· ' + q.email : ''}</div>
+              </td>
+              <td><span class="fw-badge fw-badge-neutral">${q.category}</span></td>
+              <td><div class="query-text-preview" title="${q.message}">${q.message}</div></td>
+              <td><span class="fw-badge ${priorityBadgeClass}">${q.priority}</span></td>
+              <td>
+                <select class="fw-select" style="font-size:11px; padding:3px 18px 3px 6px;" onchange="updateStatus('${q.id}', this.value)">
+                  <option value="Pending" ${q.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                  <option value="In Progress" ${q.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                  <option value="Resolved" ${q.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
+                  <option value="Closed" ${q.status === 'Closed' ? 'selected' : ''}>Closed</option>
+                </select>
+              </td>
+              <td>
+                <button class="fw-btn-action" style="padding:4px 10px; font-size:11px;" onclick="openQueryModal('${q.id}')">View</button>
+              </td>
+            </tr>
+          `;
+        }
+      });
+
+      document.getElementById('stat-total-queries').textContent = queries.length;
+      document.getElementById('stat-pending-queries').textContent = pendingCount;
+      document.getElementById('stat-in-progress').textContent = inProgressCount;
+      document.getElementById('stat-resolved-queries').textContent = resolvedCount;
+      document.getElementById('query-visible-count').textContent = `${visible} visible`;
+    }
+
+    async function updateStatus(id, newStatus) {
+      const item = queries.find(q => q.id === id);
+      if (item) {
+        item.status = newStatus;
+        renderQueries();
+      }
+
+      const { error } = await supabaseClient
+        .from('Query')
+        .update({ status: newStatus })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error updating query status in Supabase:', error);
+      }
+    }
+
+    function openQueryModal(id) {
+      const item = queries.find(q => q.id === id);
+      if (!item) return;
+      currentQueryId = id;
+
+      document.getElementById('modal-query-ref').textContent = item.id;
+      document.getElementById('modal-query-cat').textContent = item.category;
+      document.getElementById('modal-customer-name').textContent = item.name;
+      document.getElementById('modal-customer-phone').textContent = item.phone;
+      document.getElementById('modal-order-ref').textContent = item.orderRef || 'N/A';
+      document.getElementById('modal-priority-status').textContent = `${item.priority} / ${item.status}`;
+      document.getElementById('modal-query-message').textContent = item.message;
+      document.getElementById('modal-reply-input').value = '';
+
+      document.getElementById('query-modal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('query-modal').classList.remove('active');
+    }
+
+    async function resolveCurrentQuery() {
+      if (!currentQueryId) return;
+      await updateStatus(currentQueryId, 'Resolved');
+      closeModal();
+    }
+
+    function exportCSV() {
+      if (queries.length === 0) return;
+      let csv = "Query ID,Date,Customer,Phone,Email,Order Ref,Category,Priority,Status,Message\n";
+      queries.forEach(q => {
+        csv += `"${q.id}","${q.date}","${q.name}","${q.phone}","${q.email}","${q.orderRef}","${q.category}","${q.priority}","${q.status}","${q.message.replace(/"/g, '""')}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `customer_queries_${Date.now()}.csv`;
+      link.click();
+    }
+  </script>
+</body>
+</html>
