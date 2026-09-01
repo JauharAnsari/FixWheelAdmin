@@ -2095,7 +2095,7 @@
           }
         }
 
-        const statusStr = (order.order_status || order.status || '').toLowerCase();
+        const statusStr = ((order.order_status || '') + ' ' + (order.status || '')).toLowerCase();
         const isCompleted = statusStr.includes('completed') || statusStr.includes('payment received');
         const isCancelled = statusStr.includes('cancel');
         const isExplicitTestFlag = order.is_test_order === true || order.is_test_order === 'true';
@@ -2672,10 +2672,13 @@
       }
       if (window.allBookings) renderDashboard(window.allBookings);
 
+      const targetCol = (existingOrder && existingOrder.id) ? 'id' : column;
+      const targetVal = (existingOrder && existingOrder.id) ? existingOrder.id : id;
+
       const { data, error } = await supabaseClient
         .from('Booking')
         .update(updatePayload)
-        .eq(column, id)
+        .eq(targetCol, targetVal)
         .select();
 
       if (error) {
@@ -2744,21 +2747,25 @@
         bookingDate: nowIso
       };
 
-      const existingOrder = (window.allBookings || []).find(b => String(b[col]) === String(orderId));
+      const existingOrder = (window.allBookings || []).find(b => String(b[col]) === String(orderId) || String(b.id) === String(orderId) || String(b.bookingRef) === String(orderId));
       if (existingOrder) {
         existingOrder.order_status = finalStatus;
         existingOrder.status = 'Completed';
         existingOrder.payment_received_by = receiver;
         existingOrder.settlement = settlementVal;
         if (existingOrder.bookingRef) localStorage.setItem('fixwheel_finished_' + existingOrder.bookingRef, nowIso);
-        if (orderId) localStorage.setItem('fixwheel_finished_' + orderId, nowIso);
+        if (existingOrder.id) localStorage.setItem('fixwheel_finished_' + existingOrder.id, nowIso);
       }
       if (window.allBookings) renderDashboard(window.allBookings);
 
-      const { error } = await supabaseClient
+      const targetCol = (existingOrder && existingOrder.id) ? 'id' : col;
+      const targetVal = (existingOrder && existingOrder.id) ? existingOrder.id : orderId;
+
+      const { data, error } = await supabaseClient
         .from('Booking')
         .update(updatePayload)
-        .eq(col, orderId);
+        .eq(targetCol, targetVal)
+        .select();
 
       if (error) {
         console.error('Error updating payment receiver:', error);

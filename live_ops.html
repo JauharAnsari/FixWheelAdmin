@@ -576,8 +576,8 @@
 
       // Filter for unassigned pending orders or orders in Pending state without assigned mechanic
       const pendingOrders = (bookings || []).filter(order => {
-        const status = (order.order_status || order.status || '').toLowerCase();
-        const isCompleted = status.includes('completed');
+        const status = ((order.order_status || '') + ' ' + (order.status || '')).toLowerCase();
+        const isCompleted = status.includes('completed') || status.includes('payment received');
         const isCancelled = status.includes('cancel');
         const isTestOrder = order.is_test_order === true || order.is_test_order === 'true' || status.includes('test order') || status.includes('sandbox');
         if (isCompleted || isCancelled || isTestOrder) return false;

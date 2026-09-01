@@ -1436,8 +1436,8 @@
 
       // Process Production Bookings
       productionBookings.forEach(b => {
-        const statusStr = (b.order_status || b.status || '').toLowerCase();
-        const isCompleted = statusStr.includes('completed');
+        const statusStr = ((b.order_status || '') + ' ' + (b.status || '')).toLowerCase();
+        const isCompleted = statusStr.includes('completed') || statusStr.includes('payment received');
         const isCanceled = statusStr.includes('cancel');
         const isDisputed = statusStr.includes('disput');
         const amount = Number(b.Final_Amount) || Number(b.price) || 0;
