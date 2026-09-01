@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <script>
-    if (sessionStorage.getItem('fixwheel_admin_logged_in') !== 'true' && localStorage.getItem('fixwheel_admin_logged_in') !== 'true') {
+    if (sessionStorage.getItem('fixwheel_admin_session_v2') !== 'true' && localStorage.getItem('fixwheel_admin_session_v2') !== 'true') {
       window.location.replace('login.html');
     }
   </script>
@@ -24,6 +24,62 @@
       margin: 0;
       padding: 0;
     }
+
+    #cancelled-section .col-warranty,
+    #test-order-section .col-warranty {
+      display: none;
+    }
+
+    
+    
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .filter-group label {
+      font-size: 11px;
+      color: var(--text-2);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .filter-input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-1);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-family: var(--sans);
+      font-size: 13px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .filter-input:hover {
+      border-color: var(--border-hi);
+    }
+
+    .filter-input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+      background: var(--surface-2);
+    }
+
+    .filter-input::placeholder {
+      color: var(--text-3);
+    }
+
 
     :root {
       --bg: #0a0a0a;
@@ -91,6 +147,8 @@
       padding: 0 36px;
       height: 60px;
     }
+
+    
 
     .topbar-brand {
       display: flex;
@@ -1061,12 +1119,11 @@
           <span class="section-tag pending">● Pending</span>
           <h2>Pending Orders</h2>
         </div>
-        <div style="display:flex; gap: 10px; align-items:center; flex-wrap: wrap;">
-          <input type="text" id="pending-search" placeholder="Search customer or ID..."
-            oninput="if(window.allBookings) renderDashboard(window.allBookings)"
-            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 150px;">
-          <select id="pending-city-filter" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 100px;">
+        <div class="filter-bar">
+          <input type="text" id="pending-search" class="filter-input" placeholder="Search ID, Name, Phone, Vehicle..."
+            oninput="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 250px;">
+          
+          <select id="pending-city-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 140px;">
             <option value="">All Cities</option>
             <option value="Delhi">Delhi</option>
             <option value="New Delhi">New Delhi</option>
@@ -1075,11 +1132,8 @@
             <option value="Noida">Noida</option>
             <option value="Ghaziabad">Ghaziabad</option>
           </select>
-          <input type="text" id="pending-vehicle-filter" placeholder="Vehicle Name..."
-            oninput="if(window.allBookings) renderDashboard(window.allBookings)"
-            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 120px;">
-          <select id="pending-status-filter" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none;">
+          
+          <select id="pending-status-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
             <option value="all">All Status</option>
             <option value="Pending">Pending</option>
             <option value="In Progress - Mechanic on the way">In Progress - Mechanic on the way</option>
@@ -1090,16 +1144,36 @@
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
             <option value="Disputed - customer">Disputed - customer</option>
             <option value="Disputed - Mechanic">Disputed - Mechanic</option>
+            <option value="Completed - Payment received">Completed - Payment received</option>
+            <option value="Test Order">Test Order</option>
           </select>
-          <div style="display:flex; align-items:center; gap: 5px;">
-            <label style="font-size: 12px; color: var(--text-2);">From:</label>
-            <input type="date" id="pending-date-from" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-              style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
+
+          <select id="pending-payment-received-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">Payment Received By</option>
+            <option value="Pending">Pending</option>
+            <option value="Mechanic">Mechanic</option>
+            <option value="Admin">Admin</option>
+          </select>
+
+          <select id="pending-payment-settled-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">Payment Settled</option>
+            <option value="Pending">Pending</option>
+            <option value="Done">Done</option>
+          </select>
+
+          <select id="pending-settlement-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">Settlement</option>
+            <option value="Pending">Pending</option>
+            <option value="Done">Done</option>
+          </select>
+
+          <div class="filter-group">
+            <label>From:</label>
+            <input type="date" id="pending-date-from" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
           </div>
-          <div style="display:flex; align-items:center; gap: 5px;">
-            <label style="font-size: 12px; color: var(--text-2);">To:</label>
-            <input type="date" id="pending-date-to" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-              style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
+          <div class="filter-group">
+            <label>To:</label>
+            <input type="date" id="pending-date-to" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
           </div>
           <span class="count-badge" id="pending-header-count">0 visible</span>
           <div id="pending-summary-box" style="display:none; background: rgba(16, 185, 129, 0.05); border: 2px solid var(--green); padding: 8px 16px; border-radius: 8px; font-family: var(--mono); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);">
@@ -1217,16 +1291,61 @@
           <span class="section-tag completed">✓ Done</span>
           <h2>Completed Orders</h2>
         </div>
-        <div style="display:flex; gap: 10px; align-items:center; flex-wrap: wrap;">
-          <div style="display:flex; align-items:center; gap: 5px;">
-            <label style="font-size: 12px; color: var(--text-2);">From:</label>
-            <input type="date" id="completed-date-from" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-              style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
+        <div class="filter-bar">
+          <input type="text" id="completed-search" class="filter-input" placeholder="Search ID, Name, Phone, Vehicle..."
+            oninput="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 250px;">
+          
+          <select id="completed-city-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 140px;">
+            <option value="">All Cities</option>
+            <option value="Delhi">Delhi</option>
+            <option value="New Delhi">New Delhi</option>
+            <option value="Gurgaon">Gurgaon</option>
+            <option value="Faridabad">Faridabad</option>
+            <option value="Noida">Noida</option>
+            <option value="Ghaziabad">Ghaziabad</option>
+          </select>
+          
+          <select id="completed-status-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress - Mechanic on the way">In Progress - Mechanic on the way</option>
+            <option value="Customer Not Response">Customer Not Response</option>
+            <option value="Service Started">Service Started</option>
+            <option value="Cancel - spare parts">Cancel - spare parts</option>
+            <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+            <option value="Customer cancel - rate high">Customer cancel - rate high</option>
+            <option value="Disputed - customer">Disputed - customer</option>
+            <option value="Disputed - Mechanic">Disputed - Mechanic</option>
+            <option value="Completed - Payment received">Completed - Payment received</option>
+            <option value="Test Order">Test Order</option>
+          </select>
+
+          <select id="completed-payment-received-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">Payment Received By</option>
+            <option value="Pending">Pending</option>
+            <option value="Mechanic">Mechanic</option>
+            <option value="Admin">Admin</option>
+          </select>
+
+          <select id="completed-payment-settled-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">Payment Settled</option>
+            <option value="Pending">Pending</option>
+            <option value="Done">Done</option>
+          </select>
+
+          <select id="completed-settlement-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">Settlement</option>
+            <option value="Pending">Pending</option>
+            <option value="Done">Done</option>
+          </select>
+
+          <div class="filter-group">
+            <label>From:</label>
+            <input type="date" id="completed-date-from" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
           </div>
-          <div style="display:flex; align-items:center; gap: 5px;">
-            <label style="font-size: 12px; color: var(--text-2);">To:</label>
-            <input type="date" id="completed-date-to" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-              style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
+          <div class="filter-group">
+            <label>To:</label>
+            <input type="date" id="completed-date-to" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
           </div>
           <span class="count-badge" id="completed-header-count">0 visible</span>
           <div id="completed-summary-box" style="display:none; background: rgba(16, 185, 129, 0.05); border: 2px solid var(--green); padding: 8px 16px; border-radius: 8px; font-family: var(--mono); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);">
@@ -1285,7 +1404,77 @@
           <span class="section-tag" style="background: var(--red-glow); color: var(--red);">✗ Cancelled</span>
           <h2>Cancel Orders</h2>
         </div>
-        <span class="count-badge" id="cancelled-header-count">0 cancelled</span>
+        <div class="filter-bar">
+          <input type="text" id="cancelled-search" class="filter-input" placeholder="Search ID, Name, Phone, Vehicle..."
+            oninput="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 250px;">
+          
+          <select id="cancelled-city-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 140px;">
+            <option value="">All Cities</option>
+            <option value="Delhi">Delhi</option>
+            <option value="New Delhi">New Delhi</option>
+            <option value="Gurgaon">Gurgaon</option>
+            <option value="Faridabad">Faridabad</option>
+            <option value="Noida">Noida</option>
+            <option value="Ghaziabad">Ghaziabad</option>
+          </select>
+          
+          <select id="cancelled-status-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress - Mechanic on the way">In Progress - Mechanic on the way</option>
+            <option value="Customer Not Response">Customer Not Response</option>
+            <option value="Service Started">Service Started</option>
+            <option value="Cancel - spare parts">Cancel - spare parts</option>
+            <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+            <option value="Customer cancel - rate high">Customer cancel - rate high</option>
+            <option value="Disputed - customer">Disputed - customer</option>
+            <option value="Disputed - Mechanic">Disputed - Mechanic</option>
+            <option value="Completed - Payment received">Completed - Payment received</option>
+            <option value="Test Order">Test Order</option>
+          </select>
+
+          <select id="cancelled-payment-received-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">Payment Received By</option>
+            <option value="Pending">Pending</option>
+            <option value="Mechanic">Mechanic</option>
+            <option value="Admin">Admin</option>
+          </select>
+
+          <select id="cancelled-payment-settled-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">Payment Settled</option>
+            <option value="Pending">Pending</option>
+            <option value="Done">Done</option>
+          </select>
+
+          <select id="cancelled-settlement-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">Settlement</option>
+            <option value="Pending">Pending</option>
+            <option value="Done">Done</option>
+          </select>
+
+          <div class="filter-group">
+            <label>From:</label>
+            <input type="date" id="cancelled-date-from" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
+          </div>
+          <div class="filter-group">
+            <label>To:</label>
+            <input type="date" id="cancelled-date-to" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
+          </div>
+          <span class="count-badge" id="cancelled-header-count">0 visible</span>
+          <div id="cancelled-summary-box" style="display:none; background: rgba(16, 185, 129, 0.05); border: 2px solid var(--green); padding: 8px 16px; border-radius: 8px; font-family: var(--mono); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);">
+            <div style="display:flex; align-items:center; gap: 15px;">
+              <div style="display:flex; flex-direction:column; align-items:center;">
+                <span style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-2);">Orders</span>
+                <span id="cancelled-summary-orders" style="font-size:20px; font-weight:800; color:var(--text-1);">0</span>
+              </div>
+              <div style="width: 2px; height: 30px; background: var(--green); opacity: 0.3;"></div>
+              <div style="display:flex; flex-direction:column; align-items:center;">
+                <span style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-2);">Earnings</span>
+                <span id="cancelled-summary-earnings" style="font-size:20px; font-weight:800; color:var(--green);">₹0</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="table-wrap">
@@ -1325,10 +1514,82 @@
     <div id="test_order-section" class="order-section">
       <div class="section-header">
         <div class="section-title">
-          <span class="section-tag" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25);">T Test Order</span>
+          <span class="section-tag"
+            style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25);">T
+            Test Order</span>
           <h2>Test Orders</h2>
         </div>
-        <span class="count-badge" id="test-order-header-count">0 test orders</span>
+        <div class="filter-bar">
+          <input type="text" id="test-order-search" class="filter-input" placeholder="Search ID, Name, Phone, Vehicle..."
+            oninput="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 250px;">
+          
+          <select id="test-order-city-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 140px;">
+            <option value="">All Cities</option>
+            <option value="Delhi">Delhi</option>
+            <option value="New Delhi">New Delhi</option>
+            <option value="Gurgaon">Gurgaon</option>
+            <option value="Faridabad">Faridabad</option>
+            <option value="Noida">Noida</option>
+            <option value="Ghaziabad">Ghaziabad</option>
+          </select>
+          
+          <select id="test-order-status-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress - Mechanic on the way">In Progress - Mechanic on the way</option>
+            <option value="Customer Not Response">Customer Not Response</option>
+            <option value="Service Started">Service Started</option>
+            <option value="Cancel - spare parts">Cancel - spare parts</option>
+            <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+            <option value="Customer cancel - rate high">Customer cancel - rate high</option>
+            <option value="Disputed - customer">Disputed - customer</option>
+            <option value="Disputed - Mechanic">Disputed - Mechanic</option>
+            <option value="Completed - Payment received">Completed - Payment received</option>
+            <option value="Test Order">Test Order</option>
+          </select>
+
+          <select id="test-order-payment-received-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">Payment Received By</option>
+            <option value="Pending">Pending</option>
+            <option value="Mechanic">Mechanic</option>
+            <option value="Admin">Admin</option>
+          </select>
+
+          <select id="test-order-payment-settled-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">Payment Settled</option>
+            <option value="Pending">Pending</option>
+            <option value="Done">Done</option>
+          </select>
+
+          <select id="test-order-settlement-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">Settlement</option>
+            <option value="Pending">Pending</option>
+            <option value="Done">Done</option>
+          </select>
+
+          <div class="filter-group">
+            <label>From:</label>
+            <input type="date" id="test-order-date-from" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
+          </div>
+          <div class="filter-group">
+            <label>To:</label>
+            <input type="date" id="test-order-date-to" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
+          </div>
+          <span class="count-badge" id="test-order-header-count">0 visible</span>
+          <div id="test-order-summary-box" style="display:none; background: rgba(16, 185, 129, 0.05); border: 2px solid var(--green); padding: 8px 16px; border-radius: 8px; font-family: var(--mono); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);">
+            <div style="display:flex; align-items:center; gap: 15px;">
+              <div style="display:flex; flex-direction:column; align-items:center;">
+                <span style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-2);">Orders</span>
+                <span id="test-order-summary-orders" style="font-size:20px; font-weight:800; color:var(--text-1);">0</span>
+              </div>
+              <div style="width: 2px; height: 30px; background: var(--green); opacity: 0.3;"></div>
+              <div style="display:flex; flex-direction:column; align-items:center;">
+                <span style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-2);">Earnings</span>
+                <span id="test-order-summary-earnings" style="font-size:20px; font-weight:800; color:var(--green);">₹0</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="table-wrap">
@@ -1371,16 +1632,61 @@
           <span class="section-tag" style="background: var(--surface-3); color: var(--text-1);">∑ All</span>
           <h2>Total Orders</h2>
         </div>
-        <div style="display:flex; gap: 10px; align-items:center; flex-wrap: wrap;">
-          <div style="display:flex; align-items:center; gap: 5px;">
-            <label style="font-size: 12px; color: var(--text-2);">From:</label>
-            <input type="date" id="total-date-from" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-              style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
+        <div class="filter-bar">
+          <input type="text" id="total-search" class="filter-input" placeholder="Search ID, Name, Phone, Vehicle..."
+            oninput="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 250px;">
+          
+          <select id="total-city-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 140px;">
+            <option value="">All Cities</option>
+            <option value="Delhi">Delhi</option>
+            <option value="New Delhi">New Delhi</option>
+            <option value="Gurgaon">Gurgaon</option>
+            <option value="Faridabad">Faridabad</option>
+            <option value="Noida">Noida</option>
+            <option value="Ghaziabad">Ghaziabad</option>
+          </select>
+          
+          <select id="total-status-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress - Mechanic on the way">In Progress - Mechanic on the way</option>
+            <option value="Customer Not Response">Customer Not Response</option>
+            <option value="Service Started">Service Started</option>
+            <option value="Cancel - spare parts">Cancel - spare parts</option>
+            <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+            <option value="Customer cancel - rate high">Customer cancel - rate high</option>
+            <option value="Disputed - customer">Disputed - customer</option>
+            <option value="Disputed - Mechanic">Disputed - Mechanic</option>
+            <option value="Completed - Payment received">Completed - Payment received</option>
+            <option value="Test Order">Test Order</option>
+          </select>
+
+          <select id="total-payment-received-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">Payment Received By</option>
+            <option value="Pending">Pending</option>
+            <option value="Mechanic">Mechanic</option>
+            <option value="Admin">Admin</option>
+          </select>
+
+          <select id="total-payment-settled-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">Payment Settled</option>
+            <option value="Pending">Pending</option>
+            <option value="Done">Done</option>
+          </select>
+
+          <select id="total-settlement-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">Settlement</option>
+            <option value="Pending">Pending</option>
+            <option value="Done">Done</option>
+          </select>
+
+          <div class="filter-group">
+            <label>From:</label>
+            <input type="date" id="total-date-from" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
           </div>
-          <div style="display:flex; align-items:center; gap: 5px;">
-            <label style="font-size: 12px; color: var(--text-2);">To:</label>
-            <input type="date" id="total-date-to" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-              style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 5px 10px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; cursor: pointer;">
+          <div class="filter-group">
+            <label>To:</label>
+            <input type="date" id="total-date-to" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
           </div>
           <span class="count-badge" id="total-header-count">0 visible</span>
           <div id="total-summary-box" style="display:none; background: rgba(16, 185, 129, 0.05); border: 2px solid var(--green); padding: 8px 16px; border-radius: 8px; font-family: var(--mono); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);">
@@ -1431,6 +1737,124 @@
         </table>
       </div>
     </div> <!-- End Total Section -->
+
+  <!-- Reschedule Modal -->
+  <div id="reschedule-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div class="modal-content" style="background: white; border-radius: 12px; padding: 24px; width: 100%; max-width: 650px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto;">
+      <h3 style="margin-top: 0; font-size: 18px; color: #1f2937; margin-bottom: 20px;">Reschedule Order</h3>
+      
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; font-size: 13px; font-weight: 600; color: #4b5563; margin-bottom: 8px;">Booking Date *</label>
+        <input type="date" id="reschedule-date" onchange="handleRescheduleDateChange()" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit; outline: none; cursor: pointer; color: #1f2937; font-weight: 500;">
+      </div>
+
+      <div id="reschedule-time-slots-wrapper" style="display: none;">
+        <div style="margin-bottom: 12px;">
+          <label style="display: flex; align-items: center; font-size: 13px; font-weight: 600; color: #4b5563;">
+            <svg style="margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            Preferred Time Slot *
+          </label>
+        </div>
+
+        <div id="reschedule-time-slots">
+        <!-- Morning -->
+        <div style="background: #fffdf5; border: 1px solid #fef08a; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; margin-bottom: 16px;">
+            <div style="background: #fef08a; border-radius: 8px; padding: 8px; margin-right: 12px; display: flex; align-items: center; justify-content: center;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"></path><path d="M12 18v4"></path><path d="M4.93 4.93l2.83 2.83"></path><path d="M16.24 16.24l2.83 2.83"></path><path d="M2 12h4"></path><path d="M18 12h4"></path><path d="M4.93 19.07l2.83-2.83"></path><path d="M16.24 7.76l2.83-2.83"></path></svg>
+            </div>
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: #d97706; text-transform: uppercase; letter-spacing: 0.5px;">Morning</div>
+              <div style="font-size: 11px; color: #9ca3af; font-weight: 500;">8:00 AM - 12:00 PM</div>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;" class="slot-group">
+            <button class="slot-btn" onclick="selectSlot(this)" data-slot="8:00 - 9:00 AM">8:00 - 9:00 AM</button>
+            <button class="slot-btn" onclick="selectSlot(this)" data-slot="9:00 - 10:00 AM">9:00 - 10:00 AM</button>
+            <button class="slot-btn" onclick="selectSlot(this)" data-slot="10:00 - 11:00 AM">10:00 - 11:00 AM</button>
+            <button class="slot-btn" onclick="selectSlot(this)" data-slot="11:00 AM - 12:00 PM">11:00 AM - 12:00 PM</button>
+          </div>
+        </div>
+
+        <!-- Afternoon -->
+        <div style="background: #fffdf5; border: 1px solid #fef08a; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; margin-bottom: 16px;">
+            <div style="background: #fef08a; border-radius: 8px; padding: 8px; margin-right: 12px; display: flex; align-items: center; justify-content: center;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            </div>
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: #d97706; text-transform: uppercase; letter-spacing: 0.5px;">Afternoon</div>
+              <div style="font-size: 11px; color: #9ca3af; font-weight: 500;">12:00 PM - 4:00 PM</div>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;" class="slot-group">
+            <button class="slot-btn" onclick="selectSlot(this)" data-slot="12:00 - 1:00 PM">12:00 - 1:00 PM</button>
+            <button class="slot-btn" onclick="selectSlot(this)" data-slot="1:00 - 2:00 PM">1:00 - 2:00 PM</button>
+            <button class="slot-btn" onclick="selectSlot(this)" data-slot="2:00 - 3:00 PM">2:00 - 3:00 PM</button>
+            <button class="slot-btn" onclick="selectSlot(this)" data-slot="3:00 - 4:00 PM">3:00 - 4:00 PM</button>
+          </div>
+        </div>
+
+        <!-- Evening -->
+        <div style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; margin-bottom: 16px;">
+            <div style="background: #fbcfe8; border-radius: 8px; padding: 8px; margin-right: 12px; display: flex; align-items: center; justify-content: center;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#be185d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </div>
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: #be185d; text-transform: uppercase; letter-spacing: 0.5px;">Evening</div>
+              <div style="font-size: 11px; color: #9ca3af; font-weight: 500;">4:00 PM - 8:00 PM</div>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;" class="slot-group">
+            <button class="slot-btn" onclick="selectSlot(this)" data-slot="4:00 - 5:00 PM">4:00 - 5:00 PM</button>
+            <button class="slot-btn" onclick="selectSlot(this)" data-slot="5:00 - 6:00 PM">5:00 - 6:00 PM</button>
+            <button class="slot-btn" onclick="selectSlot(this)" data-slot="6:00 - 7:00 PM">6:00 - 7:00 PM</button>
+            <button class="slot-btn" onclick="selectSlot(this)" data-slot="7:00 - 8:00 PM">7:00 - 8:00 PM</button>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+        <button onclick="closeRescheduleModal()" style="padding: 10px 24px; border: 1px solid #d1d5db; border-radius: 8px; background: white; font-weight: 600; color: #4b5563; cursor: pointer; transition: background 0.2s;">Cancel</button>
+        <button onclick="saveReschedule()" style="padding: 10px 24px; border: none; border-radius: 8px; background: #3b82f6; font-weight: 600; color: white; cursor: pointer; transition: background 0.2s;">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .slot-btn {
+      padding: 12px 4px;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #374151;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .slot-btn:hover {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+    .slot-btn.selected {
+      border-color: #ef4444;
+      color: #ef4444;
+      background: #fef2f2;
+      position: relative;
+    }
+    .slot-btn.selected::after {
+      content: '•';
+      position: absolute;
+      bottom: -4px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #ef4444;
+      font-size: 16px;
+    }
+  </style>
 
   </main>
 
@@ -1653,14 +2077,14 @@
       bookings.forEach(order => {
         let orderDateFormatted = '';
         if (order.createdAt) {
-           const dateStr = order.createdAt.endsWith('Z') || order.createdAt.includes('+') ? order.createdAt : order.createdAt + 'Z';
-           const d = new Date(dateStr);
-           if (!isNaN(d)) {
-             const yyyy = d.getFullYear();
-             const mm = String(d.getMonth() + 1).padStart(2, '0');
-             const dd = String(d.getDate()).padStart(2, '0');
-             orderDateFormatted = `${yyyy}-${mm}-${dd}`;
-           }
+          const dateStr = order.createdAt.endsWith('Z') || order.createdAt.includes('+') ? order.createdAt : order.createdAt + 'Z';
+          const d = new Date(dateStr);
+          if (!isNaN(d)) {
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            orderDateFormatted = `${yyyy}-${mm}-${dd}`;
+          }
         }
 
         const isCompleted = (order.order_status || order.status || '').toLowerCase().includes('completed');
@@ -1717,14 +2141,11 @@
         const matchTotalDate = isDateInRange(orderDateFormatted, totalDateFrom, totalDateTo);
         if (totalTable && matchTotalDate) {
           totalHtml += row;
-          totalCount++;
           visibleTotalCount++;
-          if (totalDateFrom && totalDateTo) {
+          if (filters.total.dateFrom && filters.total.dateTo) {
             totalSummaryOrders++;
             totalSummaryEarnings += finalAmt;
           }
-        } else if (totalTable && !matchTotalDate) {
-          totalCount++; // Keep totalCount accurate for total tab badge even if filtered out
         }
 
         if (isCompleted) {
@@ -1814,27 +2235,27 @@
       const todayTabCountEl = document.getElementById('today-tab-count');
       if (todayTabCountEl) todayTabCountEl.textContent = todayCount;
       document.getElementById('completed-tab-count').textContent = completedCount;
-      
+
       const cancelledTabCount = document.getElementById('cancelled-tab-count');
       if (cancelledTabCount) cancelledTabCount.textContent = cancelledCount;
 
       const testOrderTabCount = document.getElementById('test-order-tab-count');
       if (testOrderTabCount) testOrderTabCount.textContent = testOrderCount;
-      
+
       const testOrderHeaderCount = document.getElementById('test-order-header-count');
       if (testOrderHeaderCount) testOrderHeaderCount.textContent = `${testOrderCount} test orders`;
-      
+
       const totalTabCount = document.getElementById('total-tab-count');
       if (totalTabCount) totalTabCount.textContent = totalCount;
-      
+
       document.getElementById('pending-header-count').textContent = `${visiblePendingCount} visible`;
       const todayHeaderCountEl = document.getElementById('today-header-count');
       if (todayHeaderCountEl) todayHeaderCountEl.textContent = `${visibleTodayCount} visible`;
       document.getElementById('completed-header-count').textContent = `${visibleCompletedCount} visible`;
-      
+
       const cancelledHeaderCount = document.getElementById('cancelled-header-count');
       if (cancelledHeaderCount) cancelledHeaderCount.textContent = `${cancelledCount} cancelled`;
-      
+
       const totalHeaderCount = document.getElementById('total-header-count');
       if (totalHeaderCount) totalHeaderCount.textContent = `${visibleTotalCount} visible`;
 
@@ -1877,9 +2298,15 @@
       const originalStatusClass = getStatusClass(order.status);
       const currentStatus = order.order_status || 'Pending';
       const createdAtZ = order.createdAt ? (order.createdAt.endsWith('Z') || order.createdAt.includes('+') ? order.createdAt : order.createdAt + 'Z') : null;
-      const timeDisplay = isCompleted
-        ? (createdAtZ ? new Date(createdAtZ).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '')
-        : (order.preferredSlot || 'Anytime');
+      let timeDisplay = order.preferredSlot || 'Anytime';
+      if ((order.source || '').toLowerCase() === 'website' && order.bookingDate) {
+        let bDate = new Date(order.bookingDate);
+        if (!isNaN(bDate)) {
+          timeDisplay = `${bDate.getDate()}/${bDate.getMonth() + 1}/${bDate.getFullYear()} (${timeDisplay})`;
+        } else {
+          timeDisplay = `${order.bookingDate} (${timeDisplay})`;
+        }
+      }
 
       const statusOptions = [
         "Pending",
@@ -1894,7 +2321,8 @@
         "Completed - Payment received by Mechanic",
         "Disputed - customer",
         "Disputed - Mechanic",
-        "Test Order"
+        "Test Order",
+        "Reschedule Order"
       ];
 
       const uniqueIdentifier = order.bookingRef ? order.bookingRef : order.id;
@@ -1983,6 +2411,39 @@
         warrantyHtml = `<span style="font-family:var(--mono); color:var(--text-3); font-size:11px;">Not Applicable</span>`;
       }
 
+      let warrantyDisplay = '-';
+      if (isCompleted) {
+        const bDateStr = order.bookingDate || order.createdAt;
+        if (bDateStr) {
+          const bDate = new Date(bDateStr.endsWith('Z') || bDateStr.includes('+') ? bDateStr : bDateStr + 'Z');
+          if (!isNaN(bDate)) {
+            bDate.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const diffTime = today - bDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const daysLeft = 15 - diffDays;
+
+            let warrantyStatus = '';
+            if (daysLeft <= 0) {
+              warrantyStatus = 'Warranty Expired';
+              warrantyDisplay = `<span style="color: var(--red); font-weight: 600;">Warranty Expired</span>`;
+            } else {
+              warrantyStatus = `${daysLeft} Days left`;
+              warrantyDisplay = `<span style="color: var(--green); font-weight: 600;">${daysLeft} Days left</span>`;
+            }
+
+            if (order.order_warrenty !== warrantyStatus && order.id) {
+              order.order_warrenty = warrantyStatus;
+              if (typeof supabaseClient !== 'undefined') {
+                supabaseClient.from('Booking').update({ order_warrenty: warrantyStatus }).eq(idColumn, uniqueIdentifier)
+                  .then(({ error }) => { if (error) console.error('Warranty update error:', error); });
+              }
+            }
+          }
+        }
+      }
+
       return `
         <tr>
           <td><span class="order-id">#${order.bookingRef || order.id.slice(0, 7)}</span></td>
@@ -2011,11 +2472,11 @@
               <select class="fw-select" style="max-width: 150px; font-size:11px; padding:4px 20px 4px 8px; ${!order['Assign Mechanic'] ? 'color: var(--text-3);' : 'color: #60a5fa; border-color: rgba(59, 130, 246, 0.25); background-color: rgba(59, 130, 246, 0.1);'}" onchange="updateMechanic('${uniqueIdentifier}', this.value, '${idColumn}')">
                 <option value="" style="color: var(--text-1); background: var(--surface-2);" ${!order['Assign Mechanic'] ? 'selected' : ''}>Unassigned</option>
                 ${(window.activeMechanics || []).map(m => {
-                  const mechName = m.garageName || m.ownerName || 'Unknown';
-                  return `<option value="${mechName}" style="color: var(--text-1); background: var(--surface-2);" ${order['Assign Mechanic'] === mechName ? 'selected' : ''}>${mechName}</option>`;
-                }).join('')}
-                ${order['Assign Mechanic'] && !(window.activeMechanics || []).find(m => (m.garageName || m.ownerName || 'Unknown') === order['Assign Mechanic']) 
-                  ? `<option value="${order['Assign Mechanic']}" style="color: var(--text-1); background: var(--surface-2);" selected hidden>${order['Assign Mechanic']}</option>` : ''}
+        const mechName = m.garageName || m.ownerName || 'Unknown';
+        return `<option value="${mechName}" style="color: var(--text-1); background: var(--surface-2);" ${order['Assign Mechanic'] === mechName ? 'selected' : ''}>${mechName}</option>`;
+      }).join('')}
+                ${order['Assign Mechanic'] && !(window.activeMechanics || []).find(m => (m.garageName || m.ownerName || 'Unknown') === order['Assign Mechanic'])
+          ? `<option value="${order['Assign Mechanic']}" style="color: var(--text-1); background: var(--surface-2);" selected hidden>${order['Assign Mechanic']}</option>` : ''}
               </select>
             </div>
           </td>
@@ -2080,6 +2541,42 @@
       return 'waiting';
     }
 
+    async function updatePaymentReceivedBy(id, newValue, column = 'id') {
+      console.log(`Updating payment_received_by for ${id} via ${column} to: ${newValue}`);
+
+      const { data, error } = await supabaseClient
+        .from('Booking')
+        .update({ payment_received_by: newValue })
+        .eq(column, id)
+        .select();
+
+      if (error) {
+        console.error('Supabase Update Payment Received By Error:', error);
+        alert('Update Failed: ' + error.message);
+      } else {
+        console.log('Payment Received By update successful:', data);
+        fetchBookings();
+      }
+    }
+
+    async function updatePaymentSettled(id, newValue, column = 'id') {
+      console.log(`Updating payment_settled for ${id} via ${column} to: ${newValue}`);
+
+      const { data, error } = await supabaseClient
+        .from('Booking')
+        .update({ payment_settled: newValue })
+        .eq(column, id)
+        .select();
+
+      if (error) {
+        console.error('Supabase Update Payment Settled Error:', error);
+        alert('Update Failed: ' + error.message);
+      } else {
+        console.log('Payment Settled update successful:', data);
+        fetchBookings();
+      }
+    }
+
     async function updateSettlement(id, newSettlement, column = 'id') {
       console.log(`Updating settlement for ${id} via ${column} to: ${newSettlement}`);
 
@@ -2109,7 +2606,7 @@
         .from('Booking')
         .update(updateData)
         .eq(column, id);
-      
+
       if (error) {
         console.error('Error updating mechanic:', error);
         alert('Failed to assign mechanic: ' + error.message);
@@ -2120,7 +2617,24 @@
       }
     }
 
+    let currentRescheduleContext = null;
+
     async function updateOrderStatus(id, newStatus, column = 'id', updateColumn = 'order_status') {
+      if (newStatus === 'Reschedule Order') {
+        const order = window.allBookings.find(o => o[column] === id);
+        if (!order) {
+           alert('Order not found in current list.');
+           return;
+        }
+        
+        // Reset the dropdown visually (reverting the choice since it will be pending after modal save)
+        // We'll let fetchBookings handle the final update later.
+        
+        currentRescheduleContext = { id, column, order, updateColumn };
+        openRescheduleModal();
+        return;
+      }
+
       console.log(`Updating order ${id} via ${column} to ${updateColumn}: ${newStatus}`);
 
       const existingOrder = (window.allBookings || []).find(b => String(b[column]) === String(id));

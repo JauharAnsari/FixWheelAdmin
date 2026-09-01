@@ -578,8 +578,8 @@
 
   <script>
     // Config credentials
-    const ADMIN_USER = "adminfixwheel";
-    const ADMIN_PASS = "zakirfixwheeladmin";
+    const ADMIN_USER = "zakirfixwheeladmin";
+    const ADMIN_PASS = "zakir@fixwheel2026";
 
     // Theme switching logic
     const themeToggleBtn = document.getElementById('theme-toggle');
@@ -661,9 +661,9 @@
           submitBtn.style.boxShadow = '0 4px 12px rgba(34, 197, 94, 0.3)';
           
           if (rememberVal) {
-            localStorage.setItem('fixwheel_admin_logged_in', 'true');
+            localStorage.setItem('fixwheel_admin_session_v2', 'true');
           } else {
-            sessionStorage.setItem('fixwheel_admin_logged_in', 'true');
+            sessionStorage.setItem('fixwheel_admin_session_v2', 'true');
           }
 
           setTimeout(() => {
@@ -690,7 +690,7 @@
     });
 
     // If already logged in, skip login page
-    if (sessionStorage.getItem('fixwheel_admin_logged_in') === 'true' || localStorage.getItem('fixwheel_admin_logged_in') === 'true') {
+    if (sessionStorage.getItem('fixwheel_admin_session_v2') === 'true' || localStorage.getItem('fixwheel_admin_session_v2') === 'true') {
       window.location.replace('home.html');
     }
   </script>

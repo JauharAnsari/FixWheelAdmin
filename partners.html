@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <script>
-    if (sessionStorage.getItem('fixwheel_admin_logged_in') !== 'true' && localStorage.getItem('fixwheel_admin_logged_in') !== 'true') {
+    if (sessionStorage.getItem('fixwheel_admin_session_v2') !== 'true' && localStorage.getItem('fixwheel_admin_session_v2') !== 'true') {
       window.location.replace('login.html');
     }
   </script>
@@ -888,6 +888,7 @@
               <th>Owner Name</th>
               <th>Phone</th>
               <th>Vehicle Type</th>
+              <th>Services</th>
               <th>Address</th>
               <th>City</th>
               <th>Status</th>
@@ -954,52 +955,7 @@
       updateThemeIcon();
     });
 
-    // CSV Download logic
-    document.getElementById('download-csv').addEventListener('click', () => {
-      const rows = document.querySelectorAll('#partner-table-body tr');
-      if (rows.length === 0) {
-        alert('No data to download');
-        return;
-      }
-      
-      let csvContent = "Partner Ref,Garage Name,Owner Name,Phone,Vehicle Type,Address,City,Status,Remark\n";
-      
-      rows.forEach(tr => {
-        const ref = `"${tr.children[0].innerText.trim().replace(/"/g, '""')}"`;
-        const garage = `"${tr.children[1].innerText.trim().replace(/"/g, '""')}"`;
-        const owner = `"${tr.children[2].innerText.trim().replace(/"/g, '""')}"`;
-        const phone = `"${tr.children[3].innerText.trim().replace(/"/g, '""')}"`;
-        const vehicle = `"${tr.children[4].innerText.trim().replace(/"/g, '""')}"`;
-        const address = `"${tr.children[5].innerText.trim().replace(/"/g, '""')}"`;
-        const city = `"${tr.children[6].innerText.trim().replace(/"/g, '""')}"`;
-        
-        const statusSelect = tr.children[7].querySelector('select');
-        const status = statusSelect ? `"${statusSelect.value.replace(/"/g, '""')}"` : '""';
-        
-        const remarkArea = tr.children[10].querySelector('textarea');
-        const remark = remarkArea ? `"${remarkArea.value.replace(/"/g, '""')}"` : '""';
-        
-        csvContent += [ref, garage, owner, phone, vehicle, address, city, status, remark].join(',') + "\n";
-      });
-      
-      const now = new Date();
-      const timestamp = now.getFullYear().toString() + 
-        String(now.getMonth() + 1).padStart(2, '0') + 
-        String(now.getDate()).padStart(2, '0') + "_" + 
-        String(now.getHours()).padStart(2, '0') + 
-        String(now.getMinutes()).padStart(2, '0') + 
-        String(now.getSeconds()).padStart(2, '0');
-        
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
-      link.setAttribute("href", url);
-      link.setAttribute("download", `partners_data_${timestamp}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
+
 
     // Fetch and Render Partners
     async function fetchPartners() {
@@ -1076,6 +1032,7 @@
           <td><div class="customer-phone" style="font-size: 13px; color: var(--text-1); font-family: var(--sans);">${p.ownerName || 'Unknown'}</div></td>
           <td><span class="price">${p.phone || 'N/A'}</span></td>
           <td><span class="service-pill">${p.vehicleType || 'N/A'}</span></td>
+          <td><div class="location-text" style="font-weight: normal; font-size: 12px; color: var(--text-2); max-width: 150px;">${Array.isArray(p.servicesOffered) ? p.servicesOffered.join(', ') : (p.servicesOffered || 'N/A')}</div></td>
           <td><div class="location-text">${p.address || 'N/A'}</div></td>
           <td><div class="customer-phone" style="font-size: 13px; color: var(--text-1); font-family: var(--sans);">${p.city || 'N/A'}</div></td>
           <td>
@@ -1159,58 +1116,12 @@
       }
     }
 
-    // Download CSV logic
-    const downloadCsvBtn = document.getElementById('download-csv');
-    if (downloadCsvBtn) {
-      downloadCsvBtn.addEventListener('click', () => {
-        if (!window.allPartners) return;
-        
-        const activePartners = window.allPartners.filter(p => {
-          const statusValue = p.partner_status || p.status || '';
-          return statusValue.toLowerCase().includes('active') && !statusValue.toLowerCase().includes('deactivate');
-        });
 
-        if (activePartners.length === 0) {
-          alert('No active partners found to download.');
-          return;
-        }
-
-        const headers = ['Partner Ref', 'Garage Name', 'Owner Name', 'Phone', 'Vehicle Type', 'Address', 'City', 'Status', 'Remarks'];
-        const csvRows = [headers.join(',')];
-
-        activePartners.forEach(p => {
-          const statusValue = p.partner_status || p.status || 'Pending- OnBoarding';
-          const row = [
-            `"${p.partnerRef || ''}"`,
-            `"${(p.garageName || '').replace(/"/g, '""')}"`,
-            `"${(p.ownerName || '').replace(/"/g, '""')}"`,
-            `"${p.phone || ''}"`,
-            `"${p.vehicleType || ''}"`,
-            `"${(p.address || '').replace(/"/g, '""')}"`,
-            `"${p.city || ''}"`,
-            `"${statusValue}"`,
-            `"${(p.Remarks || '').replace(/"/g, '""')}"`
-          ];
-          csvRows.push(row.join(','));
-        });
-
-        const csvContent = csvRows.join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', 'active_partners.csv');
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      });
-    }
 
     // Logout logic
     document.getElementById('logout-btn').addEventListener('click', () => {
-      sessionStorage.removeItem('fixwheel_admin_logged_in');
-      localStorage.removeItem('fixwheel_admin_logged_in');
+      sessionStorage.removeItem('fixwheel_admin_session_v2');
+      localStorage.removeItem('fixwheel_admin_session_v2');
       window.location.replace('login.html');
     });
 
