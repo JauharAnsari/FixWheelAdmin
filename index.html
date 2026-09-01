@@ -2630,14 +2630,11 @@
 
     async function updateOrderStatus(id, newStatus, column = 'id', updateColumn = 'order_status') {
       if (newStatus === 'Reschedule Order') {
-        const order = window.allBookings.find(o => o[column] === id);
+        const order = (window.allBookings || []).find(o => String(o[column]) === String(id) || String(o.id) === String(id) || String(o.bookingRef) === String(id));
         if (!order) {
            alert('Order not found in current list.');
            return;
         }
-        
-        // Reset the dropdown visually (reverting the choice since it will be pending after modal save)
-        // We'll let fetchBookings handle the final update later.
         
         currentRescheduleContext = { id, column, order, updateColumn };
         openRescheduleModal();
@@ -2646,29 +2643,50 @@
 
       console.log(`Updating order ${id} via ${column} to ${updateColumn}: ${newStatus}`);
 
-      const existingOrder = (window.allBookings || []).find(b => String(b[column]) === String(id));
+      const existingOrder = (window.allBookings || []).find(b => String(b[column]) === String(id) || String(b.id) === String(id) || String(b.bookingRef) === String(id));
       const previousStatus = existingOrder ? (existingOrder.order_status || existingOrder.status || '') : '';
 
-      const updatePayload = { [updateColumn]: newStatus };
-
-      const isNewCompleted = newStatus.toLowerCase().includes('completed') || newStatus.toLowerCase().includes('payment received');
+      const lowerNew = newStatus.toLowerCase();
+      const isNewCompleted = lowerNew.includes('completed') || lowerNew.includes('payment received');
+      const isNewCancelled = lowerNew.includes('cancel');
+      const isNewTest = lowerNew.includes('test order') || lowerNew.includes('sandbox');
       const isPrevCompleted = previousStatus.toLowerCase().includes('completed') || previousStatus.toLowerCase().includes('payment received');
 
+      const newMainStatus = isNewCompleted ? 'Completed' : (isNewCancelled ? 'Cancelled' : (isNewTest ? 'Test Order' : 'Pending'));
+
+      const nowIso = new Date().toISOString();
+      const updatePayload = {
+        [updateColumn]: newStatus,
+        order_status: newStatus,
+        status: newMainStatus
+      };
+
+      if (lowerNew.includes('fixwheel')) {
+        updatePayload.payment_received_by = 'FixWheel';
+        updatePayload.settlement = 'Done';
+      } else if (lowerNew.includes('mechanic')) {
+        updatePayload.payment_received_by = 'Mechanic';
+        updatePayload.settlement = 'Pending';
+      } else if (isNewCompleted) {
+        updatePayload.payment_received_by = 'Mechanic';
+      }
+
       if (isNewCompleted) {
-        const nowIso = new Date().toISOString();
         updatePayload.bookingDate = nowIso;
         if (existingOrder && existingOrder.bookingRef) localStorage.setItem('fixwheel_finished_' + existingOrder.bookingRef, nowIso);
-        if (id) localStorage.setItem('fixwheel_finished_' + id, nowIso);
+        if (existingOrder && existingOrder.id) localStorage.setItem('fixwheel_finished_' + existingOrder.id, nowIso);
       } else if (isPrevCompleted) {
         updatePayload.bookingDate = null;
         if (existingOrder && existingOrder.bookingRef) localStorage.removeItem('fixwheel_finished_' + existingOrder.bookingRef);
-        if (id) localStorage.removeItem('fixwheel_finished_' + id);
+        if (existingOrder && existingOrder.id) localStorage.removeItem('fixwheel_finished_' + existingOrder.id);
       }
 
       if (existingOrder) {
         existingOrder[updateColumn] = newStatus;
         existingOrder.order_status = newStatus;
         existingOrder.status = newMainStatus;
+        if (updatePayload.payment_received_by) existingOrder.payment_received_by = updatePayload.payment_received_by;
+        if (updatePayload.settlement) existingOrder.settlement = updatePayload.settlement;
       }
       if (window.allBookings) renderDashboard(window.allBookings);
 
@@ -2690,16 +2708,8 @@
       }
     }
 
-    let pendingPaymentOrderId = null;
-    let pendingPaymentColumn = 'id';
-    let pendingPaymentSelectEl = null;
-
     function onStatusDropdownChange(selectEl, id, newStatus, column) {
-      if (newStatus.toLowerCase().includes('completed') || newStatus.toLowerCase().includes('payment received')) {
-        openPaymentReceiverModal(id, newStatus, column, selectEl);
-      } else {
-        updateOrderStatus(id, newStatus, column);
-      }
+      updateOrderStatus(id, newStatus, column);
     }
 
     function openPaymentReceiverModal(id, newStatus, column, selectEl) {
