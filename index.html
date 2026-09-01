@@ -4,7 +4,15 @@
 <head>
   <meta charset="UTF-8" />
   <script>
-    if (sessionStorage.getItem('fixwheel_admin_session_v2') !== 'true' && localStorage.getItem('fixwheel_admin_session_v2') !== 'true') {
+    
+  function isFixWheelAuthenticated() {
+    return sessionStorage.getItem('fixwheel_admin_logged_in') === 'true' ||
+           localStorage.getItem('fixwheel_admin_logged_in') === 'true' ||
+           sessionStorage.getItem('fixwheel_admin_session_v2') === 'true' ||
+           localStorage.getItem('fixwheel_admin_session_v2') === 'true';
+  }
+
+    if (!isFixWheelAuthenticated()) {
       window.location.replace('login.html');
     }
   </script>
