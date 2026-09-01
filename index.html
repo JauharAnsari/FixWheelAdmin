@@ -2095,10 +2095,11 @@
           }
         }
 
-        const isCompleted = (order.order_status || order.status || '').toLowerCase().includes('completed');
-        const isCancelled = (order.order_status || order.status || '').toLowerCase().includes('cancel');
+        const statusStr = (order.order_status || order.status || '').toLowerCase();
+        const isCompleted = statusStr.includes('completed') || statusStr.includes('payment received');
+        const isCancelled = statusStr.includes('cancel');
         const isExplicitTestFlag = order.is_test_order === true || order.is_test_order === 'true';
-        const isTestOrderStatus = (order.order_status || order.status || '').toLowerCase().includes('test order') || (order.order_status || order.status || '').toLowerCase().includes('sandbox');
+        const isTestOrderStatus = statusStr.includes('test order') || statusStr.includes('sandbox');
         const isTestOrder = isExplicitTestFlag || isTestOrderStatus;
 
         const row = createOrderRow(order, isCompleted || isCancelled || isTestOrder);
@@ -2336,7 +2337,7 @@
       const uniqueIdentifier = order.bookingRef ? order.bookingRef : order.id;
       const idColumn = order.bookingRef ? 'bookingRef' : 'id';
 
-      let statusDropdownHtml = `<select class="fw-select" style="font-size:11px; padding:4px 20px 4px 8px;" onchange="onStatusDropdownChange(this, '${uniqueIdentifier}', this.value, '${idColumn}')">`;
+      let statusDropdownHtml = `<select class="fw-select" style="font-size:11px; padding:4px 20px 4px 8px; max-width:165px; width:165px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;" onchange="onStatusDropdownChange(this, '${uniqueIdentifier}', this.value, '${idColumn}')">`;
       if (!statusOptions.includes(currentStatus)) {
         statusDropdownHtml += `<option value="${currentStatus}" hidden selected>${currentStatus}</option>`;
       }
@@ -2664,6 +2665,13 @@
         if (id) localStorage.removeItem('fixwheel_finished_' + id);
       }
 
+      if (existingOrder) {
+        existingOrder[updateColumn] = newStatus;
+        existingOrder.order_status = newStatus;
+        existingOrder.status = newMainStatus;
+      }
+      if (window.allBookings) renderDashboard(window.allBookings);
+
       const { data, error } = await supabaseClient
         .from('Booking')
         .update(updatePayload)
@@ -2727,17 +2735,25 @@
 
       closePaymentReceiverModal(false);
 
+      const nowIso = new Date().toISOString();
       const updatePayload = {
         order_status: finalStatus,
+        status: 'Completed',
         payment_received_by: receiver,
         settlement: settlementVal,
-        bookingDate: new Date().toISOString()
+        bookingDate: nowIso
       };
 
-      if (orderId) {
-        localStorage.setItem('fixwheel_finished_' + orderId, new Date().toISOString());
-        localStorage.setItem('fixwheel_payment_by_' + orderId, receiver);
+      const existingOrder = (window.allBookings || []).find(b => String(b[col]) === String(orderId));
+      if (existingOrder) {
+        existingOrder.order_status = finalStatus;
+        existingOrder.status = 'Completed';
+        existingOrder.payment_received_by = receiver;
+        existingOrder.settlement = settlementVal;
+        if (existingOrder.bookingRef) localStorage.setItem('fixwheel_finished_' + existingOrder.bookingRef, nowIso);
+        if (orderId) localStorage.setItem('fixwheel_finished_' + orderId, nowIso);
       }
+      if (window.allBookings) renderDashboard(window.allBookings);
 
       const { error } = await supabaseClient
         .from('Booking')
