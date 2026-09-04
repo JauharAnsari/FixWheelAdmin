@@ -2444,10 +2444,6 @@
 
             if (order.order_warrenty !== warrantyStatus && order.id) {
               order.order_warrenty = warrantyStatus;
-              if (typeof supabaseClient !== 'undefined') {
-                supabaseClient.from('Booking').update({ order_warrenty: warrantyStatus }).eq(idColumn, uniqueIdentifier)
-                  .then(({ error }) => { if (error) console.error('Warranty update error:', error); });
-              }
             }
           }
         }
@@ -2900,7 +2896,8 @@
       }
     });
 
-    // Subscribe to changes for real-time updates
+    // Subscribe to changes for real-time updates (debounced to prevent flicker loops)
+    let realtimeFetchTimer = null;
     supabaseClient
       .channel('schema-db-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'Booking' }, () => {
