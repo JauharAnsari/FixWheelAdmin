@@ -1865,53 +1865,53 @@
   </div>
 
   <!-- Full Service Package Details Modal -->
-  <div id="service-details-modal" class="modal-overlay" onclick="if(event.target === this) closeServiceDetailsModal()" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(6px);">
-    <div class="modal-content" style="background: var(--surface-1, #1e293b); border: 1px solid var(--border, #334155); border-radius: 16px; padding: 28px; width: 90%; max-width: 580px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); color: var(--text-1, #f8fafc);">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 1px solid var(--border, #334155); padding-bottom: 16px;">
+  <div id="service-details-modal" class="modal-overlay" onclick="if(event.target === this) closeServiceDetailsModal()" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(6px);">
+    <div class="modal-content" style="background: var(--surface); border: 1px solid var(--border-hi); border-radius: 16px; padding: 28px; width: 90%; max-width: 580px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); color: var(--text-1);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
         <div>
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 20px;">🛠️</span>
-            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-1, #f8fafc);">Full Service Package Details</h3>
+            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-1);">Full Service Package Details</h3>
           </div>
-          <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--text-2, #94a3b8);">Complete, un-truncated service breakdown requested by customer</p>
+          <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--text-2);">Complete, un-truncated service breakdown requested by customer</p>
         </div>
-        <button onclick="closeServiceDetailsModal()" style="background: transparent; border: none; color: var(--text-2, #94a3b8); font-size: 22px; cursor: pointer; padding: 0 4px; line-height: 1; transition: color 0.15s;" title="Close modal">✕</button>
+        <button onclick="closeServiceDetailsModal()" style="background: transparent; border: none; color: var(--text-2); font-size: 22px; cursor: pointer; padding: 0 4px; line-height: 1; transition: color 0.15s;" title="Close modal">✕</button>
       </div>
 
-      <div style="background: var(--surface-2, #0f172a); border: 1px solid var(--border, #334155); border-radius: 12px; padding: 18px; margin-bottom: 20px;">
-        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #60a5fa; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+      <div style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 20px;">
+        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #3b82f6; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
           <span>Selected Package / Services</span>
           <span id="sd-order-ref" class="fw-badge fw-badge-neutral" style="font-size: 11px;">#—</span>
         </div>
-        <div id="sd-package-name" style="font-size: 15px; font-weight: 600; color: #f8fafc; line-height: 1.6; word-break: break-word; white-space: pre-wrap;">-</div>
+        <div id="sd-package-name" style="font-size: 15px; font-weight: 600; color: var(--text-1); line-height: 1.6; word-break: break-word; white-space: pre-wrap;">-</div>
       </div>
 
       <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 24px; font-size: 13px;">
-        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border, #334155); border-radius: 10px; padding: 12px;">
-          <div style="font-size: 11px; color: var(--text-2, #94a3b8); font-weight: 500; margin-bottom: 4px;">Customer Name</div>
-          <div id="sd-customer-name" style="font-weight: 600; color: var(--text-1, #f8fafc);">-</div>
-          <div id="sd-customer-phone" style="font-size: 11px; color: #60a5fa; font-family: var(--mono); margin-top: 2px;">-</div>
+        <div style="background: var(--surface-3); border: 1px solid var(--border); border-radius: 10px; padding: 12px;">
+          <div style="font-size: 11px; color: var(--text-2); font-weight: 500; margin-bottom: 4px;">Customer Name</div>
+          <div id="sd-customer-name" style="font-weight: 600; color: var(--text-1);">-</div>
+          <div id="sd-customer-phone" style="font-size: 11px; color: #3b82f6; font-family: var(--mono); margin-top: 2px;">-</div>
         </div>
 
-        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border, #334155); border-radius: 10px; padding: 12px;">
-          <div style="font-size: 11px; color: var(--text-2, #94a3b8); font-weight: 500; margin-bottom: 4px;">Vehicle Model</div>
-          <div id="sd-vehicle-model" style="font-weight: 600; color: var(--text-1, #f8fafc);">-</div>
-          <div id="sd-vehicle-brand" style="font-size: 11px; color: var(--text-2, #94a3b8); margin-top: 2px;">-</div>
+        <div style="background: var(--surface-3); border: 1px solid var(--border); border-radius: 10px; padding: 12px;">
+          <div style="font-size: 11px; color: var(--text-2); font-weight: 500; margin-bottom: 4px;">Vehicle Model</div>
+          <div id="sd-vehicle-model" style="font-weight: 600; color: var(--text-1);">-</div>
+          <div id="sd-vehicle-brand" style="font-size: 11px; color: var(--text-2); margin-top: 2px;">-</div>
         </div>
 
-        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border, #334155); border-radius: 10px; padding: 12px;">
-          <div style="font-size: 11px; color: var(--text-2, #94a3b8); font-weight: 500; margin-bottom: 4px;">City & Time Slot</div>
-          <div id="sd-city-slot" style="font-weight: 600; color: var(--text-1, #f8fafc);">-</div>
+        <div style="background: var(--surface-3); border: 1px solid var(--border); border-radius: 10px; padding: 12px;">
+          <div style="font-size: 11px; color: var(--text-2); font-weight: 500; margin-bottom: 4px;">City & Time Slot</div>
+          <div id="sd-city-slot" style="font-weight: 600; color: var(--text-1);">-</div>
         </div>
 
-        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border, #334155); border-radius: 10px; padding: 12px;">
-          <div style="font-size: 11px; color: var(--text-2, #94a3b8); font-weight: 500; margin-bottom: 4px;">Total Price</div>
-          <div id="sd-final-amount" style="font-weight: 700; color: #4ade80; font-size: 16px;">₹0</div>
+        <div style="background: var(--surface-3); border: 1px solid var(--border); border-radius: 10px; padding: 12px;">
+          <div style="font-size: 11px; color: var(--text-2); font-weight: 500; margin-bottom: 4px;">Total Price</div>
+          <div id="sd-final-amount" style="font-weight: 700; color: var(--green); font-size: 16px;">₹0</div>
         </div>
       </div>
 
       <div style="display: flex; justify-content: flex-end; gap: 12px;">
-        <button onclick="copyServicePackageText(this)" style="padding: 10px 18px; border: 1px solid var(--border, #334155); border-radius: 8px; background: var(--surface-2, #0f172a); font-weight: 600; color: var(--text-1, #f8fafc); cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: background 0.15s;">
+        <button onclick="copyServicePackageText(this)" style="padding: 10px 18px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); font-weight: 600; color: var(--text-1); cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: background 0.15s;">
           📋 Copy Service Name
         </button>
         <button onclick="closeServiceDetailsModal()" style="padding: 10px 22px; border: none; border-radius: 8px; background: #3b82f6; font-weight: 600; color: white; cursor: pointer; font-size: 13px; transition: background 0.15s;">
