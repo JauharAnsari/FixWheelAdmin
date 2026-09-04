@@ -62,10 +62,6 @@ function renderSidebar(activeKey) {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                 Partner Workload
               </a>
-              <a href="dublicate_partners.html?v=2027" class="nav-item ${activeKey === 'duplicates' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                Duplicates
-              </a>
               <a href="partner_payouts.html?v=2027" class="nav-item ${activeKey === 'payouts' ? 'active' : ''}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
                 Payouts
@@ -189,7 +185,6 @@ const SEARCH_DATABASE = [
   { type: 'page', title: 'Total Partners Directory', sub: 'Partners · All Registered Garages', icon: '🏪', url: 'partners.html?v=2027' },
   { type: 'page', title: 'Pending Approval', sub: 'Partners · Onboarding Approvals', icon: '⏳', url: 'pending_partners.html?v=2027' },
   { type: 'page', title: 'Partner Workload', sub: 'Partners · Workload Distribution', icon: '⚡', url: 'partner_workload.html?v=2027' },
-  { type: 'page', title: 'Duplicate Accounts', sub: 'Partners · Flagged Duplicate Accounts', icon: '📑', url: 'dublicate_partners.html?v=2027' },
   { type: 'page', title: 'Partner Payouts', sub: 'Partners · Earnings & Commission Payouts', icon: '💰', url: 'partner_payouts.html?v=2027' },
   { type: 'page', title: 'Customer Directory', sub: 'Customers · User Profiles & Registered Riders', icon: '👤', url: 'customers.html?v=2027' },
   { type: 'page', title: 'Blocked / Flagged Customers', sub: 'Customers · Flagged Accounts', icon: '🚫', url: 'blocked_customers.html?v=2027' },

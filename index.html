@@ -1140,6 +1140,12 @@
             <option value="Noida">Noida</option>
             <option value="Ghaziabad">Ghaziabad</option>
           </select>
+
+          <select id="pending-source-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 130px;">
+            <option value="all">All Sources</option>
+            <option value="website">Website</option>
+            <option value="app">App</option>
+          </select>
           
           <select id="pending-status-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
             <option value="all">All Status</option>
@@ -1313,6 +1319,12 @@
             <option value="Ghaziabad">Ghaziabad</option>
           </select>
           
+          <select id="completed-source-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 130px;">
+            <option value="all">All Sources</option>
+            <option value="website">Website</option>
+            <option value="app">App</option>
+          </select>
+
           <select id="completed-status-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
             <option value="all">All Status</option>
             <option value="Pending">Pending</option>
@@ -1424,6 +1436,12 @@
             <option value="Faridabad">Faridabad</option>
             <option value="Noida">Noida</option>
             <option value="Ghaziabad">Ghaziabad</option>
+          </select>
+          
+          <select id="cancelled-source-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 130px;">
+            <option value="all">All Sources</option>
+            <option value="website">Website</option>
+            <option value="app">App</option>
           </select>
           
           <select id="cancelled-status-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
@@ -2010,7 +2028,6 @@
       window.allBookings = bookings;
       renderDashboard(bookings);
     }
-
     function renderDashboard(bookings) {
       const pendingTable = document.getElementById('pending-table-body');
       const todayTable = document.getElementById('today-table-body');
@@ -2023,11 +2040,18 @@
       const statusFilter = (document.getElementById('pending-status-filter')?.value || 'all');
       const cityFilter = (document.getElementById('pending-city-filter')?.value || '').toLowerCase();
       const vehicleFilter = (document.getElementById('pending-vehicle-filter')?.value || '').toLowerCase();
+      const pendingSourceFilter = (document.getElementById('pending-source-filter')?.value || 'all').toLowerCase();
       
       const todaySearchTerm = (document.getElementById('today-search')?.value || '').toLowerCase();
       const todayStatusFilter = (document.getElementById('today-status-filter')?.value || 'all');
       const todayCityFilter = (document.getElementById('today-city-filter')?.value || '').toLowerCase();
       const todayVehicleFilter = (document.getElementById('today-vehicle-filter')?.value || '').toLowerCase();
+      const todaySourceFilter = (document.getElementById('today-source-filter')?.value || 'all').toLowerCase();
+
+      const completedSourceFilter = (document.getElementById('completed-source-filter')?.value || 'all').toLowerCase();
+      const cancelledSourceFilter = (document.getElementById('cancelled-source-filter')?.value || 'all').toLowerCase();
+      const testOrderSourceFilter = (document.getElementById('test-order-source-filter')?.value || 'all').toLowerCase();
+      const totalSourceFilter = (document.getElementById('total-source-filter')?.value || 'all').toLowerCase();
 
       const pendingDateFrom = document.getElementById('pending-date-from')?.value || '';
       const pendingDateTo = document.getElementById('pending-date-to')?.value || '';
@@ -2102,13 +2126,18 @@
         const isTestOrderStatus = statusStr.includes('test order') || statusStr.includes('sandbox');
         const isTestOrder = isExplicitTestFlag || isTestOrderStatus;
 
+        const orderSource = (order.source || 'website').toLowerCase();
+
         const row = createOrderRow(order, isCompleted || isCancelled || isTestOrder);
         const finalAmt = order.Final_Amount ? Number(order.Final_Amount) : (order.price ? Number(order.price) : 0);
 
         if (isTestOrder) {
-          testOrderCount++;
-          if (testOrderTable) {
-            testOrderHtml += row;
+          const matchTestOrderSource = testOrderSourceFilter === 'all' || orderSource === testOrderSourceFilter;
+          if (matchTestOrderSource) {
+            testOrderCount++;
+            if (testOrderTable) {
+              testOrderHtml += row;
+            }
           }
           return; // Exclude explicit test orders from production totals & KPIs
         }
@@ -2140,15 +2169,17 @@
           const matchTodayStatus = todayStatusFilter === 'all' || (order.order_status || order.status || '').toLowerCase().includes(todayStatusFilter.toLowerCase());
           const matchTodayCity = !todayCityFilter || (order.city || '').toLowerCase().includes(todayCityFilter);
           const matchTodayVehicle = !todayVehicleFilter || (order.vehicleModel || '').toLowerCase().includes(todayVehicleFilter);
+          const matchTodaySource = todaySourceFilter === 'all' || orderSource === todaySourceFilter;
 
-          if (matchTodaySearch && matchTodayStatus && matchTodayCity && matchTodayVehicle) {
+          if (matchTodaySearch && matchTodayStatus && matchTodayCity && matchTodayVehicle && matchTodaySource) {
             todayHtml += row;
             visibleTodayCount++;
           }
         }
 
         const matchTotalDate = isDateInRange(orderDateFormatted, totalDateFrom, totalDateTo);
-        if (totalTable && matchTotalDate) {
+        const matchTotalSource = totalSourceFilter === 'all' || orderSource === totalSourceFilter;
+        if (totalTable && matchTotalDate && matchTotalSource) {
           totalHtml += row;
           visibleTotalCount++;
           if (totalDateFrom && totalDateTo) {
@@ -2179,7 +2210,8 @@
           }
 
           const matchCompletedDate = isDateInRange(orderDateFormatted, completedDateFrom, completedDateTo);
-          if (matchCompletedDate) {
+          const matchCompletedSource = completedSourceFilter === 'all' || orderSource === completedSourceFilter;
+          if (matchCompletedDate && matchCompletedSource) {
             completedHtml += row;
             visibleCompletedCount++;
             if (completedDateFrom && completedDateTo) {
@@ -2188,9 +2220,12 @@
             }
           }
         } else if (isCancelled) {
+          const matchCancelledSource = cancelledSourceFilter === 'all' || orderSource === cancelledSourceFilter;
           if (cancelledTable) {
-            cancelledHtml += row;
             cancelledCount++;
+            if (matchCancelledSource) {
+              cancelledHtml += row;
+            }
           }
         } else {
           pendingCount++;
@@ -2206,8 +2241,9 @@
           const matchCity = cityFilter === '' || (order.city || '').toLowerCase().includes(cityFilter);
           const matchVehicle = vehicleFilter === '' || (order.bikeModel || '').toLowerCase().includes(vehicleFilter) || (order.bikeType || '').toLowerCase().includes(vehicleFilter);
           const matchPendingDate = isDateInRange(orderDateFormatted, pendingDateFrom, pendingDateTo);
+          const matchPendingSource = pendingSourceFilter === 'all' || orderSource === pendingSourceFilter;
 
-          if (matchSearch && matchStatus && matchCity && matchVehicle && matchPendingDate) {
+          if (matchSearch && matchStatus && matchCity && matchVehicle && matchPendingDate && matchPendingSource) {
             pendingHtml += row;
             visiblePendingCount++;
             if (pendingDateFrom && pendingDateTo) {
