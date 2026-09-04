@@ -582,6 +582,9 @@
       padding: 8px 12px !important;
       font-size: 12.5px;
       vertical-align: middle;
+      max-width: 250px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     tbody td:first-child {
@@ -1558,6 +1561,12 @@
             <option value="Noida">Noida</option>
             <option value="Ghaziabad">Ghaziabad</option>
           </select>
+
+          <select id="test-order-source-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 130px;">
+            <option value="all">All Sources</option>
+            <option value="website">Website</option>
+            <option value="app">App</option>
+          </select>
           
           <select id="test-order-status-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
             <option value="all">All Status</option>
@@ -1670,6 +1679,12 @@
             <option value="Faridabad">Faridabad</option>
             <option value="Noida">Noida</option>
             <option value="Ghaziabad">Ghaziabad</option>
+          </select>
+
+          <select id="total-source-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 130px;">
+            <option value="all">All Sources</option>
+            <option value="website">Website</option>
+            <option value="app">App</option>
           </select>
           
           <select id="total-status-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
@@ -2126,7 +2141,8 @@
         const isTestOrderStatus = statusStr.includes('test order') || statusStr.includes('sandbox');
         const isTestOrder = isExplicitTestFlag || isTestOrderStatus;
 
-        const orderSource = (order.source || 'website').toLowerCase();
+        const rawSrc = (order.source || 'website').toLowerCase().trim();
+        const orderSource = rawSrc.includes('app') ? 'app' : 'website';
 
         const row = createOrderRow(order, isCompleted || isCancelled || isTestOrder);
         const finalAmt = order.Final_Amount ? Number(order.Final_Amount) : (order.price ? Number(order.price) : 0);
@@ -2496,15 +2512,17 @@
           <td>${rescheduleCellHtml}</td>
           <td><span class="time-text" style="color: ${finishedDisplay === '—' ? 'var(--text-3)' : '#4ade80'}; font-size: 11.5px; font-weight: 500;">${finishedDisplay}</span></td>
           <td>
-            <div class="customer-name">${order.customerName || 'Unknown'}</div>
+            <div class="customer-name" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${order.customerName || 'Unknown'}">${order.customerName || 'Unknown'}</div>
             <div class="customer-phone">${order.phone || ''}</div>
           </td>
           <td>
-            <div class="bike-model">${order.bikeModel || ''}</div>
-            <div class="bike-brand">${order.bikeType || ''}</div>
+            <div class="bike-model" style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${order.bikeModel || ''}">${order.bikeModel || ''}</div>
+            <div class="bike-brand" style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${order.bikeType || ''}</div>
           </td>
-          <td><span class="fw-badge fw-badge-neutral">${order.package || 'Service'}</span></td>
-          <td><span class="fw-badge fw-badge-blue">${order.source || 'App'}</span></td>
+          <td style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <span class="fw-badge fw-badge-neutral fw-badge-truncate" title="${order.package || 'Service'}">${order.package || 'Service'}</span>
+          </td>
+          <td><span class="source-pill ${(order.source || 'website').toLowerCase().includes('app') ? 'app' : 'website'}">${(order.source || 'website').toLowerCase().includes('app') ? 'app' : 'website'}</span></td>
           <td><span class="location-text">${order.address || 'N/A'}</span></td>
           <td><span class="location-text" style="color: var(--text-1); font-weight: 600;">${city}</span></td>
           <td><span class="time-text">${timeDisplay}</span></td>

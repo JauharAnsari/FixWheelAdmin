@@ -66,6 +66,15 @@
   transition: all 0.15s ease;
 }
 
+.fw-badge-truncate {
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+}
+
 .fw-badge-success, .fw-badge-green {
   background: var(--green-glow);
   color: #4ade80;
