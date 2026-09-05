@@ -529,7 +529,7 @@
 
     thead th:nth-child(1)  { width: 100px; }  /* Order ID */
     thead th:nth-child(2)  { width: 140px; }  /* Date */
-    thead th:nth-child(3)  { width: 130px; color: #facc15; } /* Reschedule Date */
+    thead th:nth-child(3)  { width: 0px; display: none; } /* Reschedule Date (hidden) */
     thead th:nth-child(4)  { width: 140px; color: #4ade80; } /* Finished On */
     thead th:nth-child(5)  { width: 160px; }  /* Customer */
     thead th:nth-child(6)  { width: 150px; }  /* Bike */
@@ -1215,7 +1215,7 @@
             <tr>
               <th>Order ID</th>
               <th>Date</th>
-              <th>Reschedule Date</th>
+              <th style="display:none;">Reschedule Date</th>
               <th>Finished On</th>
               <th>Customer</th>
               <th>Bike</th>
@@ -1227,6 +1227,7 @@
               <th>Mechanic</th>
               <th style="display:none;">Status</th>
               <th>Order Status</th>
+              <th>Pickup</th>
               <th>Amount</th>
               <th>Final Amount</th>
               <th>Remark</th>
@@ -1393,7 +1394,7 @@
             <tr>
               <th>Order ID</th>
               <th>Date</th>
-              <th>Reschedule Date</th>
+              <th style="display:none;">Reschedule Date</th>
               <th>Finished On</th>
               <th>Customer</th>
               <th>Bike</th>
@@ -1405,6 +1406,7 @@
               <th>Mechanic</th>
               <th style="display:none;">Status</th>
               <th>Order Status</th>
+              <th>Pickup</th>
               <th>Amount</th>
               <th>Final Amount</th>
               <th>Remark</th>
@@ -1512,7 +1514,7 @@
             <tr>
               <th>Order ID</th>
               <th>Date</th>
-              <th>Reschedule Date</th>
+              <th style="display:none;">Reschedule Date</th>
               <th>Finished On</th>
               <th>Customer</th>
               <th>Bike</th>
@@ -1524,6 +1526,7 @@
               <th>Mechanic</th>
               <th style="display:none;">Status</th>
               <th>Order Status</th>
+              <th>Pickup</th>
               <th>Amount</th>
               <th>Final Amount</th>
               <th>Remark</th>
@@ -1633,7 +1636,7 @@
             <tr>
               <th>Order ID</th>
               <th>Date</th>
-              <th>Reschedule Date</th>
+              <th style="display:none;">Reschedule Date</th>
               <th>Finished On</th>
               <th>Customer</th>
               <th>Bike</th>
@@ -1645,6 +1648,7 @@
               <th>Mechanic</th>
               <th style="display:none;">Status</th>
               <th>Order Status</th>
+              <th>Pickup</th>
               <th>Amount</th>
               <th>Final Amount</th>
               <th>Remark</th>
@@ -1752,7 +1756,7 @@
             <tr>
               <th>Order ID</th>
               <th>Date</th>
-              <th>Reschedule Date</th>
+              <th style="display:none;">Reschedule Date</th>
               <th>Finished On</th>
               <th>Customer</th>
               <th>Bike</th>
@@ -1764,6 +1768,7 @@
               <th>Mechanic</th>
               <th style="display:none;">Status</th>
               <th>Order Status</th>
+              <th>Pickup</th>
               <th>Amount</th>
               <th>Final Amount</th>
               <th>Remark</th>
@@ -2455,6 +2460,16 @@
       });
       statusDropdownHtml += `</select>`;
 
+      const currentPickupRaw = (order.pickup_status || order.pickup || 'No').toString().trim();
+      const currentPickup = (currentPickupRaw.toLowerCase() === 'yes' || currentPickupRaw.toLowerCase() === 'true') ? 'Yes' : 'No';
+
+      const pickupDropdownHtml = `
+        <select class="fw-select" style="font-size:11px; padding:4px 8px; max-width:70px; width:70px; font-weight:700; ${currentPickup === 'Yes' ? 'color:#22c55e; border-color:rgba(34,197,94,0.35); background-color:rgba(34,197,94,0.12);' : 'color:var(--text-3); background-color:var(--surface-2);'}" onchange="updatePickupStatus('${uniqueIdentifier}', this.value, '${idColumn}')">
+          <option value="No" style="color:var(--text-1); background:var(--surface-2);" ${currentPickup === 'No' ? 'selected' : ''}>No</option>
+          <option value="Yes" style="color:#22c55e; background:var(--surface-2);" ${currentPickup === 'Yes' ? 'selected' : ''}>Yes</option>
+        </select>
+      `;
+
       const computedFinalAmount = order.Final_Amount ? order.Final_Amount : (order.price || 0);
       let city = order.city || 'N/A';
 
@@ -2566,7 +2581,7 @@
               <span class="time-text" style="color: var(--text-2); font-size: 11.5px; font-weight: 500;">${dateDisplay}</span>
             </div>
           </td>
-          <td>${rescheduleCellHtml}</td>
+          <td style="display:none;">${rescheduleCellHtml}</td>
           <td><span class="time-text" style="color: ${finishedDisplay === '—' ? 'var(--text-3)' : '#4ade80'}; font-size: 11.5px; font-weight: 500;">${finishedDisplay}</span></td>
           <td>
             <div class="customer-name" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${order.customerName || 'Unknown'}">${order.customerName || 'Unknown'}</div>
@@ -2598,6 +2613,7 @@
           </td>
           <td style="display:none;"><span class="badge ${originalStatusClass}">${order.status || 'Pending'}</span></td>
           <td>${statusDropdownHtml}</td>
+          <td>${pickupDropdownHtml}</td>
           <td>
             <div class="price-container" style="display:flex; align-items:center; gap:8px;">
               <span class="price">₹${(order.price || 0).toLocaleString()}</span>
@@ -2903,6 +2919,41 @@
         alert('Failed to save remark.');
       } else {
         console.log('Remark saved successfully.');
+      }
+    }
+
+    async function updatePickupStatus(id, newPickup, column = 'id') {
+      console.log(`Updating pickup status for order ${id} via ${column} to: ${newPickup}`);
+
+      const existingOrder = (window.allBookings || []).find(b => String(b[column]) === String(id) || String(b.id) === String(id) || String(b.bookingRef) === String(id));
+      if (existingOrder) {
+        existingOrder.pickup_status = newPickup;
+        existingOrder.pickup = newPickup;
+      }
+
+      if (window.allBookings) renderDashboard(window.allBookings);
+
+      const targetCol = (existingOrder && existingOrder.id) ? 'id' : column;
+      const targetVal = (existingOrder && existingOrder.id) ? existingOrder.id : id;
+
+      const updatePayload = {
+        pickup_status: newPickup,
+        pickup: newPickup
+      };
+
+      const { data, error } = await supabaseClient
+        .from('Booking')
+        .update(updatePayload)
+        .eq(targetCol, targetVal)
+        .select();
+
+      if (error) {
+        console.error('Supabase Update Pickup Status Error:', error);
+        alert('Failed to update Pickup status: ' + error.message);
+        fetchBookings();
+      } else {
+        console.log('Pickup status updated successfully:', data);
+        fetchBookings();
       }
     }
 
