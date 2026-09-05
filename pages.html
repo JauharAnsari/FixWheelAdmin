@@ -1327,10 +1327,14 @@
           .single();
 
         if (data) {
-          document.getElementById('modal-use-manual-bikes').checked = !!data.use_manual_bikes;
-          document.getElementById('modal-use-global-bikes').checked = !!data.use_global_bikes;
-          document.getElementById('modal-bikes-override').value = (data.bikes_serviced_override === 'GLOBAL_TOTAL') ? '' : (data.bikes_serviced_override || '');
-          document.getElementById('modal-bikes-override').disabled = !data.use_manual_bikes;
+          const isGlobalActive = !!data.use_global_bikes;
+          const isManualActive = !!data.use_manual_bikes && !isGlobalActive;
+
+          document.getElementById('modal-use-manual-bikes').checked = isManualActive;
+          document.getElementById('modal-use-global-bikes').checked = isGlobalActive;
+
+          document.getElementById('modal-bikes-override').value = isManualActive ? (data.bikes_serviced_override || '') : '';
+          document.getElementById('modal-bikes-override').disabled = !isManualActive;
 
           document.getElementById('modal-use-manual-partners').checked = !!data.use_manual_partners;
           document.getElementById('modal-partners-override').value = data.partners_override || '';
@@ -1392,7 +1396,17 @@
       const useManualBikes = document.getElementById('modal-use-manual-bikes').checked;
       const useGlobalBikes = document.getElementById('modal-use-global-bikes').checked;
       const rawBikesVal = document.getElementById('modal-bikes-override').value.trim();
-      const bikesVal = useManualBikes ? (rawBikesVal || null) : (useGlobalBikes ? 'GLOBAL_TOTAL' : null);
+
+      let currentGlobalCount = 120;
+      try {
+        const { data: statsData } = await supabaseClient.from('public_stats').select('bikes_serviced').eq('city_slug', 'global').single();
+        if (statsData && statsData.bikes_serviced) {
+          currentGlobalCount = statsData.bikes_serviced;
+        }
+      } catch (e) { console.error(e); }
+
+      const globalDisplayVal = currentGlobalCount + '+';
+      const bikesVal = useManualBikes ? (rawBikesVal || null) : (useGlobalBikes ? globalDisplayVal : null);
 
       const useManualPartners = document.getElementById('modal-use-manual-partners').checked;
       const partnersVal = document.getElementById('modal-partners-override').value.trim() || null;
@@ -1408,7 +1422,7 @@
         page_key: targetKey,
         bikes_serviced_override: bikesVal,
         partners_override: partnersVal,
-        use_manual_bikes: useManualBikes,
+        use_manual_bikes: useManualBikes || useGlobalBikes,
         use_global_bikes: useGlobalBikes,
         use_manual_partners: useManualPartners,
         avg_time: avgTime,
