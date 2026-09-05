@@ -2779,11 +2779,9 @@
       }
 
       if (isNewCompleted) {
-        updatePayload.bookingDate = nowIso;
         if (existingOrder && existingOrder.bookingRef) localStorage.setItem('fixwheel_finished_' + existingOrder.bookingRef, nowIso);
         if (existingOrder && existingOrder.id) localStorage.setItem('fixwheel_finished_' + existingOrder.id, nowIso);
       } else if (isPrevCompleted) {
-        updatePayload.bookingDate = null;
         if (existingOrder && existingOrder.bookingRef) localStorage.removeItem('fixwheel_finished_' + existingOrder.bookingRef);
         if (existingOrder && existingOrder.id) localStorage.removeItem('fixwheel_finished_' + existingOrder.id);
       }
@@ -2855,7 +2853,6 @@
 
       closePaymentReceiverModal(false);
 
-      const nowIso = new Date().toISOString();
       const updatePayload = {
         order_status: finalStatus,
         status: 'Completed',
