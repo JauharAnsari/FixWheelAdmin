@@ -1086,6 +1086,24 @@
         if (error) {
           alert('Error saving overrides: ' + error.message);
         } else {
+          if (useGlobalBikes) {
+            try {
+              await supabaseClient.from('public_stats').update({ bikes_serviced: currentGlobalCount, updated_at: new Date().toISOString() }).neq('city_slug', '');
+            } catch (eStats) {
+              console.error('Error updating public_stats for global count:', eStats);
+            }
+          } else if (!useManualBikes) {
+            try {
+              await supabaseClient.rpc('refresh_public_stats');
+            } catch (eStats) {
+              console.error('Error refreshing public_stats:', eStats);
+            }
+          }
+
+          if (typeof loadPublicStats === 'function') {
+            await loadPublicStats();
+          }
+
           showToast('Page variable overrides saved successfully for ' + currentEditPageKey + '!');
           closeEditModal();
         }
