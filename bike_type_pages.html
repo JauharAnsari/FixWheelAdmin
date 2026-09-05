@@ -709,12 +709,20 @@
 
         <!-- Bikes Serviced -->
         <div class="form-group">
-          <div class="form-label">
-            <span>🚴 Total Bikes Serviced Override</span>
-            <label class="toggle-switch">
-              <input type="checkbox" id="modal-use-manual-bikes" onchange="toggleBikesInput()" />
-              <span>Use Manual Override</span>
-            </label>
+          <div class="form-label" style="display: flex; flex-direction: column; gap: 6px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+              <span>🚴 Total Bikes Serviced Override</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="modal-use-manual-bikes" onchange="toggleBikesInput()" />
+                <span>Use Manual Override</span>
+              </label>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 2px;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 11.5px; color: var(--text-2);">
+                <input type="checkbox" id="modal-use-global-bikes" onchange="toggleGlobalBikesInput()" />
+                <span>🌐 Use Homepage / All-India Total Count (e.g. 119+) instead of City-wise Count</span>
+              </label>
+            </div>
           </div>
           <input type="text" class="form-input" id="modal-bikes-override" placeholder="e.g. 100+ / 500+ (Leave blank for Live DB Count)" disabled />
         </div>
@@ -968,7 +976,8 @@
 
         if (data) {
           document.getElementById('modal-use-manual-bikes').checked = !!data.use_manual_bikes;
-          document.getElementById('modal-bikes-override').value = data.bikes_serviced_override || '';
+          document.getElementById('modal-use-global-bikes').checked = !!data.use_global_bikes;
+          document.getElementById('modal-bikes-override').value = (data.bikes_serviced_override === 'GLOBAL_TOTAL') ? '' : (data.bikes_serviced_override || '');
           document.getElementById('modal-bikes-override').disabled = !data.use_manual_bikes;
 
           document.getElementById('modal-use-manual-partners').checked = !!data.use_manual_partners;
@@ -980,6 +989,7 @@
           document.getElementById('modal-starting-price').value = data.starting_price || '';
         } else {
           document.getElementById('modal-use-manual-bikes').checked = false;
+          document.getElementById('modal-use-global-bikes').checked = false;
           document.getElementById('modal-bikes-override').value = '';
           document.getElementById('modal-bikes-override').disabled = true;
 
@@ -1003,6 +1013,17 @@
     function toggleBikesInput() {
       const isManual = document.getElementById('modal-use-manual-bikes').checked;
       document.getElementById('modal-bikes-override').disabled = !isManual;
+      if (isManual) {
+        document.getElementById('modal-use-global-bikes').checked = false;
+      }
+    }
+
+    function toggleGlobalBikesInput() {
+      const isGlobal = document.getElementById('modal-use-global-bikes').checked;
+      if (isGlobal) {
+        document.getElementById('modal-use-manual-bikes').checked = false;
+        document.getElementById('modal-bikes-override').disabled = true;
+      }
     }
 
     function togglePartnersInput() {
@@ -1016,7 +1037,9 @@
       btn.innerHTML = '<span>Saving Overrides...</span>';
 
       const useManualBikes = document.getElementById('modal-use-manual-bikes').checked;
-      const bikesVal = document.getElementById('modal-bikes-override').value.trim() || null;
+      const useGlobalBikes = document.getElementById('modal-use-global-bikes').checked;
+      const rawBikesVal = document.getElementById('modal-bikes-override').value.trim();
+      const bikesVal = useManualBikes ? (rawBikesVal || null) : (useGlobalBikes ? 'GLOBAL_TOTAL' : null);
 
       const useManualPartners = document.getElementById('modal-use-manual-partners').checked;
       const partnersVal = document.getElementById('modal-partners-override').value.trim() || null;
@@ -1033,6 +1056,7 @@
         bikes_serviced_override: bikesVal,
         partners_override: partnersVal,
         use_manual_bikes: useManualBikes,
+        use_global_bikes: useGlobalBikes,
         use_manual_partners: useManualPartners,
         avg_time: avgTime,
         warranty: warranty,
