@@ -69,4 +69,27 @@
       window.location.replace('index.html');
     }
   }
+
+  // Employee UI Customization: Hide Download CSV and Revenue cards for employee role
+  function applyEmployeeUIElements() {
+    if (getStaffRole() === 'employee') {
+      const csvBtn = document.getElementById('download-csv');
+      if (csvBtn) csvBtn.style.display = 'none';
+
+      const revTodayCard = document.getElementById('card-revenue-today');
+      if (revTodayCard) revTodayCard.style.display = 'none';
+
+      const totalRevCard = document.getElementById('card-total-revenue');
+      if (totalRevCard) totalRevCard.style.display = 'none';
+
+      const statGrid = document.querySelector('.fw-stat-grid');
+      if (statGrid) statGrid.style.gridTemplateColumns = 'repeat(3, minmax(0, 1fr))';
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', applyEmployeeUIElements);
+  } else {
+    applyEmployeeUIElements();
+  }
 })();
