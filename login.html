@@ -8,6 +8,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="auth_guard.js"></script>
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
@@ -577,9 +580,7 @@
   </div>
 
   <script>
-    // Config credentials
-    const ADMIN_USER = "zakirfixwheeladmin";
-    const ADMIN_PASS = "zakir@fixwheel2026";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // Theme switching logic
     const themeToggleBtn = document.getElementById('theme-toggle');
@@ -636,7 +637,7 @@
     const btnLoader = document.getElementById('btn-loader');
     const btnText = document.getElementById('btn-text');
 
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       // Clear previous error
@@ -645,60 +646,99 @@
 
       const userVal = document.getElementById('username').value.trim();
       const passVal = document.getElementById('password').value;
-      const rememberVal = document.getElementById('remember-me').checked;
+
+      // Map User ID input to email address
+      let emailVal = userVal;
+      if (!emailVal.includes('@')) {
+        const lower = emailVal.toLowerCase();
+        if (lower === 'zakir' || lower === 'zakirfixwheeladmin') {
+          emailVal = 'zakir@fixwheel.com';
+        } else if (lower === 'admin' || lower === 'fixwheeladmin') {
+          emailVal = 'admin@fixwheel.com';
+        } else if (lower === 'employee') {
+          emailVal = 'employee@fixwheel.com';
+        } else {
+          emailVal = `${lower}@fixwheel.com`;
+        }
+      }
 
       // Loading state
       submitBtn.disabled = true;
       btnLoader.style.display = 'inline-block';
       btnText.textContent = 'Verifying...';
 
-      // Simulate a small delay for premium feels
-      setTimeout(() => {
-        if (userVal === ADMIN_USER && passVal === ADMIN_PASS) {
-          // Authentication Success
-          btnText.textContent = 'Authorized';
-          submitBtn.style.background = 'var(--green)';
-          submitBtn.style.boxShadow = '0 4px 12px rgba(34, 197, 94, 0.3)';
-          
-          
-  sessionStorage.setItem('fixwheel_admin_logged_in', 'true');
-  localStorage.setItem('fixwheel_admin_logged_in', 'true');
-  sessionStorage.setItem('fixwheel_admin_session_v2', 'true');
-  localStorage.setItem('fixwheel_admin_session_v2', 'true');
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+          email: emailVal,
+          password: passVal
+        });
 
-
-          setTimeout(() => {
-            loginCard.classList.add('success-exit');
-            setTimeout(() => {
-              window.location.replace('home.html');
-            }, 300);
-          }, 600);
-
-        } else {
-          // Authentication Failure
-          submitBtn.disabled = false;
-          btnLoader.style.display = 'none';
-          btnText.textContent = 'Authenticate';
-          
-          errorMessage.textContent = 'Invalid User ID or Password.';
-          errorAlert.style.display = 'flex';
-          
-          // Trigger shake animation
-          void loginCard.offsetWidth; // Trigger reflow to restart animation
-          loginCard.classList.add('shake');
+        if (error || !data.user) {
+          throw new Error('Invalid User ID or Password.');
         }
-      }, 800);
+
+        // Fetch staff profile role
+        const { data: profile, error: pError } = await supabaseClient
+          .from('staff_profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .maybeSingle();
+
+        if (pError || !profile || profile.is_active === false) {
+          await supabaseClient.auth.signOut();
+          throw new Error('Account inactive or profile not found. Access denied.');
+        }
+
+        // Auth & Role Success
+        btnText.textContent = 'Authorized';
+        submitBtn.style.background = 'var(--green)';
+        submitBtn.style.boxShadow = '0 4px 12px rgba(34, 197, 94, 0.3)';
+
+        sessionStorage.setItem('fixwheel_admin_logged_in', 'true');
+        localStorage.setItem('fixwheel_admin_logged_in', 'true');
+        sessionStorage.setItem('fixwheel_admin_session_v2', 'true');
+        localStorage.setItem('fixwheel_admin_session_v2', 'true');
+
+        localStorage.setItem('fixwheel_staff_role', profile.role);
+        localStorage.setItem('fixwheel_staff_user', JSON.stringify(profile));
+
+        const targetPage = profile.role === 'employee' ? 'index.html' : 'home.html';
+
+        setTimeout(() => {
+          loginCard.classList.add('success-exit');
+          setTimeout(() => {
+            window.location.replace(targetPage);
+          }, 300);
+        }, 400);
+
+      } catch (err) {
+        submitBtn.disabled = false;
+        btnLoader.style.display = 'none';
+        btnText.textContent = 'Authenticate';
+
+        errorMessage.textContent = err.message || 'Authentication failed.';
+        errorAlert.style.display = 'flex';
+
+        void loginCard.offsetWidth;
+        loginCard.classList.add('shake');
+      }
     });
 
-    
-  function isFixWheelAuthenticated() {
-    return sessionStorage.getItem('fixwheel_admin_logged_in') === 'true' ||
-           localStorage.getItem('fixwheel_admin_logged_in') === 'true' ||
-           sessionStorage.getItem('fixwheel_admin_session_v2') === 'true' ||
-           localStorage.getItem('fixwheel_admin_session_v2') === 'true';
-  }
+    function isFixWheelAuthenticated() {
+      return sessionStorage.getItem('fixwheel_admin_logged_in') === 'true' ||
+             localStorage.getItem('fixwheel_admin_logged_in') === 'true' ||
+             sessionStorage.getItem('fixwheel_admin_session_v2') === 'true' ||
+             localStorage.getItem('fixwheel_admin_session_v2') === 'true';
+    }
 
-    if (isFixWheelAuthenticated()) { window.location.replace('home.html'); }
+    if (isFixWheelAuthenticated()) {
+      const currentRole = localStorage.getItem('fixwheel_staff_role');
+      if (currentRole === 'employee') {
+        window.location.replace('index.html');
+      } else {
+        window.location.replace('home.html');
+      }
+    }
   </script>
 </body>
 </html>

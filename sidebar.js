@@ -6,138 +6,176 @@ function renderSidebar(activeKey) {
   const init = () => {
     // 1. Render Sidebar if missing
     if (!document.querySelector('.sidebar')) {
+      const role = localStorage.getItem('fixwheel_staff_role') || window.FIXWHEEL_CURRENT_ROLE || 'admin';
+      const isEmployee = (role === 'employee');
+
+      let navGroupsHtml = '';
+
+      if (isEmployee) {
+        navGroupsHtml = `
+          <!-- Orders Group -->
+          <div class="nav-group">
+            <div class="nav-group-title">Orders</div>
+            <a href="index.html?v=2027" class="nav-item ${activeKey === 'all_orders' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              All Orders
+            </a>
+          </div>
+
+          <!-- Partners Group -->
+          <div class="nav-group">
+            <div class="nav-group-title">Partners</div>
+            <a href="active_partners.html?v=2027" class="nav-item ${activeKey === 'active_partners' || activeKey === 'all_partners' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              Partners
+            </a>
+          </div>
+        `;
+      } else {
+        navGroupsHtml = `
+          <!-- Overview Group -->
+          <div class="nav-group">
+            <div class="nav-group-title">Overview</div>
+            <a href="home.html?v=2027" class="nav-item ${activeKey === 'dashboard' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>
+              Dashboard
+            </a>
+            <a href="live_ops.html?v=2027" class="nav-item ${activeKey === 'live_ops' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              Live Ops
+            </a>
+          </div>
+
+          <!-- Orders Group -->
+          <div class="nav-group">
+            <div class="nav-group-title">Orders</div>
+            <a href="index.html?v=2027" class="nav-item ${activeKey === 'all_orders' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              All Orders
+            </a>
+            <a href="queries.html?v=2027" class="nav-item ${activeKey === 'queries' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              Customer Queries
+            </a>
+            <a href="disputes.html?v=2027" class="nav-item ${activeKey === 'disputes' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              Disputes
+            </a>
+          </div>
+
+          <!-- Partners Group -->
+          <div class="nav-group">
+            <div class="nav-group-title">Partners</div>
+            <a href="active_partners.html?v=2027" class="nav-item ${activeKey === 'active_partners' || activeKey === 'all_partners' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              Active Partners
+            </a>
+            <a href="pending_partners.html?v=2027" class="nav-item ${activeKey === 'pending_partners' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+              Pending Approval
+            </a>
+            <a href="partner_workload.html?v=2027" class="nav-item ${activeKey === 'partner_workload' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              Partner Workload
+            </a>
+            <a href="partner_payouts.html?v=2027" class="nav-item ${activeKey === 'payouts' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+              Payouts
+            </a>
+          </div>
+
+          <!-- Customers Group -->
+          <div class="nav-group">
+            <div class="nav-group-title">Customers</div>
+            <a href="customers.html?v=2027" class="nav-item ${activeKey === 'customer_list' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              Customer List
+            </a>
+            <a href="blocked_customers.html?v=2027" class="nav-item ${activeKey === 'blocked_customers' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+              Blocked / Flagged
+            </a>
+          </div>
+
+          <!-- Coverage Group -->
+          <div class="nav-group">
+            <div class="nav-group-title">Coverage</div>
+            <a href="coverage.html?v=2027" class="nav-item ${activeKey === 'coverage' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              Cities & Localities
+            </a>
+          </div>
+
+          <!-- Finance Group -->
+          <div class="nav-group">
+            <div class="nav-group-title">Finance</div>
+            <a href="revenue.html?v=2027" class="nav-item ${activeKey === 'revenue' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              Revenue
+            </a>
+            <a href="refunds.html?v=2027" class="nav-item ${activeKey === 'refunds' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+              Refunds
+            </a>
+          </div>
+
+          <!-- Content Group -->
+          <div class="nav-group">
+            <div class="nav-group-title">Content</div>
+            <a href="pages.html?v=2027" class="nav-item ${activeKey === 'pages' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              Pages & Sitemap
+            </a>
+            <a href="bike_type_pages.html?v=2027" class="nav-item ${activeKey === 'bike_type' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8M8 12h8"></path></svg>
+              Bike Types
+            </a>
+          </div>
+
+          <!-- Team Group -->
+          <div class="nav-group">
+            <div class="nav-group-title">Team</div>
+            <a href="notifications.html?v=2027" class="nav-item ${activeKey === 'notifications' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              Notification Logs
+            </a>
+            <a href="settings.html?v=2027" class="nav-item ${activeKey === 'settings' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+              Settings
+            </a>
+          </div>
+
+          <!-- Dev Tools Group -->
+          <div class="nav-group dev-tools">
+            <div class="nav-group-title">Dev Tools</div>
+            <a href="test_orders.html?v=2027" class="nav-item ${activeKey === 'test_orders' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+              Test Orders
+            </a>
+          </div>
+        `;
+      }
+
       const sidebarHtml = `
         <aside class="sidebar">
           <div class="sidebar-header">
             <img src="fixwheel_icon.png" alt="FixWheel Logo" class="sidebar-logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23ef4444\' width=\'32\' height=\'32\'><rect x=\'4\' y=\'4\' width=\'16\' height=\'16\' rx=\'4\' fill=\'%23ef4444\'/><path d=\'M9 17v-8h3a2.5 2.5 0 0 1 0 5h-3v3H9z\' fill=\'white\'/></svg>'">
             <div class="sidebar-brand-text">
               <span class="sidebar-title">FixWheel</span>
-              <span class="sidebar-subtitle">Admin Panel</span>
+              <span class="sidebar-subtitle">${isEmployee ? 'Staff Portal (Employee)' : 'Admin Panel'}</span>
             </div>
           </div>
 
           <nav class="sidebar-nav">
-            <!-- Overview Group -->
-            <div class="nav-group">
-              <div class="nav-group-title">Overview</div>
-              <a href="home.html?v=2027" class="nav-item ${activeKey === 'dashboard' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>
-                Dashboard
-              </a>
-              <a href="live_ops.html?v=2027" class="nav-item ${activeKey === 'live_ops' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                Live Ops
-              </a>
-            </div>
-
-            <!-- Orders Group -->
-            <div class="nav-group">
-              <div class="nav-group-title">Orders</div>
-              <a href="index.html?v=2027" class="nav-item ${activeKey === 'all_orders' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-                All Orders
-              </a>
-              <a href="queries.html?v=2027" class="nav-item ${activeKey === 'queries' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                Customer Queries
-              </a>
-              <a href="disputes.html?v=2027" class="nav-item ${activeKey === 'disputes' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                Disputes
-              </a>
-            </div>
-
-            <!-- Partners Group -->
-            <div class="nav-group">
-              <div class="nav-group-title">Partners</div>
-              <a href="active_partners.html?v=2027" class="nav-item ${activeKey === 'active_partners' || activeKey === 'all_partners' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                Active Partners
-              </a>
-              <a href="pending_partners.html?v=2027" class="nav-item ${activeKey === 'pending_partners' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
-                Pending Approval
-              </a>
-              <a href="partner_workload.html?v=2027" class="nav-item ${activeKey === 'partner_workload' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                Partner Workload
-              </a>
-              <a href="partner_payouts.html?v=2027" class="nav-item ${activeKey === 'payouts' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-                Payouts
-              </a>
-            </div>
-
-            <!-- Customers Group -->
-            <div class="nav-group">
-              <div class="nav-group-title">Customers</div>
-              <a href="customers.html?v=2027" class="nav-item ${activeKey === 'customer_list' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                Customer List
-              </a>
-              <a href="blocked_customers.html?v=2027" class="nav-item ${activeKey === 'blocked_customers' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
-                Blocked / Flagged
-              </a>
-            </div>
-
-            <!-- Coverage Group -->
-            <div class="nav-group">
-              <div class="nav-group-title">Coverage</div>
-              <a href="coverage.html?v=2027" class="nav-item ${activeKey === 'coverage' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                Cities & Localities
-              </a>
-            </div>
-
-            <!-- Finance Group -->
-            <div class="nav-group">
-              <div class="nav-group-title">Finance</div>
-              <a href="revenue.html?v=2027" class="nav-item ${activeKey === 'revenue' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                Revenue
-              </a>
-              <a href="refunds.html?v=2027" class="nav-item ${activeKey === 'refunds' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
-                Refunds
-              </a>
-            </div>
-
-            <!-- Content Group -->
-            <div class="nav-group">
-              <div class="nav-group-title">Content</div>
-              <a href="pages.html?v=2027" class="nav-item ${activeKey === 'pages' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-                Pages & Sitemap
-              </a>
-              <a href="bike_type_pages.html?v=2027" class="nav-item ${activeKey === 'bike_type' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8M8 12h8"></path></svg>
-                Bike Types
-              </a>
-            </div>
-
-            <!-- Team Group -->
-            <div class="nav-group">
-              <div class="nav-group-title">Team</div>
-              <a href="notifications.html?v=2027" class="nav-item ${activeKey === 'notifications' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                Notification Logs
-              </a>
-              <a href="settings.html?v=2027" class="nav-item ${activeKey === 'settings' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                Settings
-              </a>
-            </div>
-
-            <!-- Dev Tools Group -->
-            <div class="nav-group dev-tools">
-              <div class="nav-group-title">Dev Tools</div>
-              <a href="test_orders.html?v=2027" class="nav-item ${activeKey === 'test_orders' ? 'active' : ''}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-                Test Orders
-              </a>
-            </div>
+            ${navGroupsHtml}
           </nav>
+
+          <div class="sidebar-footer" style="padding:16px; border-top:1px solid var(--border); margin-top:auto;">
+            <button onclick="window.fixwheelLogout && window.fixwheelLogout()" class="nav-item" style="width:100%; border:none; background:transparent; cursor:pointer; color:var(--red); font-weight:600; display:flex; align-items:center; gap:8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+              Logout
+            </button>
+          </div>
         </aside>
       `;
 
@@ -164,10 +202,10 @@ function renderSidebar(activeKey) {
     injectCommandPaletteModal();
   };
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
+  if (document.body) {
     init();
+  } else {
+    document.addEventListener('DOMContentLoaded', init);
   }
 }
 
@@ -271,16 +309,25 @@ function filterGlobalSearch(query) {
   const container = document.getElementById('cmd-results-list');
   if (!container) return;
 
+  const role = localStorage.getItem('fixwheel_staff_role') || window.FIXWHEEL_CURRENT_ROLE || 'admin';
+  const isEmployee = (role === 'employee');
+
   const q = (query || '').toLowerCase().trim();
 
   const matched = SEARCH_DATABASE.filter(item => {
+    if (isEmployee) {
+      if (item.url && !item.url.includes('index.html') && !item.url.includes('partners.html') && !item.url.includes('active_partners.html')) {
+        return false;
+      }
+      if (item.type === 'setting') return false;
+    }
     return !q || item.title.toLowerCase().includes(q) || item.sub.toLowerCase().includes(q);
   });
 
   if (matched.length === 0) {
     container.innerHTML = `
       <div style="padding:32px 16px; text-align:center; color:var(--text-3); font-family:var(--mono); font-size:13px;">
-        🔍 No matching pages or settings found for "${query}"
+        🔍 No matching pages found for "${query}"
       </div>
     `;
     return;

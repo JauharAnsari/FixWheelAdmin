@@ -26,6 +26,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=2026" />
   <link rel="stylesheet" href="theme.css?v=2027">
   <link rel="stylesheet" href="sidebar.css?v=2027">
+  <script src="auth_guard.js?v=2026"></script>
   <script src="sidebar.js?v=2027"></script>
 
   <style>
@@ -1033,7 +1034,7 @@
           <td><div class="location-text">${p.address || 'N/A'}</div></td>
           <td><div class="customer-phone" style="font-size: 13px; color: var(--text-1); font-family: var(--sans);">${p.city || 'N/A'}</div></td>
           <td>
-            <select class="status-dropdown badge ${statusClass}" onchange="updatePartnerStatus('${p.id}', this.value)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 4px 8px; border-radius: 4px; font-family: var(--mono); font-size: 11px; outline: none; cursor: pointer;">
+            <select ${ (localStorage.getItem('fixwheel_staff_role') || window.FIXWHEEL_CURRENT_ROLE) === 'employee' ? 'disabled title="Read-only access for employee"' : '' } class="status-dropdown badge ${statusClass}" onchange="updatePartnerStatus('${p.id}', this.value)" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 4px 8px; border-radius: 4px; font-family: var(--mono); font-size: 11px; outline: none; cursor: pointer;">
               <option value="Pending- OnBoarding" ${currentStatus === 'Pending- OnBoarding' ? 'selected' : ''}>Pending- OnBoarding</option>
               <option value="Active - Working with FixWheel" ${currentStatus === 'Active - Working with FixWheel' ? 'selected' : ''}>Active - Working with FixWheel</option>
               <option value="Deactivate-Dispute of Money" ${currentStatus === 'Deactivate-Dispute of Money' ? 'selected' : ''}>Deactivate-Dispute of Money</option>
@@ -1048,13 +1049,19 @@
             <button class="btn-action" onclick="viewGaragePhoto(this.getAttribute('data-photos'), this.getAttribute('data-name'))" data-photos="${(Array.isArray(p.garagePhotos) ? p.garagePhotos.join(',') : p.garagePhotos || '').replace(/"/g, '&quot;')}" data-name="${(p.garageName || 'Unknown').replace(/"/g, '&quot;')}">View</button>
           </td>
           <td>
-            <textarea onchange="updatePartnerRemark('${p.id}', this.value)" placeholder="Add remark..." style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 8px; border-radius: 4px; font-family: var(--sans); font-size: 12px; outline: none; width: 160px; height: 50px; resize: vertical; overflow-y: auto; transition: border 0.2s;" onfocus="this.style.borderColor='var(--text-3)'" onblur="this.style.borderColor='var(--border)'">${(p.Remarks || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+            <textarea ${ (localStorage.getItem('fixwheel_staff_role') || window.FIXWHEEL_CURRENT_ROLE) === 'employee' ? 'readonly title="Read-only access for employee"' : '' } onchange="updatePartnerRemark('${p.id}', this.value)" placeholder="Add remark..." style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 8px; border-radius: 4px; font-family: var(--sans); font-size: 12px; outline: none; width: 160px; height: 50px; resize: vertical; overflow-y: auto; transition: border 0.2s;" onfocus="this.style.borderColor='var(--text-3)'" onblur="this.style.borderColor='var(--border)'">${(p.Remarks || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
           </td>
         </tr>
       `;
     }
 
     async function updatePartnerStatus(partnerId, newStatus) {
+      const currentRole = localStorage.getItem('fixwheel_staff_role') || window.FIXWHEEL_CURRENT_ROLE || 'admin';
+      if (currentRole === 'employee') {
+        alert('Access Denied: Employees have read-only access to Partners.');
+        if (typeof fetchPartners === 'function') fetchPartners();
+        return;
+      }
       const { error } = await supabaseClient
         .from('Partner')
         .update({ partner_status: newStatus })
@@ -1067,6 +1074,12 @@
     }
 
     async function updatePartnerRemark(partnerId, newRemark) {
+      const currentRole = localStorage.getItem('fixwheel_staff_role') || window.FIXWHEEL_CURRENT_ROLE || 'admin';
+      if (currentRole === 'employee') {
+        alert('Access Denied: Employees have read-only access to Partners.');
+        if (typeof fetchPartners === 'function') fetchPartners();
+        return;
+      }
       const { error } = await supabaseClient
         .from('Partner')
         .update({ Remarks: newRemark })
