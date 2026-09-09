@@ -536,7 +536,8 @@
     // Quick Assign Mechanic logic (reuses same update mechanics logic as index.html)
     async function updateMechanic(orderId, mechanicName, column = 'id') {
       console.log(`Live Ops: Assigning ${orderId} to mechanic: ${mechanicName}`);
-      const updateData = { 'Assign Mechanic': mechanicName || null };
+      const role = localStorage.getItem('fixwheel_staff_role') || window.FIXWHEEL_CURRENT_ROLE || 'admin';
+      const updateData = { 'Assign Mechanic': mechanicName || null, updated_by: role === 'employee' ? 'Operator' : 'Admin' };
       if (mechanicName) {
         updateData.partner_source = 'Mechanic assign by Admin Website';
       } else {

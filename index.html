@@ -1228,6 +1228,7 @@
               <th>Mechanic</th>
               <th style="display:none;">Status</th>
               <th>Order Status</th>
+              <th>Updated By</th>
               <th>Pickup</th>
               <th>Amount</th>
               <th>Final Amount</th>
@@ -1407,6 +1408,7 @@
               <th>Mechanic</th>
               <th style="display:none;">Status</th>
               <th>Order Status</th>
+              <th>Updated By</th>
               <th>Pickup</th>
               <th>Amount</th>
               <th>Final Amount</th>
@@ -1527,6 +1529,7 @@
               <th>Mechanic</th>
               <th style="display:none;">Status</th>
               <th>Order Status</th>
+              <th>Updated By</th>
               <th>Pickup</th>
               <th>Amount</th>
               <th>Final Amount</th>
@@ -1649,6 +1652,7 @@
               <th>Mechanic</th>
               <th style="display:none;">Status</th>
               <th>Order Status</th>
+              <th>Updated By</th>
               <th>Pickup</th>
               <th>Amount</th>
               <th>Final Amount</th>
@@ -1769,6 +1773,7 @@
               <th>Mechanic</th>
               <th style="display:none;">Status</th>
               <th>Order Status</th>
+              <th>Updated By</th>
               <th>Pickup</th>
               <th>Amount</th>
               <th>Final Amount</th>
@@ -1968,202 +1973,7 @@
     <p id="clock" style="font-family: var(--mono); font-size: 11px; color: var(--text-3);"></p>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script>
-  <script>
-    // Initialize Supabase
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // Live clock
-    const clock = document.getElementById('clock');
-    function tick() {
-      const now = new Date();
-      clock.textContent = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + '  ·  ' + now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    }
-    tick();
-    setInterval(tick, 1000);
-
-    // Theme switching logic
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    const themeIcon = document.getElementById('theme-icon');
-    const themeText = document.getElementById('theme-text');
-
-    function updateThemeIcon() {
-      if (document.documentElement.getAttribute('data-theme') === 'light') {
-        themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>'; // Moon icon
-        themeText.textContent = 'Dark';
-      } else {
-        themeIcon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>'; // Sun icon
-        themeText.textContent = 'Light';
-      }
-    }
-
-    updateThemeIcon(); // init
-
-    themeToggleBtn.addEventListener('click', () => {
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      if (currentTheme === 'light') {
-        document.documentElement.removeAttribute('data-theme');
-        localStorage.setItem('theme', 'dark');
-      } else {
-        document.documentElement.setAttribute('data-theme', 'light');
-        localStorage.setItem('theme', 'light');
-      }
-      updateThemeIcon();
-    });
-
-    // CSV Download logic
-    document.getElementById('download-csv').addEventListener('click', () => {
-      if (!window.allBookings || window.allBookings.length === 0) {
-        alert('No data to download');
-        return;
-      }
-      
-      let csvContent = "\uFEFFOrder ID,Date,Finished On,Customer Name,Phone,Vehicle,Service,Source,Address,Slot,Mechanic,Order Status,Amount,Final Amount,Remark\r\n";
-      
-      window.allBookings.forEach(order => {
-        const orderId = `"${(order.bookingRef || order.id || '').toString().replace(/"/g, '""')}"`;
-        const dateStr = order.createdAt ? (order.createdAt.endsWith('Z') || order.createdAt.includes('+') ? order.createdAt : order.createdAt + 'Z') : null;
-        const date = `"${dateStr ? new Date(dateStr).toLocaleString('en-IN').replace(/"/g, '""') : ''}"`;
-        const finishedRaw = order.finished_at || order.order_finished_date;
-        const finishedZ = finishedRaw ? (finishedRaw.endsWith('Z') || finishedRaw.includes('+') ? finishedRaw : finishedRaw + 'Z') : null;
-        const finishedOn = `"${finishedZ && !isNaN(new Date(finishedZ).getTime()) ? new Date(finishedZ).toLocaleString('en-IN').replace(/"/g, '""') : ''}"`;
-        const customer = `"${(order.customerName || '').toString().replace(/"/g, '""')}"`;
-        const phone = `"${(order.phone || '').toString().replace(/"/g, '""')}"`;
-        const vehicle = `"${((order.bikeModel || '') + ' ' + (order.bikeType || '')).trim().replace(/"/g, '""')}"`;
-        const service = `"${(order.package || '').toString().replace(/"/g, '""')}"`;
-        const source = `"${(order.source || '').toString().replace(/"/g, '""')}"`;
-        const address = `"${(order.address || '').toString().replace(/"/g, '""')}"`;
-        const slot = `"${(order.preferredSlot || '').toString().replace(/"/g, '""')}"`;
-        const mechanic = `"${(order['Assign Mechanic'] || '').toString().replace(/"/g, '""')}"`;
-        const orderStatus = `"${(order.order_status || order.status || '').toString().replace(/"/g, '""')}"`;
-        const amount = `"${(order.price || 0).toString().replace(/"/g, '""')}"`;
-        const finalAmount = `"${(order.Final_Amount || order.price || 0).toString().replace(/"/g, '""')}"`;
-        const remark = `"${(order.Remarks || '').toString().replace(/"/g, '""')}"`;
-        
-        csvContent += [orderId, date, finishedOn, customer, phone, vehicle, service, source, address, slot, mechanic, orderStatus, amount, finalAmount, remark].join(',') + "\r\n";
-      });
-      
-      const now = new Date();
-      const timestamp = now.getFullYear().toString() + 
-        String(now.getMonth() + 1).padStart(2, '0') + 
-        String(now.getDate()).padStart(2, '0') + "_" + 
-        String(now.getHours()).padStart(2, '0') + 
-        String(now.getMinutes()).padStart(2, '0') + 
-        String(now.getSeconds()).padStart(2, '0');
-        
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
-      link.setAttribute("href", url);
-      link.setAttribute("download", `orders_data_${timestamp}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
-
-    // Tab switching logic
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-trigger').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.getAttribute('onclick').includes(`'${tabId}'`)) {
-          btn.classList.add('active');
-        }
-      });
-
-      document.querySelectorAll('.order-section').forEach(section => {
-        section.classList.remove('active');
-      });
-      const targetSection = document.getElementById(tabId + '-section');
-      if (targetSection) targetSection.classList.add('active');
-
-      const tabs = document.querySelector('.tabs-container');
-      if (tabs) {
-        const topPos = tabs.getBoundingClientRect().top + window.pageYOffset - 100;
-          <span>Selected Package / Services</span>
-          <span id="sd-order-ref" class="fw-badge fw-badge-neutral" style="font-size: 11px;">#—</span>
-        </div>
-        <div id="sd-package-name" style="font-size: 15px; font-weight: 600; color: var(--text-1); line-height: 1.6; word-break: break-word; white-space: pre-wrap;">-</div>
-      </div>
-
-      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 24px; font-size: 13px;">
-        <div style="background: var(--surface-3); border: 1px solid var(--border); border-radius: 10px; padding: 12px;">
-          <div style="font-size: 11px; color: var(--text-2); font-weight: 500; margin-bottom: 4px;">Customer Name</div>
-          <div id="sd-customer-name" style="font-weight: 600; color: var(--text-1);">-</div>
-          <div id="sd-customer-phone" style="font-size: 11px; color: #3b82f6; font-family: var(--mono); margin-top: 2px;">-</div>
-        </div>
-
-        <div style="background: var(--surface-3); border: 1px solid var(--border); border-radius: 10px; padding: 12px;">
-          <div style="font-size: 11px; color: var(--text-2); font-weight: 500; margin-bottom: 4px;">Vehicle Model</div>
-          <div id="sd-vehicle-model" style="font-weight: 600; color: var(--text-1);">-</div>
-          <div id="sd-vehicle-brand" style="font-size: 11px; color: var(--text-2); margin-top: 2px;">-</div>
-        </div>
-
-        <div style="background: var(--surface-3); border: 1px solid var(--border); border-radius: 10px; padding: 12px;">
-          <div style="font-size: 11px; color: var(--text-2); font-weight: 500; margin-bottom: 4px;">City & Time Slot</div>
-          <div id="sd-city-slot" style="font-weight: 600; color: var(--text-1);">-</div>
-        </div>
-
-        <div style="background: var(--surface-3); border: 1px solid var(--border); border-radius: 10px; padding: 12px;">
-          <div style="font-size: 11px; color: var(--text-2); font-weight: 500; margin-bottom: 4px;">Total Price</div>
-          <div id="sd-final-amount" style="font-weight: 700; color: var(--green); font-size: 16px;">₹0</div>
-        </div>
-      </div>
-
-      <div style="display: flex; justify-content: flex-end; gap: 12px;">
-        <button onclick="copyServicePackageText(this)" style="padding: 10px 18px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); font-weight: 600; color: var(--text-1); cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: background 0.15s;">
-          📋 Copy Service Name
-        </button>
-        <button onclick="closeServiceDetailsModal()" style="padding: 10px 22px; border: none; border-radius: 8px; background: #3b82f6; font-weight: 600; color: white; cursor: pointer; font-size: 13px; transition: background 0.15s;">
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <style>
-    .slot-btn {
-      padding: 12px 4px;
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #374151;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .slot-btn:hover {
-      border-color: #ef4444;
-      color: #ef4444;
-    }
-    .slot-btn.selected {
-      border-color: #ef4444;
-      color: #ef4444;
-      background: #fef2f2;
-      position: relative;
-    }
-    .slot-btn.selected::after {
-      content: '•';
-      position: absolute;
-      bottom: -4px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: #ef4444;
-      font-size: 16px;
-    }
-  </style>
-
-  </main>
-
-  <!-- ─── Footer ─── -->
-  <footer>
-    <p>FixWheel Admin Panel — <span>fixwheel.app</span></p>
-    <p id="clock" style="font-family: var(--mono); font-size: 11px; color: var(--text-3);"></p>
-  </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script>
     // Initialize Supabase
@@ -2878,6 +2688,15 @@
           </td>
           <td style="display:none;"><span class="badge ${originalStatusClass}">${order.status || 'Pending'}</span></td>
           <td>${statusDropdownHtml}</td>
+          <td>
+            ${(order.updated_by || '').toLowerCase() === 'operator'
+              ? '<span class="fw-badge fw-badge-purple" style="font-size:11px; font-weight:600;">⚙️ Operator</span>'
+              : ((order.updated_by || '').toLowerCase() === 'admin'
+                  ? '<span class="fw-badge fw-badge-info" style="font-size:11px; font-weight:600;">👑 Admin</span>'
+                  : '<span class="fw-badge fw-badge-neutral" style="font-size:11px; color:var(--text-3);">—</span>'
+                )
+            }
+          </td>
           <td>${pickupDropdownHtml}</td>
           <td>
             <div class="price-container" style="display:flex; align-items:center; gap:8px;">
@@ -2961,7 +2780,7 @@
 
       const { data, error } = await supabaseClient
         .from('Booking')
-        .update({ payment_settled: newValue })
+        .update({ payment_settled: newValue, updated_by: getCurrentUpdatedBy() })
         .eq(column, id)
         .select();
 
@@ -2979,7 +2798,7 @@
 
       const { data, error } = await supabaseClient
         .from('Booking')
-        .update({ settlement: newSettlement })
+        .update({ settlement: newSettlement, updated_by: getCurrentUpdatedBy() })
         .eq(column, id)
         .select();
 
@@ -2993,7 +2812,7 @@
     }
 
     async function updateMechanic(id, mechanicName, column = 'id') {
-      const updateData = { 'Assign Mechanic': mechanicName || null };
+      const updateData = { 'Assign Mechanic': mechanicName || null, updated_by: getCurrentUpdatedBy() };
       if (mechanicName) {
         updateData.partner_source = 'Mechanic assign by Admin Website';
       } else {
@@ -3012,6 +2831,11 @@
         console.log('Mechanic assigned successfully.');
         fetchBookings();
       }
+    }
+
+        function getCurrentUpdatedBy() {
+      const role = localStorage.getItem('fixwheel_staff_role') || window.FIXWHEEL_CURRENT_ROLE || 'admin';
+      return role === 'employee' ? 'Operator' : 'Admin';
     }
 
     let currentRescheduleContext = null;
@@ -3084,6 +2908,7 @@
         existingOrder.status = newMainStatus;
         if (updatePayload.payment_received_by) existingOrder.payment_received_by = updatePayload.payment_received_by;
         if (updatePayload.settlement) existingOrder.settlement = updatePayload.settlement;
+        existingOrder.updated_by = getCurrentUpdatedBy();
       }
       if (window.allBookings) renderDashboard(window.allBookings);
 
@@ -3164,6 +2989,7 @@
         existingOrder.settlement = settlementVal;
         if (existingOrder.bookingRef) localStorage.setItem('fixwheel_finished_' + existingOrder.bookingRef, nowIso);
         if (existingOrder.id) localStorage.setItem('fixwheel_finished_' + existingOrder.id, nowIso);
+        existingOrder.updated_by = getCurrentUpdatedBy();
       }
       if (window.allBookings) renderDashboard(window.allBookings);
 
@@ -3189,7 +3015,7 @@
       if (btn) btn.disabled = true;
       const { error } = await supabaseClient
         .from('Booking')
-        .update({ Remarks: newRemark })
+        .update({ Remarks: newRemark, updated_by: getCurrentUpdatedBy() })
         .eq(column, id);
 
       if (btn) btn.disabled = false;
@@ -3208,6 +3034,7 @@
       if (existingOrder) {
         existingOrder.pickup_status = newPickup;
         existingOrder.pickup = newPickup;
+        existingOrder.updated_by = getCurrentUpdatedBy();
       }
 
       if (window.allBookings) renderDashboard(window.allBookings);
@@ -3267,7 +3094,7 @@
 
       const { data, error } = await supabaseClient
         .from('Booking')
-        .update({ Final_Amount: newAmount })
+        .update({ Final_Amount: newAmount, updated_by: getCurrentUpdatedBy() })
         .eq(column, orderId)
         .select();
 
@@ -3312,7 +3139,7 @@
 
       const { data, error } = await supabaseClient
         .from('Booking')
-        .update({ price: newPrice })
+        .update({ price: newPrice, updated_by: getCurrentUpdatedBy() })
         .eq(column, orderId)
         .select();
 
