@@ -2405,6 +2405,43 @@
       };
       const todayISO = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
+      const syncDailyRevenueToSupabase = async (bookingsList) => {
+        if (!supabaseClient || !bookingsList || !Array.isArray(bookingsList)) return;
+        try {
+          const dailyMap = {};
+          bookingsList.forEach(b => {
+            const st = ((b.order_status || '') + ' ' + (b.status || '')).toLowerCase();
+            const isTest = b.is_test_order === true || b.is_test_order === 'true' || st.includes('test order') || st.includes('sandbox');
+            if (isTest) return;
+
+            const isCompleted = st.includes('completed') || st.includes('payment received');
+            if (!isCompleted) return;
+
+            const amt = Number(b.Final_Amount) || Number(b.price) || 0;
+            const rawFinished = b.finished_at || b.order_finished_date || b.createdAt;
+            const dateISO = getISTISO(rawFinished);
+            if (!dateISO) return;
+
+            if (!dailyMap[dateISO]) dailyMap[dateISO] = { revenue: 0, count: 0 };
+            dailyMap[dateISO].revenue += amt;
+            dailyMap[dateISO].count += 1;
+          });
+
+          const rows = Object.entries(dailyMap).map(([date, data]) => ({
+            date,
+            total_revenue: data.revenue,
+            completed_orders: data.count,
+            updated_at: new Date().toISOString()
+          }));
+
+          if (rows.length > 0) {
+            await supabaseClient.from('daily_revenue').upsert(rows, { onConflict: 'date' });
+          }
+        } catch (e) {
+          console.error('Error syncing daily revenue to Supabase:', e);
+        }
+      };
+
       // Bug 3 Fix: Track job durations (Service Started -> Completed)
       let totalJobMinutes = 0;
       let completedJobTimeCount = 0;
@@ -2620,6 +2657,8 @@
           totalBox.style.display = 'none';
         }
       }
+
+      syncDailyRevenueToSupabase(bookings);
     }
 
     function createOrderRow(order, isCompleted) {
