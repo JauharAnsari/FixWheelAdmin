@@ -2395,24 +2395,22 @@
       let totalSummaryEarnings = 0;
 
       let todayRevenue = 0;
-      const todayISO = new Date().toLocaleDateString('en-CA'); // 'YYYY-MM-DD' in local IST timezone
+      const getISTISO = (dStr) => {
+        if (!dStr) return '';
+        if (typeof dStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dStr.trim())) return dStr.trim();
+        const s = (typeof dStr === 'string' && !dStr.endsWith('Z') && !dStr.includes('+')) ? dStr + 'Z' : dStr;
+        const d = new Date(s);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+      };
+      const todayISO = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
       // Bug 3 Fix: Track job durations (Service Started -> Completed)
       let totalJobMinutes = 0;
       let completedJobTimeCount = 0;
 
       bookings.forEach(order => {
-        let orderDateFormatted = '';
-        if (order.createdAt) {
-          const dateStr = order.createdAt.endsWith('Z') || order.createdAt.includes('+') ? order.createdAt : order.createdAt + 'Z';
-          const d = new Date(dateStr);
-          if (!isNaN(d)) {
-            const yyyy = d.getFullYear();
-            const mm = String(d.getMonth() + 1).padStart(2, '0');
-            const dd = String(d.getDate()).padStart(2, '0');
-            orderDateFormatted = `${yyyy}-${mm}-${dd}`;
-          }
-        }
+        const orderDateFormatted = getISTISO(order.createdAt);
 
         const statusStr = ((order.order_status || '') + ' ' + (order.status || '')).toLowerCase();
         const isCompleted = statusStr.includes('completed') || statusStr.includes('payment received');
@@ -2441,22 +2439,8 @@
         totalCount++;
 
         // Calculate accurate completion date ISO ('YYYY-MM-DD')
-        const rawFinished = order.finished_at || order.order_finished_date || (order.bookingRef ? localStorage.getItem('fixwheel_finished_' + order.bookingRef) : null) || (order.id ? localStorage.getItem('fixwheel_finished_' + order.id) : null) || order.bookingDate || order.createdAt;
-        let finishISO = '';
-        if (rawFinished) {
-          if (typeof rawFinished === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawFinished.trim())) {
-            finishISO = rawFinished.trim();
-          } else {
-            const dateStr = (typeof rawFinished === 'string' && !rawFinished.endsWith('Z') && !rawFinished.includes('+')) ? rawFinished + 'Z' : rawFinished;
-            const d = new Date(dateStr);
-            if (!isNaN(d.getTime())) {
-              const yyyy = d.getFullYear();
-              const mm = String(d.getMonth() + 1).padStart(2, '0');
-              const dd = String(d.getDate()).padStart(2, '0');
-              finishISO = `${yyyy}-${mm}-${dd}`;
-            }
-          }
-        }
+        const rawFinished = order.finished_at || order.order_finished_date || (order.bookingRef ? localStorage.getItem('fixwheel_finished_' + order.bookingRef) : null) || (order.id ? localStorage.getItem('fixwheel_finished_' + order.id) : null) || order.createdAt;
+        const finishISO = getISTISO(rawFinished);
         const isFinishedToday = finishISO === todayISO;
         const isCreatedToday = orderDateFormatted === todayISO;
 
@@ -3026,9 +3010,13 @@
       }
 
       if (isNewCompleted) {
+        updatePayload.finished_at = nowIso;
+        updatePayload.order_finished_date = nowIso;
         if (existingOrder && existingOrder.bookingRef) localStorage.setItem('fixwheel_finished_' + existingOrder.bookingRef, nowIso);
         if (existingOrder && existingOrder.id) localStorage.setItem('fixwheel_finished_' + existingOrder.id, nowIso);
       } else if (isPrevCompleted) {
+        updatePayload.finished_at = null;
+        updatePayload.order_finished_date = null;
         if (existingOrder && existingOrder.bookingRef) localStorage.removeItem('fixwheel_finished_' + existingOrder.bookingRef);
         if (existingOrder && existingOrder.id) localStorage.removeItem('fixwheel_finished_' + existingOrder.id);
       }
@@ -3100,12 +3088,15 @@
 
       closePaymentReceiverModal(false);
 
+      const nowIso = new Date().toISOString();
       const updatePayload = {
         order_status: finalStatus,
         status: 'Completed',
         payment_received_by: receiver,
         settlement: settlementVal,
-        bookingDate: nowIso
+        bookingDate: nowIso,
+        finished_at: nowIso,
+        order_finished_date: nowIso
       };
 
       const existingOrder = (window.allBookings || []).find(b => String(b[col]) === String(orderId) || String(b.id) === String(orderId) || String(b.bookingRef) === String(orderId));

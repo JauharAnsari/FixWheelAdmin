@@ -1423,7 +1423,15 @@
         if (phone) customerPhoneCounts[phone] = (customerPhoneCounts[phone] || 0) + 1;
       });
 
-      const todayISO = new Date().toLocaleDateString('en-CA');
+      const getISTISO = (dStr) => {
+        if (!dStr) return '';
+        if (typeof dStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dStr.trim())) return dStr.trim();
+        const s = (typeof dStr === 'string' && !dStr.endsWith('Z') && !dStr.includes('+')) ? dStr + 'Z' : dStr;
+        const d = new Date(s);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+      };
+      const todayISO = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
       const nowMs = Date.now();
 
       // Process Production Bookings
@@ -1435,36 +1443,12 @@
         const amount = Number(b.Final_Amount) || Number(b.price) || 0;
 
         // Completion date ISO
-        const rawFinished = b.finished_at || b.order_finished_date || (b.bookingRef ? localStorage.getItem('fixwheel_finished_' + b.bookingRef) : null) || (b.id ? localStorage.getItem('fixwheel_finished_' + b.id) : null) || b.bookingDate || b.createdAt;
-        let finishISO = '';
-        if (rawFinished) {
-          if (typeof rawFinished === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawFinished.trim())) {
-            finishISO = rawFinished.trim();
-          } else {
-            const dateStr = (typeof rawFinished === 'string' && !rawFinished.endsWith('Z') && !rawFinished.includes('+')) ? rawFinished + 'Z' : rawFinished;
-            const dFinished = new Date(dateStr);
-            if (!isNaN(dFinished.getTime())) {
-              const yyyy = dFinished.getFullYear();
-              const mm = String(dFinished.getMonth() + 1).padStart(2, '0');
-              const dd = String(dFinished.getDate()).padStart(2, '0');
-              finishISO = `${yyyy}-${mm}-${dd}`;
-            }
-          }
-        }
+        const rawFinished = b.finished_at || b.order_finished_date || (b.bookingRef ? localStorage.getItem('fixwheel_finished_' + b.bookingRef) : null) || (b.id ? localStorage.getItem('fixwheel_finished_' + b.id) : null) || b.createdAt;
+        const finishISO = getISTISO(rawFinished);
         const isFinishedToday = finishISO === todayISO;
 
         // Created date ISO
-        let createdISO = '';
-        if (b.createdAt) {
-          const dateStr = (typeof b.createdAt === 'string' && !b.createdAt.endsWith('Z') && !b.createdAt.includes('+')) ? b.createdAt + 'Z' : b.createdAt;
-          const dCreated = new Date(dateStr);
-          if (!isNaN(dCreated.getTime())) {
-            const yyyy = dCreated.getFullYear();
-            const mm = String(dCreated.getMonth() + 1).padStart(2, '0');
-            const dd = String(dCreated.getDate()).padStart(2, '0');
-            createdISO = `${yyyy}-${mm}-${dd}`;
-          }
-        }
+        const createdISO = getISTISO(b.createdAt);
         const isCreatedToday = createdISO === todayISO;
 
         if (isDisputed) openDisputesCount++;
