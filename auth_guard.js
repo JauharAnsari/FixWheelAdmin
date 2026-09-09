@@ -78,7 +78,7 @@
         const sUser = JSON.parse(staffUserStr);
         const emailEl = document.getElementById('admin-email');
         if (emailEl && sUser.email) {
-          emailEl.textContent = `${sUser.email} (${sUser.role || 'staff'})`;
+          emailEl.textContent = sUser.email;
         }
       } catch(e){}
     }
