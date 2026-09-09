@@ -2908,6 +2908,13 @@
         existingOrder.status = newMainStatus;
         if (updatePayload.payment_received_by) existingOrder.payment_received_by = updatePayload.payment_received_by;
         if (updatePayload.settlement) existingOrder.settlement = updatePayload.settlement;
+        if (isNewCompleted) {
+          existingOrder.finished_at = nowIso;
+          existingOrder.order_finished_date = nowIso;
+        } else if (isPrevCompleted) {
+          existingOrder.finished_at = null;
+          existingOrder.order_finished_date = null;
+        }
         existingOrder.updated_by = getCurrentUpdatedBy();
       }
       if (window.allBookings) renderDashboard(window.allBookings);
