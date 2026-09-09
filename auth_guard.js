@@ -76,11 +76,18 @@
     if (staffUserStr) {
       try {
         const sUser = JSON.parse(staffUserStr);
+        if (sUser.email === 'employee@fixwheel.com' || (getStaffRole() === 'employee' && (!sUser.email || sUser.email.includes('employee@')))) {
+          sUser.email = 'Mdarzoo@fixwheel.app';
+          localStorage.setItem('fixwheel_staff_user', JSON.stringify(sUser));
+        }
         const emailEl = document.getElementById('admin-email');
         if (emailEl && sUser.email) {
           emailEl.textContent = sUser.email;
         }
       } catch(e){}
+    } else if (getStaffRole() === 'employee') {
+      const emailEl = document.getElementById('admin-email');
+      if (emailEl) emailEl.textContent = 'Mdarzoo@fixwheel.app';
     }
 
     if (getStaffRole() === 'employee') {
