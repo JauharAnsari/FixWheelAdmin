@@ -72,6 +72,17 @@
 
   // Employee UI Customization: Hide Download CSV and Revenue cards for employee role
   function applyEmployeeUIElements() {
+    const staffUserStr = localStorage.getItem('fixwheel_staff_user');
+    if (staffUserStr) {
+      try {
+        const sUser = JSON.parse(staffUserStr);
+        const emailEl = document.getElementById('admin-email');
+        if (emailEl && sUser.email) {
+          emailEl.textContent = `${sUser.email} (${sUser.role || 'staff'})`;
+        }
+      } catch(e){}
+    }
+
     if (getStaffRole() === 'employee') {
       const csvBtn = document.getElementById('download-csv');
       if (csvBtn) csvBtn.style.display = 'none';

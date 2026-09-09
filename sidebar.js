@@ -162,7 +162,7 @@ function renderSidebar(activeKey) {
             <img src="fixwheel_icon.png" alt="FixWheel Logo" class="sidebar-logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23ef4444\' width=\'32\' height=\'32\'><rect x=\'4\' y=\'4\' width=\'16\' height=\'16\' rx=\'4\' fill=\'%23ef4444\'/><path d=\'M9 17v-8h3a2.5 2.5 0 0 1 0 5h-3v3H9z\' fill=\'white\'/></svg>'">
             <div class="sidebar-brand-text">
               <span class="sidebar-title">FixWheel</span>
-              <span class="sidebar-subtitle">${isEmployee ? 'Staff Portal (Employee)' : 'Admin Panel'}</span>
+              <span class="sidebar-subtitle">${isEmployee ? 'Operation Dashboard' : 'Admin Panel'}</span>
             </div>
           </div>
 
