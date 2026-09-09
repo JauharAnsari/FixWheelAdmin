@@ -2442,6 +2442,11 @@
         }
       };
 
+      const isEmployeeUser = (localStorage.getItem('fixwheel_staff_role') || window.FIXWHEEL_CURRENT_ROLE) === 'employee';
+      const sevenDaysAgoDate = new Date();
+      sevenDaysAgoDate.setDate(sevenDaysAgoDate.getDate() - 7);
+      const sevenDaysAgoISO = getISTISO(sevenDaysAgoDate);
+
       // Bug 3 Fix: Track job durations (Service Started -> Completed)
       let totalJobMinutes = 0;
       let completedJobTimeCount = 0;
@@ -2473,13 +2478,27 @@
           return; // Exclude explicit test orders from production totals & KPIs
         }
 
-        totalCount++;
-
         // Calculate accurate completion date ISO ('YYYY-MM-DD')
         const rawFinished = order.finished_at || order.order_finished_date || (order.bookingRef ? localStorage.getItem('fixwheel_finished_' + order.bookingRef) : null) || (order.id ? localStorage.getItem('fixwheel_finished_' + order.id) : null) || order.createdAt;
         const finishISO = getISTISO(rawFinished);
         const isFinishedToday = finishISO === todayISO;
         const isCreatedToday = orderDateFormatted === todayISO;
+
+        const isOrderInLast7Days = (orderDateFormatted && orderDateFormatted >= sevenDaysAgoISO) || (finishISO && finishISO >= sevenDaysAgoISO);
+
+        const matchTotalDate = isDateInRange(orderDateFormatted, totalDateFrom, totalDateTo);
+        const matchTotalSource = totalSourceFilter === 'all' || orderSource === totalSourceFilter;
+        if (!isEmployeeUser || isOrderInLast7Days) {
+          totalCount++;
+          if (totalTable && matchTotalDate && matchTotalSource) {
+            totalHtml += row;
+            visibleTotalCount++;
+            if (totalDateFrom && totalDateTo) {
+              totalSummaryOrders++;
+              totalSummaryEarnings += finalAmt;
+            }
+          }
+        }
 
         // Today's Orders Check (Include orders created today OR completed today)
         if (isCreatedToday || (isCompleted && isFinishedToday)) {
@@ -2496,19 +2515,7 @@
           }
         }
 
-        const matchTotalDate = isDateInRange(orderDateFormatted, totalDateFrom, totalDateTo);
-        const matchTotalSource = totalSourceFilter === 'all' || orderSource === totalSourceFilter;
-        if (totalTable && matchTotalDate && matchTotalSource) {
-          totalHtml += row;
-          visibleTotalCount++;
-          if (totalDateFrom && totalDateTo) {
-            totalSummaryOrders++;
-            totalSummaryEarnings += finalAmt;
-          }
-        }
-
         if (isCompleted) {
-          completedCount++;
           totalRevenue += finalAmt;
 
           // Revenue Today: includes all completed orders finished today or created today
@@ -2528,22 +2535,27 @@
             }
           }
 
-          const matchCompletedDate = isDateInRange(orderDateFormatted, completedDateFrom, completedDateTo);
-          const matchCompletedSource = completedSourceFilter === 'all' || orderSource === completedSourceFilter;
-          if (matchCompletedDate && matchCompletedSource) {
-            completedHtml += row;
-            visibleCompletedCount++;
-            if (completedDateFrom && completedDateTo) {
-              completedSummaryOrders++;
-              completedSummaryEarnings += finalAmt;
+          if (!isEmployeeUser || isOrderInLast7Days) {
+            completedCount++;
+            const matchCompletedDate = isDateInRange(orderDateFormatted, completedDateFrom, completedDateTo);
+            const matchCompletedSource = completedSourceFilter === 'all' || orderSource === completedSourceFilter;
+            if (matchCompletedDate && matchCompletedSource) {
+              completedHtml += row;
+              visibleCompletedCount++;
+              if (completedDateFrom && completedDateTo) {
+                completedSummaryOrders++;
+                completedSummaryEarnings += finalAmt;
+              }
             }
           }
         } else if (isCancelled) {
           const matchCancelledSource = cancelledSourceFilter === 'all' || orderSource === cancelledSourceFilter;
           if (cancelledTable) {
-            cancelledCount++;
-            if (matchCancelledSource) {
-              cancelledHtml += row;
+            if (!isEmployeeUser || isOrderInLast7Days) {
+              cancelledCount++;
+              if (matchCancelledSource) {
+                cancelledHtml += row;
+              }
             }
           }
         } else {
@@ -2582,8 +2594,7 @@
       if (testOrderTable) testOrderTable.innerHTML = testOrderHtml;
 
       // Update Stats
-      const currentRoleForStats = localStorage.getItem('fixwheel_staff_role') || window.FIXWHEEL_CURRENT_ROLE || 'admin';
-      document.getElementById('stat-total-count').textContent = (currentRoleForStats === 'employee') ? 0 : totalCount;
+      document.getElementById('stat-total-count').textContent = totalCount;
       document.getElementById('stat-pending-count').textContent = pendingCount;
       document.getElementById('stat-completed-count').textContent = completedCount;
       document.getElementById('stat-revenue').textContent = `₹${todayRevenue.toLocaleString()}`;
