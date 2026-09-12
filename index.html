@@ -1138,7 +1138,6 @@
           <select id="pending-city-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 140px;">
             <option value="">All Cities</option>
             <option value="Delhi">Delhi</option>
-            <option value="New Delhi">New Delhi</option>
             <option value="Gurgaon">Gurgaon</option>
             <option value="Faridabad">Faridabad</option>
             <option value="Noida">Noida</option>
@@ -1260,7 +1259,6 @@
             style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 100px;">
             <option value="">All Cities</option>
             <option value="Delhi">Delhi</option>
-            <option value="New Delhi">New Delhi</option>
             <option value="Gurgaon">Gurgaon</option>
             <option value="Faridabad">Faridabad</option>
             <option value="Noida">Noida</option>
@@ -1318,7 +1316,6 @@
           <select id="completed-city-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 140px;">
             <option value="">All Cities</option>
             <option value="Delhi">Delhi</option>
-            <option value="New Delhi">New Delhi</option>
             <option value="Gurgaon">Gurgaon</option>
             <option value="Faridabad">Faridabad</option>
             <option value="Noida">Noida</option>
@@ -1439,7 +1436,6 @@
           <select id="cancelled-city-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 140px;">
             <option value="">All Cities</option>
             <option value="Delhi">Delhi</option>
-            <option value="New Delhi">New Delhi</option>
             <option value="Gurgaon">Gurgaon</option>
             <option value="Faridabad">Faridabad</option>
             <option value="Noida">Noida</option>
@@ -1562,7 +1558,6 @@
           <select id="test-order-city-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 140px;">
             <option value="">All Cities</option>
             <option value="Delhi">Delhi</option>
-            <option value="New Delhi">New Delhi</option>
             <option value="Gurgaon">Gurgaon</option>
             <option value="Faridabad">Faridabad</option>
             <option value="Noida">Noida</option>
@@ -1683,7 +1678,6 @@
           <select id="total-city-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 140px;">
             <option value="">All Cities</option>
             <option value="Delhi">Delhi</option>
-            <option value="New Delhi">New Delhi</option>
             <option value="Gurgaon">Gurgaon</option>
             <option value="Faridabad">Faridabad</option>
             <option value="Noida">Noida</option>
@@ -2148,6 +2142,26 @@
       const totalTable = document.getElementById('total-table-body');
       const testOrderTable = document.getElementById('test-order-table-body');
 
+      const checkCityMatch = (city, filterVal) => {
+        if (!filterVal || filterVal === 'all') return true;
+        const c = (city || '').toLowerCase().trim();
+        const f = filterVal.toLowerCase().trim();
+        if (f === 'delhi') return c.includes('delhi');
+        if (f === 'gurgaon') return c.includes('gurgaon') || c.includes('gurugram');
+        return c.includes(f);
+      };
+
+      const matchSearchText = (order, term) => {
+        if (!term) return true;
+        const t = term.toLowerCase().trim();
+        return (order.customerName || '').toLowerCase().includes(t) ||
+               (order.bookingRef || order.id || '').toLowerCase().includes(t) ||
+               (order.phone || '').toLowerCase().includes(t) ||
+               (order.bikeModel || order.vehicleModel || '').toLowerCase().includes(t) ||
+               (order.bikeType || '').toLowerCase().includes(t) ||
+               (order.service || order.servicePackage || '').toLowerCase().includes(t);
+      };
+
       const searchTerm = (document.getElementById('pending-search')?.value || '').toLowerCase();
       const statusFilter = (document.getElementById('pending-status-filter')?.value || 'all');
       const cityFilter = (document.getElementById('pending-city-filter')?.value || '').toLowerCase();
@@ -2160,9 +2174,24 @@
       const todayVehicleFilter = (document.getElementById('today-vehicle-filter')?.value || '').toLowerCase();
       const todaySourceFilter = (document.getElementById('today-source-filter')?.value || 'all').toLowerCase();
 
+      const completedSearchTerm = (document.getElementById('completed-search')?.value || '').toLowerCase();
+      const completedStatusFilter = (document.getElementById('completed-status-filter')?.value || 'all');
+      const completedCityFilter = (document.getElementById('completed-city-filter')?.value || '').toLowerCase();
       const completedSourceFilter = (document.getElementById('completed-source-filter')?.value || 'all').toLowerCase();
+
+      const cancelledSearchTerm = (document.getElementById('cancelled-search')?.value || '').toLowerCase();
+      const cancelledStatusFilter = (document.getElementById('cancelled-status-filter')?.value || 'all');
+      const cancelledCityFilter = (document.getElementById('cancelled-city-filter')?.value || '').toLowerCase();
       const cancelledSourceFilter = (document.getElementById('cancelled-source-filter')?.value || 'all').toLowerCase();
+
+      const testOrderSearchTerm = (document.getElementById('test-order-search')?.value || '').toLowerCase();
+      const testOrderStatusFilter = (document.getElementById('test-order-status-filter')?.value || 'all');
+      const testOrderCityFilter = (document.getElementById('test-order-city-filter')?.value || '').toLowerCase();
       const testOrderSourceFilter = (document.getElementById('test-order-source-filter')?.value || 'all').toLowerCase();
+
+      const totalSearchTerm = (document.getElementById('total-search')?.value || '').toLowerCase();
+      const totalStatusFilter = (document.getElementById('total-status-filter')?.value || 'all');
+      const totalCityFilter = (document.getElementById('total-city-filter')?.value || '').toLowerCase();
       const totalSourceFilter = (document.getElementById('total-source-filter')?.value || 'all').toLowerCase();
 
       const pendingDateFrom = document.getElementById('pending-date-from')?.value || '';
@@ -2285,8 +2314,13 @@
         const finalAmt = order.Final_Amount ? Number(order.Final_Amount) : (order.price ? Number(order.price) : 0);
 
         if (isTestOrder) {
+          const matchTestOrderSearch = matchSearchText(order, testOrderSearchTerm);
+          const matchTestOrderCity = checkCityMatch(order.city, testOrderCityFilter);
           const matchTestOrderSource = testOrderSourceFilter === 'all' || orderSource === testOrderSourceFilter;
-          if (matchTestOrderSource) {
+          const matchTestOrderStatus = testOrderStatusFilter === 'all' || (order.order_status || order.status || '').toLowerCase().includes(testOrderStatusFilter.toLowerCase());
+          const matchTestOrderDate = isDateInRange(orderDateFormatted, testOrderDateFrom, testOrderDateTo);
+
+          if (matchTestOrderSearch && matchTestOrderCity && matchTestOrderSource && matchTestOrderStatus && matchTestOrderDate) {
             testOrderCount++;
             if (testOrderTable) {
               testOrderHtml += row;
@@ -2305,9 +2339,13 @@
 
         const matchTotalDate = isDateInRange(orderDateFormatted, totalDateFrom, totalDateTo);
         const matchTotalSource = totalSourceFilter === 'all' || orderSource === totalSourceFilter;
+        const matchTotalCity = checkCityMatch(order.city, totalCityFilter);
+        const matchTotalSearch = matchSearchText(order, totalSearchTerm);
+        const matchTotalStatus = totalStatusFilter === 'all' || (order.order_status || order.status || '').toLowerCase().includes(totalStatusFilter.toLowerCase());
+
         if (!isEmployeeUser || isOrderInLast7Days) {
           totalCount++;
-          if (totalTable && matchTotalDate && matchTotalSource) {
+          if (totalTable && matchTotalDate && matchTotalSource && matchTotalCity && matchTotalSearch && matchTotalStatus) {
             totalHtml += row;
             visibleTotalCount++;
             if (totalDateFrom && totalDateTo) {
@@ -2320,9 +2358,9 @@
         // Today's Orders Check (Include orders created today OR completed today)
         if (isCreatedToday || (isCompleted && isFinishedToday)) {
           todayCount++;
-          const matchTodaySearch = !todaySearchTerm || (order.customerName || '').toLowerCase().includes(todaySearchTerm) || (order.bookingRef || order.id || '').toLowerCase().includes(todaySearchTerm) || (order.phone || '').includes(todaySearchTerm);
+          const matchTodaySearch = matchSearchText(order, todaySearchTerm);
           const matchTodayStatus = todayStatusFilter === 'all' || (order.order_status || order.status || '').toLowerCase().includes(todayStatusFilter.toLowerCase());
-          const matchTodayCity = !todayCityFilter || (order.city || '').toLowerCase().includes(todayCityFilter);
+          const matchTodayCity = checkCityMatch(order.city, todayCityFilter);
           const matchTodayVehicle = !todayVehicleFilter || (order.vehicleModel || '').toLowerCase().includes(todayVehicleFilter);
           const matchTodaySource = todaySourceFilter === 'all' || orderSource === todaySourceFilter;
 
@@ -2356,7 +2394,11 @@
             completedCount++;
             const matchCompletedDate = isDateInRange(orderDateFormatted, completedDateFrom, completedDateTo);
             const matchCompletedSource = completedSourceFilter === 'all' || orderSource === completedSourceFilter;
-            if (matchCompletedDate && matchCompletedSource) {
+            const matchCompletedCity = checkCityMatch(order.city, completedCityFilter);
+            const matchCompletedSearch = matchSearchText(order, completedSearchTerm);
+            const matchCompletedStatus = completedStatusFilter === 'all' || (order.order_status || order.status || '').toLowerCase().includes(completedStatusFilter.toLowerCase());
+
+            if (matchCompletedDate && matchCompletedSource && matchCompletedCity && matchCompletedSearch && matchCompletedStatus) {
               completedHtml += row;
               visibleCompletedCount++;
               if (completedDateFrom && completedDateTo) {
@@ -2367,10 +2409,14 @@
           }
         } else if (isCancelled) {
           const matchCancelledSource = cancelledSourceFilter === 'all' || orderSource === cancelledSourceFilter;
+          const matchCancelledCity = checkCityMatch(order.city, cancelledCityFilter);
+          const matchCancelledSearch = matchSearchText(order, cancelledSearchTerm);
+          const matchCancelledStatus = cancelledStatusFilter === 'all' || (order.order_status || order.status || '').toLowerCase().includes(cancelledStatusFilter.toLowerCase());
+
           if (cancelledTable) {
             if (!isEmployeeUser || isOrderInLast7Days) {
               cancelledCount++;
-              if (matchCancelledSource) {
+              if (matchCancelledSource && matchCancelledCity && matchCancelledSearch && matchCancelledStatus) {
                 cancelledHtml += row;
               }
             }
@@ -2379,14 +2425,10 @@
           pendingCount++;
           if (!order['Assign Mechanic']) unassignedCount++;
 
-          const matchSearch = searchTerm === '' ||
-            (order.customerName || '').toLowerCase().includes(searchTerm) ||
-            (order.bookingRef || order.id || '').toLowerCase().includes(searchTerm);
-
+          const matchSearch = matchSearchText(order, searchTerm);
           const currentStatus = order.order_status || order.status || 'Pending';
           const matchStatus = statusFilter === 'all' || currentStatus.toLowerCase() === statusFilter.toLowerCase();
-
-          const matchCity = cityFilter === '' || (order.city || '').toLowerCase().includes(cityFilter);
+          const matchCity = checkCityMatch(order.city, cityFilter);
           const matchVehicle = vehicleFilter === '' || (order.bikeModel || '').toLowerCase().includes(vehicleFilter) || (order.bikeType || '').toLowerCase().includes(vehicleFilter);
           const matchPendingDate = isDateInRange(orderDateFormatted, pendingDateFrom, pendingDateTo);
           const matchPendingSource = pendingSourceFilter === 'all' || orderSource === pendingSourceFilter;
