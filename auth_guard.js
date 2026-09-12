@@ -17,6 +17,7 @@
   function getStaffRole() {
     return localStorage.getItem('fixwheel_staff_role') || 'admin';
   }
+  window.getStaffRole = getStaffRole;
 
   window.fixwheelLogout = async function() {
     try {

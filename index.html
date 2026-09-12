@@ -20,9 +20,9 @@
   <title>FixWheel — Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="sidebar.css?v=2026">
-  <script src="auth_guard.js?v=2026"></script>
-  <script src="sidebar.js?v=2026"></script>
+  <link rel="stylesheet" href="sidebar.css?v=2028">
+  <script src="auth_guard.js?v=2028"></script>
+  <script src="sidebar.js?v=2028"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -2082,6 +2082,11 @@
         const topPos = tabs.getBoundingClientRect().top + window.pageYOffset - 100;
         window.scrollTo({ top: topPos, behavior: 'smooth' });
       }
+    }
+
+    // Helper to get staff role
+    function getStaffRole() {
+      return localStorage.getItem('fixwheel_staff_role') || window.FIXWHEEL_CURRENT_ROLE || 'admin';
     }
 
     // Update topbar email display
