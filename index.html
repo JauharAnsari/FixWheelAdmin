@@ -2107,24 +2107,46 @@
         let partners = [];
         let bookings = [];
 
-        const [{ data: pData, error: partnersError }, { data: bData, error: bookingsError }] = await Promise.all([
-          supabaseClient.from('Partner').select('*'),
-          supabaseClient.from('Booking').select('*').order('createdAt', { ascending: false })
-        ]);
-
-        if (partnersError) console.error('Error fetching partners:', partnersError);
-        else partners = pData || [];
-
-        if (bookingsError) console.error('Error fetching bookings:', bookingsError);
-        else bookings = bData || [];
-
-        if ((!bookings || bookings.length === 0) && (!partners || partners.length === 0)) {
-          const [resP, resB] = await Promise.all([
-            fetch(SUPABASE_URL + '/rest/v1/Partner?select=*', { headers: { 'apikey': SUPABASE_ANON_KEY } }),
-            fetch(SUPABASE_URL + '/rest/v1/Booking?select=*&order=createdAt.desc', { headers: { 'apikey': SUPABASE_ANON_KEY } })
+        try {
+          const [{ data: pData, error: partnersError }, { data: bData, error: bookingsError }] = await Promise.all([
+            supabaseClient.from('Partner').select('*'),
+            supabaseClient.from('Booking').select('*').order('createdAt', { ascending: false })
           ]);
-          if (resP.ok) partners = await resP.json();
-          if (resB.ok) bookings = await resB.json();
+
+          if (partnersError) console.error('Error fetching partners from Supabase client:', partnersError);
+          else partners = pData || [];
+
+          if (bookingsError) console.error('Error fetching bookings from Supabase client:', bookingsError);
+          else bookings = bData || [];
+        } catch (e) {
+          console.error('Supabase client fetch exception:', e);
+        }
+
+        // Direct REST API fallbacks if client queries returned empty array or failed
+        if (!bookings || bookings.length === 0) {
+          try {
+            const resB = await fetch(SUPABASE_URL + '/rest/v1/Booking?select=*&order=createdAt.desc', {
+              headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+            });
+            if (resB.ok) {
+              bookings = await resB.json();
+            }
+          } catch(e) {
+            console.error('Fallback REST fetch for Booking failed:', e);
+          }
+        }
+
+        if (!partners || partners.length === 0) {
+          try {
+            const resP = await fetch(SUPABASE_URL + '/rest/v1/Partner?select=*', {
+              headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+            });
+            if (resP.ok) {
+              partners = await resP.json();
+            }
+          } catch(e) {
+            console.error('Fallback REST fetch for Partner failed:', e);
+          }
         }
 
         window.activeMechanics = (partners || []).filter(p => (p.partner_status === 'Active - Working with FixWheel' || p.status === 'Active - Working with FixWheel'));
