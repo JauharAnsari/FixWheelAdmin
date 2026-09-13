@@ -1203,7 +1203,7 @@
               <div class="progress-info">
                 <h4>Monthly Earnings</h4>
                 <div class="val" id="val-monthly">₹0</div>
-                <div class="sub" id="sub-monthly">Target: ₹1.0L / mo</div>
+                <div class="sub" id="sub-monthly">Target: ₹5.0L / mo</div>
               </div>
             </div>
 
@@ -1552,13 +1552,13 @@
       document.getElementById('val-monthly').textContent = `₹${monthlyEarnings.toLocaleString()}`;
       document.getElementById('val-yearly').textContent = `₹${yearlyEarnings.toLocaleString()}`;
 
-      const monthlyTarget = 100000;
+      const monthlyTarget = 500000;
       const yearlyTarget = 1200000;
       const monthlyPercent = Math.min(100, Math.round((monthlyEarnings / monthlyTarget) * 100));
       const yearlyPercent = Math.min(100, Math.round((yearlyEarnings / yearlyTarget) * 100));
 
       const subMonthly = document.getElementById('sub-monthly');
-      if (subMonthly) subMonthly.textContent = `Target: ₹1.0L / mo (${monthlyPercent}%)`;
+      if (subMonthly) subMonthly.textContent = `Target: ₹5.0L / mo (${monthlyPercent}%)`;
 
       const subYearly = document.getElementById('sub-yearly');
       if (subYearly) subYearly.textContent = `Target: ₹12.0L / yr (${yearlyPercent}%)`;
