@@ -1281,16 +1281,29 @@
         <table>
           <thead>
             <tr>
-              <th>Booking Ref</th>
+              <th>Order ID</th>
+              <th>Date</th>
+              <th style="display:none;">Reschedule Date</th>
+              <th>Finished On</th>
               <th>Customer</th>
+              <th>Bike</th>
               <th>Service</th>
-              <th>Vehicle Model</th>
-              <th>Address / Location</th>
-              <th>Assigned Mechanic</th>
+              <th>Source</th>
+              <th>Location</th>
+              <th>City</th>
+              <th>Slot</th>
+              <th>Mechanic</th>
+              <th style="display:none;">Status</th>
+              <th>Order Status</th>
+              <th>Updated By</th>
+              <th>Pickup</th>
+              <th>Amount</th>
               <th>Final Amount</th>
-              <th>Date & Time</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th>Remark</th>
+              <th>Assigned Mechanic</th>
+              <th>Warranty</th>
+              <th>Payment Received By</th>
+              <th>Settlement</th>
             </tr>
           </thead>
           <tbody id="today-table-body">
@@ -1366,6 +1379,16 @@
             <label>To:</label>
             <input type="date" id="completed-date-to" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
           </div>
+
+          <div class="filter-group" style="border-left: 2px solid var(--green); padding-left: 10px; margin-left: 5px;">
+            <label style="color: #4ade80; font-weight: 600;">Finished From:</label>
+            <input type="date" id="completed-finished-from" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
+          </div>
+          <div class="filter-group">
+            <label style="color: #4ade80; font-weight: 600;">Finished To:</label>
+            <input type="date" id="completed-finished-to" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
+          </div>
+
           <span class="count-badge" id="completed-header-count">0 visible</span>
           <div id="completed-summary-box" style="display:none; background: rgba(16, 185, 129, 0.05); border: 2px solid var(--green); padding: 8px 16px; border-radius: 8px; font-family: var(--mono); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);">
             <div style="display:flex; align-items:center; gap: 15px;">
@@ -2217,6 +2240,8 @@
       const completedDateFrom = document.getElementById('completed-date-from')?.value || '';
       const completedDateTo = document.getElementById('completed-date-to')?.value || '';
 
+      const completedFinishedFrom = document.getElementById('completed-finished-from')?.value || '';
+      const completedFinishedTo = document.getElementById('completed-finished-to')?.value || '';
       const cancelledDateFrom = document.getElementById('cancelled-date-from')?.value || '';
       const cancelledDateTo = document.getElementById('cancelled-date-to')?.value || '';
 
@@ -2378,8 +2403,8 @@
           }
         }
 
-        // Today's Orders Check (Include orders created today OR completed today)
-        if (isCreatedToday || (isCompleted && isFinishedToday)) {
+        // Today's Orders Check (Only orders created/booked today)
+        if (isCreatedToday) {
           todayCount++;
           const matchTodaySearch = matchSearchText(order, todaySearchTerm);
           const matchTodayStatus = todayStatusFilter === 'all' || (order.order_status || order.status || '').toLowerCase().includes(todayStatusFilter.toLowerCase());
@@ -2416,15 +2441,16 @@
           if (!isEmployeeUser || isOrderInLast7Days) {
             completedCount++;
             const matchCompletedDate = isDateInRange(orderDateFormatted, completedDateFrom, completedDateTo);
+            const matchCompletedFinishedDate = isDateInRange(finishISO, completedFinishedFrom, completedFinishedTo);
             const matchCompletedSource = completedSourceFilter === 'all' || orderSource === completedSourceFilter;
             const matchCompletedCity = checkCityMatch(order.city, completedCityFilter);
             const matchCompletedSearch = matchSearchText(order, completedSearchTerm);
             const matchCompletedStatus = completedStatusFilter === 'all' || (order.order_status || order.status || '').toLowerCase().includes(completedStatusFilter.toLowerCase());
 
-            if (matchCompletedDate && matchCompletedSource && matchCompletedCity && matchCompletedSearch && matchCompletedStatus) {
+            if (matchCompletedDate && matchCompletedSource && matchCompletedCity && matchCompletedSearch && matchCompletedStatus && matchCompletedFinishedDate) {
               completedHtml += row;
               visibleCompletedCount++;
-              if (completedDateFrom && completedDateTo) {
+              if ((completedDateFrom && completedDateTo) || (completedFinishedFrom && completedFinishedTo)) {
                 completedSummaryOrders++;
                 completedSummaryEarnings += finalAmt;
               }
@@ -2531,7 +2557,7 @@
 
       const completedBox = document.getElementById('completed-summary-box');
       if (completedBox) {
-        if (completedDateFrom && completedDateTo) {
+        if ((completedDateFrom && completedDateTo) || (completedFinishedFrom && completedFinishedTo)) {
           completedBox.style.display = 'block';
           document.getElementById('completed-summary-orders').textContent = completedSummaryOrders;
           document.getElementById('completed-summary-earnings').textContent = `₹${completedSummaryEarnings.toLocaleString()}`;
