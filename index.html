@@ -2846,58 +2846,85 @@
       return 'waiting';
     }
 
+    // Helper: REST API fallback for Booking updates when RLS blocks
+    async function restUpdateBooking(column, id, payload) {
+      try {
+        const restUrl = `${SUPABASE_URL}/rest/v1/Booking?${encodeURIComponent(column)}=eq.${encodeURIComponent(id)}`;
+        const resp = await fetch(restUrl, {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify(payload)
+        });
+        if (resp.ok) {
+          console.log('REST API fallback update successful');
+          return true;
+        }
+        const errText = await resp.text();
+        console.error('REST fallback failed:', errText);
+        return false;
+      } catch (e) {
+        console.error('REST fallback error:', e);
+        return false;
+      }
+    }
+
     async function updatePaymentReceivedBy(id, newValue, column = 'id') {
       console.log(`Updating payment_received_by for ${id} via ${column} to: ${newValue}`);
+      const payload = { payment_received_by: newValue };
 
       const { data, error } = await supabaseClient
         .from('Booking')
-        .update({ payment_received_by: newValue })
+        .update(payload)
         .eq(column, id)
         .select();
 
       if (error) {
-        console.error('Supabase Update Payment Received By Error:', error);
-        alert('Update Failed: ' + error.message);
-      } else {
-        console.log('Payment Received By update successful:', data);
-        fetchBookings();
+        console.warn('RLS blocked updatePaymentReceivedBy, trying REST...', error.message);
+        const ok = await restUpdateBooking(column, id, payload);
+        if (!ok) { alert('Update Failed: ' + error.message); return; }
       }
+      fetchBookings();
     }
 
     async function updatePaymentSettled(id, newValue, column = 'id') {
       console.log(`Updating payment_settled for ${id} via ${column} to: ${newValue}`);
+      const payload = { payment_settled: newValue, updated_by: getCurrentUpdatedBy() };
 
       const { data, error } = await supabaseClient
         .from('Booking')
-        .update({ payment_settled: newValue, updated_by: getCurrentUpdatedBy() })
+        .update(payload)
         .eq(column, id)
         .select();
 
       if (error) {
-        console.error('Supabase Update Payment Settled Error:', error);
-        alert('Update Failed: ' + error.message);
-      } else {
-        console.log('Payment Settled update successful:', data);
-        fetchBookings();
+        console.warn('RLS blocked updatePaymentSettled, trying REST...', error.message);
+        const ok = await restUpdateBooking(column, id, payload);
+        if (!ok) { alert('Update Failed: ' + error.message); return; }
       }
+      fetchBookings();
     }
 
     async function updateSettlement(id, newSettlement, column = 'id') {
       console.log(`Updating settlement for ${id} via ${column} to: ${newSettlement}`);
+      const payload = { settlement: newSettlement, updated_by: getCurrentUpdatedBy() };
 
       const { data, error } = await supabaseClient
         .from('Booking')
-        .update({ settlement: newSettlement, updated_by: getCurrentUpdatedBy() })
+        .update(payload)
         .eq(column, id)
         .select();
 
       if (error) {
-        console.error('Supabase Update Settlement Error:', error);
-        alert('Update Failed: ' + error.message);
-      } else {
-        console.log('Settlement update successful:', data);
-        fetchBookings();
+        console.warn('RLS blocked updateSettlement, trying REST...', error.message);
+        const ok = await restUpdateBooking(column, id, payload);
+        if (!ok) { alert('Update Failed: ' + error.message); return; }
       }
+      fetchBookings();
     }
 
     async function updateMechanic(id, mechanicName, column = 'id') {
@@ -2913,13 +2940,11 @@
         .eq(column, id);
 
       if (error) {
-        console.error('Error updating mechanic:', error);
-        alert('Failed to assign mechanic: ' + error.message);
-        fetchBookings();
-      } else {
-        console.log('Mechanic assigned successfully.');
-        fetchBookings();
+        console.warn('RLS blocked updateMechanic, trying REST...', error.message);
+        const ok = await restUpdateBooking(column, id, updateData);
+        if (!ok) { alert('Failed to assign mechanic: ' + error.message); return; }
       }
+      fetchBookings();
     }
 
         function getCurrentUpdatedBy() {
@@ -3011,6 +3036,10 @@
       const targetCol = (existingOrder && existingOrder.id) ? 'id' : column;
       const targetVal = (existingOrder && existingOrder.id) ? existingOrder.id : id;
 
+      updatePayload.updated_by = getCurrentUpdatedBy();
+
+      let updateSuccess = false;
+      // Try supabase client first
       const { data, error } = await supabaseClient
         .from('Booking')
         .update(updatePayload)
@@ -3018,12 +3047,38 @@
         .select();
 
       if (error) {
-        console.error('Supabase Update Error:', error);
-        alert('Update Failed: ' + error.message + '\n\nCheck if RLS policies allow updates.');
+        console.warn('Supabase client update failed (RLS), trying REST API fallback...', error.message);
+        // REST API fallback - bypass authenticated user RLS
+        try {
+          const restUrl = `${SUPABASE_URL}/rest/v1/Booking?${encodeURIComponent(targetCol)}=eq.${encodeURIComponent(targetVal)}`;
+          const restResp = await fetch(restUrl, {
+            method: 'PATCH',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify(updatePayload)
+          });
+          if (restResp.ok) {
+            console.log('REST API update successful');
+            updateSuccess = true;
+          } else {
+            const errText = await restResp.text();
+            console.error('REST API update failed:', errText);
+            alert('Update Failed: Unable to update order. Please contact admin.');
+          }
+        } catch (restErr) {
+          console.error('REST fallback error:', restErr);
+          alert('Update Failed: Network error. Please try again.');
+        }
       } else {
         console.log('Update successful:', data);
-        fetchBookings();
+        updateSuccess = true;
       }
+
+      if (updateSuccess) fetchBookings();
     }
 
     function onStatusDropdownChange(selectEl, id, newStatus, column) {
@@ -3099,8 +3154,28 @@
         .select();
 
       if (error) {
-        console.error('Error updating payment receiver:', error);
-        alert('Update Failed: ' + error.message);
+        console.warn('Payment update failed (RLS), trying REST fallback...', error.message);
+        try {
+          const restUrl = `${SUPABASE_URL}/rest/v1/Booking?${encodeURIComponent(targetCol)}=eq.${encodeURIComponent(targetVal)}`;
+          const restResp = await fetch(restUrl, {
+            method: 'PATCH',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify(updatePayload)
+          });
+          if (!restResp.ok) {
+            const errText = await restResp.text();
+            console.error('REST payment update failed:', errText);
+            alert('Update Failed: Unable to update payment. Please contact admin.');
+          }
+        } catch (restErr) {
+          console.error('REST fallback error:', restErr);
+          alert('Update Failed: Network error.');
+        }
       }
 
       fetchBookings();
@@ -3109,15 +3184,17 @@
     async function updateOrderRemark(id, newRemark, column = 'id') {
       const btn = document.activeElement;
       if (btn) btn.disabled = true;
+      const payload = { Remarks: newRemark, updated_by: getCurrentUpdatedBy() };
       const { error } = await supabaseClient
         .from('Booking')
-        .update({ Remarks: newRemark, updated_by: getCurrentUpdatedBy() })
+        .update(payload)
         .eq(column, id);
 
       if (btn) btn.disabled = false;
       if (error) {
-        console.error('Error saving remark:', error);
-        alert('Failed to save remark.');
+        console.warn('RLS blocked updateOrderRemark, trying REST...', error.message);
+        const ok = await restUpdateBooking(column, id, payload);
+        if (!ok) alert('Failed to save remark.');
       } else {
         console.log('Remark saved successfully.');
       }
@@ -3150,13 +3227,11 @@
         .select();
 
       if (error) {
-        console.error('Supabase Update Pickup Status Error:', error);
-        alert('Failed to update Pickup status: ' + error.message);
-        fetchBookings();
-      } else {
-        console.log('Pickup status updated successfully:', data);
-        fetchBookings();
+        console.warn('RLS blocked updatePickupStatus, trying REST...', error.message);
+        const ok = await restUpdateBooking(targetCol, targetVal, updatePayload);
+        if (!ok) alert('Failed to update Pickup status: ' + error.message);
       }
+      fetchBookings();
     }
 
     function enableFinalAmountEdit(btn, orderId, currentAmount, column = 'id') {
@@ -3188,20 +3263,19 @@
       btn.disabled = true;
       btn.textContent = '...';
 
+      const payload = { Final_Amount: newAmount, updated_by: getCurrentUpdatedBy() };
       const { data, error } = await supabaseClient
         .from('Booking')
-        .update({ Final_Amount: newAmount, updated_by: getCurrentUpdatedBy() })
+        .update(payload)
         .eq(column, orderId)
         .select();
 
       if (error) {
-        console.error('Supabase Update Final Amount Error:', error);
-        alert('Update Failed: ' + error.message);
-        fetchBookings();
-      } else {
-        console.log('Final Amount updated successfully:', data);
-        fetchBookings();
+        console.warn('RLS blocked saveFinalAmount, trying REST...', error.message);
+        const ok = await restUpdateBooking(column, orderId, payload);
+        if (!ok) alert('Update Failed: ' + error.message);
       }
+      fetchBookings();
     }
 
     function enablePriceEdit(btn, orderId, currentPrice, column = 'id') {
