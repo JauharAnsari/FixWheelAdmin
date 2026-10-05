@@ -3033,8 +3033,8 @@
       }
       if (window.allBookings) renderDashboard(window.allBookings);
 
-      const targetCol = (existingOrder && existingOrder.id) ? 'id' : column;
-      const targetVal = (existingOrder && existingOrder.id) ? existingOrder.id : id;
+      const targetCol = (existingOrder && existingOrder.bookingRef) ? 'bookingRef' : (column || 'id');
+      const targetVal = (existingOrder && existingOrder.bookingRef) ? existingOrder.bookingRef : id;
 
       updatePayload.updated_by = getCurrentUpdatedBy();
 
@@ -3144,8 +3144,8 @@
       }
       if (window.allBookings) renderDashboard(window.allBookings);
 
-      const targetCol = (existingOrder && existingOrder.id) ? 'id' : col;
-      const targetVal = (existingOrder && existingOrder.id) ? existingOrder.id : orderId;
+      const targetCol = (existingOrder && existingOrder.bookingRef) ? 'bookingRef' : (col || 'id');
+      const targetVal = (existingOrder && existingOrder.bookingRef) ? existingOrder.bookingRef : orderId;
 
       const { data, error } = await supabaseClient
         .from('Booking')
@@ -3212,8 +3212,8 @@
 
       if (window.allBookings) renderDashboard(window.allBookings);
 
-      const targetCol = (existingOrder && existingOrder.id) ? 'id' : column;
-      const targetVal = (existingOrder && existingOrder.id) ? existingOrder.id : id;
+      const targetCol = (existingOrder && existingOrder.bookingRef) ? 'bookingRef' : (column || 'id');
+      const targetVal = (existingOrder && existingOrder.bookingRef) ? existingOrder.bookingRef : id;
 
       const updatePayload = {
         pickup_status: newPickup,
