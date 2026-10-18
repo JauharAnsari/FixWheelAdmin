@@ -306,60 +306,11 @@
       font-size: 11px;
     }
 
-    /* Quick Actions Section Container */
-    .quick-actions-container {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .quick-actions-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .quick-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text-1);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .quick-actions-bar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .quick-btn {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      color: var(--text-2);
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-family: var(--sans);
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.15s;
-    }
-
-    .quick-btn:hover {
-      color: var(--text-1);
-      border-color: var(--border-hi);
-      background: var(--surface-3);
-      transform: translateY(-1px);
+    .attention-badge.action {
+      background: rgba(59, 130, 246, 0.12);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.28);
+      font-size: 11px;
     }
 
     /* Top Stats Grid */
@@ -368,6 +319,10 @@
       grid-template-columns: repeat(4, 1fr);
       gap: 20px;
       align-items: stretch;
+    }
+
+    .dashboard-main > .stats-grid {
+      order: -1;
     }
 
     .stat-card {
@@ -451,6 +406,69 @@
       margin-top: 4px;
     }
 
+    .monthly-revenue-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .monthly-revenue-pair {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+    }
+
+    .revenue-metric {
+      min-width: 0;
+    }
+
+    .revenue-metric + .revenue-metric {
+      border-left: 1px solid var(--border-hi);
+      padding-left: 24px;
+    }
+
+    .revenue-period-label {
+      color: var(--text-2);
+      font-family: var(--mono);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .monthly-revenue-pair .big-number {
+      font-size: clamp(26px, 2.6vw, 36px);
+      white-space: nowrap;
+    }
+
+    .monthly-comparison {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .monthly-comparison-copy {
+      color: var(--text-3);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .monthly-comparison-copy strong {
+      color: var(--text-2);
+      font-weight: 700;
+    }
+
+    .revenue-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    .revenue-card-footer .monthly-comparison {
+      margin-top: 0;
+    }
+
     .btn-primary {
       background: var(--red);
       color: #fff;
@@ -507,6 +525,7 @@
 
     .stat-trend.up { color: #4ade80; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); }
     .stat-trend.down { color: var(--red); background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); }
+    .stat-trend.neutral { color: var(--text-2); background: var(--surface-3); border: 1px solid var(--border-hi); }
 
     .stat-card-body h3 {
       font-size: 28px;
@@ -918,6 +937,11 @@
       .stat-card.welcome-card { grid-column: span 1; }
       .dashboard-main { padding: 20px 16px; }
       .topbar { padding: 0 16px; }
+      .welcome-body { flex-direction: column; align-items: stretch; gap: 16px; }
+      .monthly-revenue-pair { gap: 12px; }
+      .revenue-metric + .revenue-metric { padding-left: 12px; }
+      .monthly-revenue-pair .big-number { font-size: clamp(18px, 5.5vw, 22px); }
+      .revenue-card-footer { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
@@ -946,15 +970,14 @@
     <!-- ─── Dashboard ─── -->
     <main class="dashboard-main">
 
-      <!-- 🚨 SECTION 1: NEEDS ATTENTION WIDGET -->
+      <!-- ⚡ QUICK ACTIONS -->
       <section class="needs-attention-container">
         <div class="needs-attention-header">
           <div class="needs-attention-title">
-            <span class="pulse-warning-dot" id="attention-pulse-dot"></span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--red);"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            <span>Needs Admin Attention</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--yellow);"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Quick Actions</span>
           </div>
-          <span style="font-family: var(--mono); font-size: 11px; color: var(--text-3);" id="attention-status-text">Realtime Operational Alerts</span>
+          <span style="font-family: var(--mono); font-size: 11px; color: var(--text-3);" id="attention-status-text">Operational shortcuts</span>
         </div>
 
         <div class="needs-attention-grid">
@@ -984,50 +1007,26 @@
             </div>
             <span class="attention-badge" id="badge-pending-partners">0</span>
           </a>
+
+          <!-- Item 4: Financial Report -->
+          <a class="attention-card" href="revenue.html">
+            <div class="attention-info">
+              <span class="attention-label">Financial Report</span>
+              <span class="attention-sub">Revenue &amp; Earnings</span>
+            </div>
+            <span class="attention-badge action">Open ↗</span>
+          </a>
         </div>
       </section>
 
-      <!-- ⚡ SECTION 2: QUICK ACTIONS SHORTCUTS -->
-      <section class="quick-actions-container">
-        <div class="quick-actions-header">
-          <div class="quick-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--yellow);"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            <span>Quick Actions</span>
-          </div>
-          <span style="font-family: var(--mono); font-size: 11px; color: var(--text-3);">Common Operational Shortcuts</span>
-        </div>
-        <div class="quick-actions-bar">
-          <button class="quick-btn" onclick="window.location.href='index.html?tab=today&v=2027'" style="background:var(--yellow-glow); border-color:var(--yellow-dim); color:#facc15;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            <span>📅 Today's Orders</span>
-          </button>
-          <button class="quick-btn" onclick="window.location.href='live_ops.html'">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            <span>Assign Unassigned Order</span>
-          </button>
-          <button class="quick-btn" onclick="window.location.href='pending_partners.html'">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-            <span>Review Pending Approvals</span>
-          </button>
-          <button class="quick-btn" onclick="window.location.href='disputes.html'">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <span>View Disputes</span>
-          </button>
-          <button class="quick-btn" onclick="window.location.href='revenue.html'">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
-            <span>Financial Report</span>
-          </button>
-        </div>
-      </section>
-      
-      <!-- 📊 SECTION 3: TOP STATS & HERO GRID -->
+      <!-- 📊 TOP STATS & REVENUE HERO -->
       <div class="stats-grid">
         <!-- Welcome / Overview Hero Card -->
         <div class="stat-card welcome-card">
           <div class="welcome-header">
             <div class="welcome-title-group">
-              <h2>Dashboard Overview</h2>
-              <p>Monitor your daily orders, revenue, and active partner network.</p>
+              <h2>Monthly Revenue</h2>
+              <p id="monthly-current-period">Current month through today</p>
             </div>
             <div class="hero-badge-icon">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -1037,17 +1036,33 @@
           </div>
           
           <div class="welcome-body">
-            <div>
-              <div class="big-number" id="dash-total-earnings">₹0</div>
-              <div class="sub-text">Total Earnings (Lifetime Production)</div>
+            <div class="monthly-revenue-details">
+              <div class="monthly-revenue-pair">
+                <div class="revenue-metric">
+                  <div class="revenue-period-label">This month</div>
+                  <div class="big-number" id="dash-monthly-revenue">₹0</div>
+                  <div class="sub-text">Completed orders</div>
+                </div>
+                <div class="revenue-metric">
+                  <div class="revenue-period-label">Last month</div>
+                  <div class="big-number" id="dash-previous-month-revenue">₹0</div>
+                  <div class="sub-text" id="previous-month-period">Previous comparable period</div>
+                </div>
+              </div>
+              <div class="revenue-card-footer">
+                <div class="monthly-comparison">
+                  <span class="stat-trend neutral" id="monthly-change-badge">—</span>
+                  <span class="monthly-comparison-copy" id="monthly-comparison-copy">Total revenue: <strong>₹0</strong></span>
+                </div>
+                <button class="btn-primary" onclick="window.location.href='index.html'">
+                  <span>View All Orders</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </button>
+              </div>
             </div>
-            <button class="btn-primary" onclick="window.location.href='index.html'">
-              <span>View All Orders</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12 5 19 12 12 19"></polyline>
-              </svg>
-            </button>
           </div>
         </div>
         
@@ -1384,6 +1399,7 @@
       let totalEarnings = 0;
       let todayEarnings = 0;
       let monthlyEarnings = 0;
+      let previousMonthComparableEarnings = 0;
       let yearlyEarnings = 0;
       let lastYearEarnings = 0;
 
@@ -1411,6 +1427,28 @@
         return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
       };
       const todayISO = getISTISO(new Date());
+
+      const [istYear, istMonth, istDay] = todayISO.split('-').map(Number);
+      const previousMonthDate = new Date(Date.UTC(istYear, istMonth - 2, 1));
+      const previousMonthYear = previousMonthDate.getUTCFullYear();
+      const previousMonthIndex = previousMonthDate.getUTCMonth();
+      const previousMonthNumber = previousMonthIndex + 1;
+      const previousMonthLastDay = new Date(Date.UTC(previousMonthYear, previousMonthNumber, 0)).getUTCDate();
+      const comparablePreviousDay = Math.min(istDay, previousMonthLastDay);
+      const currentMonthStartISO = `${istYear}-${String(istMonth).padStart(2, '0')}-01`;
+      const previousMonthStartISO = `${previousMonthYear}-${String(previousMonthNumber).padStart(2, '0')}-01`;
+      const previousMonthEndISO = `${previousMonthYear}-${String(previousMonthNumber).padStart(2, '0')}-${String(comparablePreviousDay).padStart(2, '0')}`;
+
+      const formatComparablePeriod = (year, monthIndex, endDay) => {
+        const monthName = new Intl.DateTimeFormat('en-IN', {
+          month: 'short',
+          timeZone: 'Asia/Kolkata'
+        }).format(new Date(Date.UTC(year, monthIndex, 1)));
+        return `${monthName} 1–${endDay}, ${year}`;
+      };
+
+      const currentMonthPeriodLabel = formatComparablePeriod(istYear, istMonth - 1, istDay);
+      const previousMonthPeriodLabel = formatComparablePeriod(previousMonthYear, previousMonthIndex, comparablePreviousDay);
 
       // Grouping for 7 days in IST
       const last7Days = [];
@@ -1482,10 +1520,12 @@
           const rawFinishDate = rawFinished || b.createdAt;
           const finishKey = getISTISO(rawFinishDate);
           if (finishKey) {
+            if (finishKey >= currentMonthStartISO && finishKey <= todayISO) monthlyEarnings += amount;
+            if (finishKey >= previousMonthStartISO && finishKey <= previousMonthEndISO) previousMonthComparableEarnings += amount;
+
             const dStr = (typeof rawFinishDate === 'string' && !rawFinishDate.endsWith('Z') && !rawFinishDate.includes('+')) ? rawFinishDate + 'Z' : rawFinishDate;
             const d = new Date(dStr);
             if (!isNaN(d.getTime())) {
-              if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) monthlyEarnings += amount;
               if (d.getFullYear() === currentYear) yearlyEarnings += amount;
               if (d.getFullYear() === currentYear - 1) lastYearEarnings += amount;
             }
@@ -1544,7 +1584,29 @@
       document.getElementById('today-val-revenue').textContent = `₹${todayRevenueSum.toLocaleString()}`;
 
       // Update DOM Top Stats
-      document.getElementById('dash-total-earnings').textContent = `₹${totalEarnings.toLocaleString()}`;
+      document.getElementById('dash-monthly-revenue').textContent = `₹${monthlyEarnings.toLocaleString()}`;
+      document.getElementById('dash-previous-month-revenue').textContent = `₹${previousMonthComparableEarnings.toLocaleString()}`;
+      document.getElementById('monthly-current-period').textContent = `${currentMonthPeriodLabel} · completed orders`;
+      document.getElementById('previous-month-period').textContent = previousMonthPeriodLabel;
+
+      const monthlyChangeBadge = document.getElementById('monthly-change-badge');
+      const monthlyComparisonCopy = document.getElementById('monthly-comparison-copy');
+      const monthlyDifference = monthlyEarnings - previousMonthComparableEarnings;
+      let monthlyChangeText = '0%';
+      let monthlyTrendClass = 'neutral';
+
+      if (previousMonthComparableEarnings > 0) {
+        const monthlyChangePercent = Math.round((monthlyDifference / previousMonthComparableEarnings) * 100);
+        monthlyChangeText = `${monthlyChangePercent > 0 ? '+' : ''}${monthlyChangePercent}% ${monthlyChangePercent > 0 ? '↗' : monthlyChangePercent < 0 ? '↘' : '→'}`;
+        monthlyTrendClass = monthlyChangePercent > 0 ? 'up' : monthlyChangePercent < 0 ? 'down' : 'neutral';
+      } else if (monthlyEarnings > 0) {
+        monthlyChangeText = 'New ↗';
+        monthlyTrendClass = 'up';
+      }
+
+      monthlyChangeBadge.className = `stat-trend ${monthlyTrendClass}`;
+      monthlyChangeBadge.textContent = monthlyChangeText;
+      monthlyComparisonCopy.innerHTML = `Total revenue: <strong>₹${totalEarnings.toLocaleString()}</strong>`;
       document.getElementById('dash-total-orders').textContent = totalOrders;
       document.getElementById('dash-new-partners').textContent = activePartnersCount;
 

@@ -157,7 +157,7 @@ function renderSidebar(activeKey) {
       }
 
       const sidebarHtml = `
-        <aside class="sidebar">
+        <aside class="sidebar" id="app-sidebar" aria-label="Primary navigation">
           <div class="sidebar-header">
             <img src="fixwheel_icon.png" alt="FixWheel Logo" class="sidebar-logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23ef4444\' width=\'32\' height=\'32\'><rect x=\'4\' y=\'4\' width=\'16\' height=\'16\' rx=\'4\' fill=\'%23ef4444\'/><path d=\'M9 17v-8h3a2.5 2.5 0 0 1 0 5h-3v3H9z\' fill=\'white\'/></svg>'">
             <div class="sidebar-brand-text">
@@ -184,7 +184,42 @@ function renderSidebar(activeKey) {
       document.body.prepend(container.firstElementChild);
     }
 
-    // 2. Inject Global Search Trigger into Topbar if present
+    // 2. Prepare the responsive navigation shell
+    const sidebar = document.querySelector('.sidebar');
+    const topbar = document.querySelector('.topbar');
+
+    if (sidebar && topbar) {
+      let navToggle = document.querySelector('.mobile-nav-toggle');
+      if (!navToggle) {
+        navToggle = document.createElement('button');
+        navToggle.type = 'button';
+        navToggle.className = 'mobile-nav-toggle';
+        navToggle.setAttribute('aria-label', 'Open navigation menu');
+        navToggle.setAttribute('aria-controls', 'app-sidebar');
+        navToggle.setAttribute('aria-expanded', 'false');
+        navToggle.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
+          <span class="mobile-nav-label">Menu</span>
+        `;
+        topbar.prepend(navToggle);
+      }
+
+      let backdrop = document.querySelector('.sidebar-backdrop');
+      if (!backdrop) {
+        backdrop = document.createElement('button');
+        backdrop.type = 'button';
+        backdrop.className = 'sidebar-backdrop';
+        backdrop.setAttribute('aria-label', 'Close navigation menu');
+        document.body.appendChild(backdrop);
+      }
+
+      initializeMobileNavigation(sidebar, navToggle, backdrop);
+    }
+
+    prepareResponsiveTables();
+    prepareMobileFilters();
+
+    // 3. Inject Global Search Trigger into Topbar if present
     const topbarRight = document.querySelector('.topbar-right');
     if (topbarRight && !document.querySelector('.global-search-trigger')) {
       const searchBtn = document.createElement('button');
@@ -198,7 +233,7 @@ function renderSidebar(activeKey) {
       topbarRight.prepend(searchBtn);
     }
 
-    // 3. Inject Command Palette Modal if missing
+    // 4. Inject Command Palette Modal if missing
     injectCommandPaletteModal();
   };
 
@@ -207,6 +242,121 @@ function renderSidebar(activeKey) {
   } else {
     document.addEventListener('DOMContentLoaded', init);
   }
+}
+
+function initializeMobileNavigation(sidebar, toggle, backdrop) {
+  if (sidebar.dataset.mobileNavReady === 'true') return;
+  sidebar.dataset.mobileNavReady = 'true';
+
+  const mobileQuery = window.matchMedia('(max-width: 860px)');
+
+  const setOpen = (shouldOpen, returnFocus = false) => {
+    const isMobile = mobileQuery.matches;
+    const open = isMobile && shouldOpen;
+
+    sidebar.classList.toggle('mobile-open', open);
+    backdrop.classList.toggle('active', open);
+    document.body.classList.toggle('mobile-nav-open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu');
+    sidebar.setAttribute('aria-hidden', String(isMobile && !open));
+    sidebar.inert = isMobile && !open;
+
+    if (open) {
+      const activeLink = sidebar.querySelector('.nav-item.active') || sidebar.querySelector('.nav-item');
+      if (activeLink) requestAnimationFrame(() => activeLink.focus());
+    } else if (returnFocus && document.contains(toggle)) {
+      toggle.focus();
+    }
+  };
+
+  toggle.addEventListener('click', () => {
+    setOpen(!sidebar.classList.contains('mobile-open'), true);
+  });
+  backdrop.addEventListener('click', () => setOpen(false, true));
+  sidebar.querySelectorAll('.nav-item').forEach(link => {
+    link.addEventListener('click', () => setOpen(false));
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && sidebar.classList.contains('mobile-open')) {
+      setOpen(false, true);
+    }
+  });
+
+  const syncWithViewport = () => setOpen(false);
+  if (mobileQuery.addEventListener) {
+    mobileQuery.addEventListener('change', syncWithViewport);
+  } else {
+    mobileQuery.addListener(syncWithViewport);
+  }
+  syncWithViewport();
+}
+
+function prepareResponsiveTables() {
+  const wrapTables = root => {
+    const tables = root.matches && root.matches('table') ? [root] : root.querySelectorAll('table');
+    tables.forEach(table => {
+      if (table.parentElement && table.parentElement.classList.contains('mobile-table-scroll')) return;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'mobile-table-scroll';
+      wrapper.setAttribute('role', 'region');
+      wrapper.setAttribute('aria-label', 'Scrollable data table');
+      wrapper.tabIndex = 0;
+
+      const hint = document.createElement('div');
+      hint.className = 'mobile-table-hint';
+      hint.setAttribute('aria-hidden', 'true');
+      hint.textContent = 'Swipe for more columns →';
+      table.parentNode.insertBefore(hint, table);
+      table.parentNode.insertBefore(wrapper, table);
+      wrapper.appendChild(table);
+    });
+  };
+
+  wrapTables(document);
+
+  const contentRoot = document.querySelector('.main-wrapper');
+  if (!contentRoot || contentRoot.dataset.tableObserverReady === 'true') return;
+  contentRoot.dataset.tableObserverReady = 'true';
+
+  const observer = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+      mutation.addedNodes.forEach(node => {
+        if (node.nodeType === Node.ELEMENT_NODE) wrapTables(node);
+      });
+    });
+  });
+  observer.observe(contentRoot, { childList: true, subtree: true });
+}
+
+function prepareMobileFilters() {
+  document.querySelectorAll('.filter-bar').forEach((filterBar, index) => {
+    if (filterBar.dataset.mobileFilterReady === 'true') return;
+    filterBar.dataset.mobileFilterReady = 'true';
+    filterBar.dataset.mobileCollapsible = 'true';
+
+    if (!filterBar.id) filterBar.id = `mobile-filter-panel-${index + 1}`;
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'mobile-filter-toggle';
+    toggle.setAttribute('aria-controls', filterBar.id);
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 5h16M7 12h10M10 19h4"></path></svg>
+      <span>Show filters</span>
+    `;
+
+    toggle.addEventListener('click', () => {
+      const expanded = filterBar.classList.toggle('mobile-expanded');
+      toggle.setAttribute('aria-expanded', String(expanded));
+      const label = toggle.querySelector('span');
+      if (label) label.textContent = expanded ? 'Hide filters' : 'Show filters';
+    });
+
+    filterBar.parentNode.insertBefore(toggle, filterBar);
+  });
 }
 
 // ─── Global Command Palette Search Engine ───
