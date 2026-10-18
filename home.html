@@ -1080,12 +1080,6 @@
               <p>Total Production Orders</p>
             </div>
           </div>
-          <div>
-            <div class="sparkline-header">
-              <span class="sparkline-period">Last 7 days (Daily Trend)</span>
-            </div>
-            <div class="chart-container-mini" id="mini-chart-1"></div>
-          </div>
         </div>
 
         <!-- Active Partners Card -->
@@ -1781,24 +1775,7 @@
     function renderCharts(completed, pending, canceled, totalOrders, last7Days, dailyEarnings, dailyCompletedOrders, monthlyPercent, yearlyPercent) {
       const categories7Days = last7Days.map(d => d.label);
 
-      // 1. Mini Chart 1 (Total Orders Sparkline)
-      var optionsMini1 = {
-        series: [{ name: 'Orders', data: [31, 40, 28, 51, 42, 109, 100] }],
-        chart: { type: 'area', height: 50, sparkline: { enabled: true } },
-        stroke: { curve: 'smooth', width: 2 },
-        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.05, stops: [0, 90, 100] } },
-        colors: ['#3b82f6'],
-        xaxis: { categories: categories7Days },
-        tooltip: {
-          enabled: true,
-          theme: isDark ? 'dark' : 'light',
-          x: { show: true },
-          y: { formatter: (val) => `${val} orders` }
-        }
-      };
-      new ApexCharts(document.querySelector("#mini-chart-1"), optionsMini1).render();
-
-      // 2. Mini Chart 2 (Active Partners Sparkline)
+      // 1. Mini Chart (Active Partners Sparkline)
       var optionsMini2 = {
         series: [{ name: 'Partners', data: [11, 32, 45, 32, 34, 52, 41] }],
         chart: { type: 'area', height: 50, sparkline: { enabled: true } },
@@ -1815,7 +1792,7 @@
       };
       new ApexCharts(document.querySelector("#mini-chart-2"), optionsMini2).render();
 
-      // 3. Status Donut Chart
+      // 2. Status Donut Chart
       const chartTotal = completed + pending + canceled;
       var optionsDonut = {
         series: [completed, pending, canceled],
@@ -1853,7 +1830,7 @@
       };
       new ApexCharts(document.querySelector("#status-donut-chart"), optionsDonut).render();
 
-      // 4. Sales & Orders Dual Axis Chart
+      // 3. Sales & Orders Dual Axis Chart
       const barLabels = last7Days.map(d => d.label);
       const barEarnings = last7Days.map(d => dailyEarnings[d.key]);
       const barOrders = last7Days.map(d => dailyCompletedOrders[d.key]);
@@ -1892,7 +1869,7 @@
       };
       new ApexCharts(document.querySelector("#sales-bar-chart"), optionsBar).render();
 
-      // 5. Radial Progress (Monthly Target)
+      // 4. Radial Progress (Monthly Target)
       var optionsRadial1 = {
         series: [monthlyPercent],
         chart: { type: 'radialBar', height: 85, width: 85, sparkline: { enabled: true } },
@@ -1920,7 +1897,7 @@
       };
       new ApexCharts(document.querySelector("#radial-monthly"), optionsRadial1).render();
 
-      // 6. Radial Progress (Yearly Target)
+      // 5. Radial Progress (Yearly Target)
       var optionsRadial2 = {
         series: [yearlyPercent],
         chart: { type: 'radialBar', height: 85, width: 85, sparkline: { enabled: true } },
