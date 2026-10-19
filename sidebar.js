@@ -63,6 +63,15 @@ function renderSidebar(activeKey) {
             </a>
           </div>
 
+          <!-- Analytics Group -->
+          <div class="nav-group">
+            <div class="nav-group-title">Analytics</div>
+            <a href="service_analytics.html?v=2028" class="nav-item ${activeKey === 'service_analytics' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="4" y1="20" x2="4" y2="10"></line><line x1="10" y1="20" x2="10" y2="4"></line><line x1="16" y1="20" x2="16" y2="14"></line><line x1="22" y1="20" x2="22" y2="7"></line></svg>
+              Service Demand
+            </a>
+          </div>
+
           <!-- Partners Group -->
           <div class="nav-group">
             <div class="nav-group-title">Partners</div>
@@ -369,6 +378,7 @@ const SEARCH_DATABASE = [
   { type: 'page', title: "Today's Orders", sub: 'Orders · Orders Received Today', icon: '📅', url: 'index.html?tab=today&v=2027' },
   { type: 'page', title: 'Customer Queries', sub: 'Orders · Support Tickets & Inquiries', icon: '💬', url: 'queries.html?v=2027' },
   { type: 'page', title: 'Order Disputes', sub: 'Orders · Customer & Mechanic Complaints', icon: '⚖️', url: 'disputes.html?v=2027' },
+  { type: 'page', title: 'Service Demand Analytics', sub: 'Analytics · Service Bookings by Date', icon: '📊', url: 'service_analytics.html?v=2028' },
   { type: 'page', title: 'Active Partners', sub: 'Partners · Active Mechanics & On-Duty Garages', icon: '👥', url: 'active_partners.html?v=2027' },
   { type: 'page', title: 'Total Partners Directory', sub: 'Partners · All Registered Garages', icon: '🏪', url: 'partners.html?v=2027' },
   { type: 'page', title: 'Pending Approval', sub: 'Partners · Onboarding Approvals', icon: '⏳', url: 'pending_partners.html?v=2027' },

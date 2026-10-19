@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    function isFixWheelAuthenticated() {
+      return sessionStorage.getItem('fixwheel_admin_logged_in') === 'true' ||
+             localStorage.getItem('fixwheel_admin_logged_in') === 'true' ||
+             sessionStorage.getItem('fixwheel_admin_session_v2') === 'true' ||
+             localStorage.getItem('fixwheel_admin_session_v2') === 'true';
+    }
+    if (!isFixWheelAuthenticated()) window.location.replace('login.html');
+
+    if (localStorage.getItem('theme') === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FixWheel — Service Demand Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="sidebar.css">
+  <script src="auth_guard.js?v=2026"></script>
+  <script src="sidebar.js?v=2028"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface-2: #1e1e1e;
+      --surface-3: #262626;
+      --border: #2a2a2a;
+      --border-hi: #3f3f3f;
+      --red: #ef4444;
+      --red-dim: #991b1b;
+      --red-soft: rgba(239, 68, 68, 0.12);
+      --green: #22c55e;
+      --green-dim: #166534;
+      --green-soft: rgba(34, 197, 94, 0.12);
+      --blue: #60a5fa;
+      --blue-soft: rgba(96, 165, 250, 0.12);
+      --yellow: #facc15;
+      --text-1: #ffffff;
+      --text-2: #a1a1aa;
+      --text-3: #71717a;
+      --topbar-bg: rgba(10, 10, 10, 0.92);
+      --mono: 'DM Mono', monospace;
+      --sans: 'Syne', sans-serif;
+    }
+
+    [data-theme="light"] {
+      --bg: #f3f4f6;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
+      --surface-3: #e5e7eb;
+      --border: #e5e7eb;
+      --border-hi: #cbd5e1;
+      --red-soft: rgba(239, 68, 68, 0.08);
+      --green-soft: rgba(34, 197, 94, 0.08);
+      --blue-soft: rgba(96, 165, 250, 0.1);
+      --text-1: #111827;
+      --text-2: #4b5563;
+      --text-3: #6b7280;
+      --topbar-bg: rgba(255, 255, 255, 0.92);
+    }
+
+    html { background: var(--bg); }
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text-1);
+      font-family: var(--sans);
+    }
+
+    ::selection { background: var(--red); color: #fff; }
+    :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+    button, select, input { font: inherit; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: 60px;
+      padding: 0 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      background: var(--topbar-bg);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+    }
+
+    .topbar-brand { min-width: 0; display: flex; align-items: center; gap: 10px; }
+    .topbar-brand span { font-size: 15px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+    .topbar-brand em { min-width: 0; overflow: hidden; color: var(--text-3); font-family: var(--mono); font-size: 12px; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+    .live-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border: 1px solid var(--green-dim);
+      border-radius: 999px;
+      color: var(--green);
+      background: var(--green-soft);
+      font-family: var(--mono);
+      font-size: 10px;
+    }
+
+    .live-dot::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .admin-chip { padding: 5px 10px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface-2); color: var(--text-2); font-family: var(--mono); font-size: 11px; }
+
+    .icon-button {
+      min-width: 38px;
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 7px 10px;
+      border: 1px solid var(--border-hi);
+      border-radius: 7px;
+      background: var(--surface-2);
+      color: var(--text-2);
+      cursor: pointer;
+    }
+
+    .icon-button:hover { color: var(--text-1); border-color: var(--text-2); }
+    .icon-button svg { width: 15px; height: 15px; }
+
+    .analytics-main {
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding: 32px 36px 44px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .page-intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; }
+    .page-intro h1 { max-width: 760px; font-size: clamp(26px, 3vw, 40px); line-height: 1.08; letter-spacing: -0.03em; }
+    .page-intro p { max-width: 68ch; margin-top: 9px; color: var(--text-2); font-size: 14px; line-height: 1.6; }
+    .data-status { flex: 0 0 auto; color: var(--text-3); font-family: var(--mono); font-size: 10px; line-height: 1.5; text-align: right; }
+
+    .filter-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 17px 18px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+    }
+
+    .preset-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .preset-buttons { display: flex; flex-wrap: wrap; gap: 7px; }
+    .preset-button {
+      min-height: 34px;
+      padding: 7px 12px;
+      border: 1px solid var(--border-hi);
+      border-radius: 999px;
+      background: var(--surface-2);
+      color: var(--text-2);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .preset-button:hover { color: var(--text-1); }
+    .preset-button.active { border-color: var(--red-dim); background: var(--red-soft); color: var(--red); }
+    .filter-hint { color: var(--text-3); font-family: var(--mono); font-size: 10px; }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: minmax(210px, 1.3fr) repeat(2, minmax(150px, 0.8fr)) auto auto;
+      align-items: end;
+      gap: 10px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { color: var(--text-3); font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+    .field-control {
+      width: 100%;
+      height: 39px;
+      padding: 0 11px;
+      border: 1px solid var(--border-hi);
+      border-radius: 7px;
+      background: var(--surface-2);
+      color: var(--text-1);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .field-control:hover, .field-control:focus { border-color: var(--text-2); }
+    .action-button {
+      height: 39px;
+      padding: 0 16px;
+      border: 1px solid var(--red);
+      border-radius: 7px;
+      background: var(--red);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .action-button:hover { background: #dc2626; }
+    .action-button.secondary { border-color: var(--border-hi); background: transparent; color: var(--text-2); }
+    .action-button.secondary:hover { color: var(--text-1); border-color: var(--text-2); }
+    .filter-error { display: none; color: var(--red); font-family: var(--mono); font-size: 11px; }
+    .filter-error.visible { display: block; }
+
+    .summary-band {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+
+    .summary-item { min-width: 0; padding: 19px 20px; border-right: 1px solid var(--border); }
+    .summary-item:last-child { border-right: 0; }
+    .summary-label { color: var(--text-3); font-family: var(--mono); font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase; }
+    .summary-value { margin-top: 7px; overflow: hidden; color: var(--text-1); font-size: clamp(22px, 2.6vw, 32px); font-weight: 800; letter-spacing: -0.03em; text-overflow: ellipsis; white-space: nowrap; }
+    .summary-value.accent { color: var(--red); }
+    .summary-value.summary-value-text { font-size: clamp(16px, 1.6vw, 22px); line-height: 1.2; overflow-wrap: anywhere; text-overflow: clip; white-space: normal; }
+    .summary-sub { margin-top: 5px; overflow: hidden; color: var(--text-3); font-family: var(--mono); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+
+    .report-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(320px, 0.75fr); gap: 18px; align-items: start; }
+    .report-panel { min-width: 0; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden; }
+    .panel-header { padding: 18px 20px 15px; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--border); }
+    .panel-header h2 { font-size: 16px; letter-spacing: -0.01em; }
+    .panel-header p { margin-top: 5px; color: var(--text-3); font-family: var(--mono); font-size: 10px; line-height: 1.5; }
+    .panel-count { flex: 0 0 auto; padding: 4px 8px; border-radius: 999px; background: var(--blue-soft); color: var(--blue); font-family: var(--mono); font-size: 10px; }
+
+    .service-list-head, .service-row {
+      display: grid;
+      grid-template-columns: minmax(220px, 1.7fr) minmax(110px, 0.6fr) minmax(110px, 0.6fr) minmax(100px, 0.5fr);
+      align-items: center;
+      gap: 14px;
+    }
+
+    .service-list-head { padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface-2); color: var(--text-3); font-family: var(--mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; }
+    .service-row {
+      width: 100%;
+      padding: 15px 20px;
+      border: 0;
+      border-bottom: 1px solid var(--border);
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .service-row:last-child { border-bottom: 0; }
+    .service-row:hover { background: var(--surface-2); }
+    .service-identity { min-width: 0; display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: center; }
+    .service-rank { color: var(--text-3); font-family: var(--mono); font-size: 10px; }
+    .service-name { overflow: hidden; font-size: 13px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .service-bar { display: block; width: 100%; height: 3px; margin-top: 7px; overflow: hidden; border-radius: 999px; background: var(--surface-3); }
+    .service-bar span { display: block; height: 100%; border-radius: inherit; background: var(--red); }
+    .metric-cell { display: flex; flex-direction: column; gap: 3px; }
+    .metric-cell strong { color: var(--text-1); font-family: var(--mono); font-size: 15px; font-variant-numeric: tabular-nums; }
+    .metric-cell span { color: var(--text-3); font-family: var(--mono); font-size: 9px; }
+    .share-value { color: var(--text-2); font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+    .daily-list-head, .daily-row { display: grid; grid-template-columns: minmax(118px, 1fr) 74px 88px; gap: 10px; align-items: center; }
+    .daily-list-head { padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface-2); color: var(--text-3); font-family: var(--mono); font-size: 9px; letter-spacing: 0.05em; text-transform: uppercase; }
+    .daily-row { padding: 13px 16px; border-bottom: 1px solid var(--border); }
+    .daily-row:last-child { border-bottom: 0; }
+    .daily-date { color: var(--text-1); font-size: 12px; font-weight: 700; }
+    .daily-date span { display: block; margin-top: 3px; color: var(--text-3); font-family: var(--mono); font-size: 9px; font-weight: 400; }
+    .daily-number { color: var(--text-1); font-family: var(--mono); font-size: 13px; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
+    .daily-number.muted { color: var(--text-2); }
+    .daily-list { max-height: 720px; overflow-y: auto; }
+
+    .state-message { padding: 44px 24px; color: var(--text-3); font-family: var(--mono); font-size: 11px; line-height: 1.7; text-align: center; }
+    .state-message strong { display: block; margin-bottom: 5px; color: var(--text-2); font-family: var(--sans); font-size: 14px; }
+    .retry-button { margin-top: 12px; padding: 7px 12px; border: 1px solid var(--border-hi); border-radius: 6px; background: var(--surface-2); color: var(--text-1); cursor: pointer; }
+    .loading-line { display: inline-block; width: 110px; height: 8px; border-radius: 999px; background: var(--surface-3); animation: loading-pulse 1.2s ease-in-out infinite; }
+    @keyframes loading-pulse { 50% { opacity: 0.45; } }
+
+    .page-footer { padding-top: 2px; display: flex; justify-content: space-between; gap: 14px; color: var(--text-3); font-family: var(--mono); font-size: 9px; }
+
+    @media (max-width: 1100px) {
+      .report-grid { grid-template-columns: 1fr; }
+      .daily-list { max-height: 390px; overflow-y: auto; }
+      .filter-grid { grid-template-columns: 1fr 1fr 1fr auto auto; }
+    }
+
+    @media (max-width: 860px) {
+      .topbar { padding-right: 14px !important; }
+      .analytics-main { padding: 20px 16px 34px !important; gap: 16px; }
+      .page-intro { display: block; }
+      .page-intro h1 { font-size: 27px; }
+      .page-intro p { font-size: 13px; }
+      .data-status { margin-top: 10px; text-align: left; }
+      .preset-row { display: block; }
+      .filter-hint { display: block; margin-top: 9px; }
+      .filter-grid { grid-template-columns: 1fr 1fr; }
+      .field:first-child { grid-column: 1 / -1; }
+      .action-button { width: 100%; }
+      .summary-band { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .summary-item:nth-child(2) { border-right: 0; }
+      .summary-item:nth-child(-n+2) { border-bottom: 1px solid var(--border); }
+      .summary-value { font-size: 24px; }
+      .service-list-head { display: none; }
+      .service-row { grid-template-columns: 1fr 1fr; gap: 12px 16px; padding: 16px; }
+      .service-identity { grid-column: 1 / -1; }
+      .share-value { display: none; }
+    }
+
+    @media (max-width: 520px) {
+      .analytics-main { padding-left: 10px !important; padding-right: 10px !important; }
+      .topbar-brand em, .admin-chip, .live-dot { display: none; }
+      .filter-panel { padding: 14px; }
+      .preset-buttons { display: grid; grid-template-columns: repeat(3, 1fr); }
+      .preset-button { padding-left: 8px; padding-right: 8px; }
+      .filter-grid { grid-template-columns: 1fr; }
+      .field:first-child { grid-column: auto; }
+      .summary-item { padding: 15px; }
+      .summary-label { min-height: 25px; }
+      .summary-value { font-size: 21px; }
+      .panel-header { padding: 16px; }
+      .panel-header { display: block; }
+      .panel-count { display: inline-block; margin-top: 9px; }
+      .daily-list-head, .daily-row { grid-template-columns: minmax(102px, 1fr) 60px 70px; padding-left: 12px; padding-right: 12px; }
+      .page-footer { display: block; line-height: 1.8; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .loading-line { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-wrapper">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <span>Service Demand</span>
+        <em>/ Booking Mix & Date Analysis</em>
+      </div>
+      <div class="topbar-right">
+        <button id="theme-toggle" class="icon-button" type="button" aria-label="Switch color theme">
+          <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+          <span id="theme-text">Theme</span>
+        </button>
+        <span class="live-dot">LIVE</span>
+        <span class="admin-chip" id="admin-email">admin@fixwheel.app</span>
+      </div>
+    </header>
+
+    <main class="analytics-main">
+      <section class="page-intro" aria-labelledby="page-title">
+        <div>
+          <h1 id="page-title">See which services customers are booking.</h1>
+          <p>Month-to-date demand is shown by default. Each order contributes once to every service included in its package, so combined packages are counted accurately.</p>
+        </div>
+        <div class="data-status" id="data-status" aria-live="polite">Loading booking data…</div>
+      </section>
+
+      <section class="filter-panel" aria-label="Service booking filters">
+        <div class="preset-row">
+          <div class="preset-buttons" aria-label="Date presets">
+            <button class="preset-button" type="button" data-preset="today">Today</button>
+            <button class="preset-button" type="button" data-preset="last7">Last 7 days</button>
+            <button class="preset-button active" type="button" data-preset="month">This month</button>
+          </div>
+          <span class="filter-hint">Dates use India Standard Time</span>
+        </div>
+
+        <div class="filter-grid">
+          <div class="field">
+            <label for="service-filter">Service</label>
+            <select id="service-filter" class="field-control">
+              <option value="all">All services</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="date-from">From date</label>
+            <input id="date-from" class="field-control" type="date">
+          </div>
+          <div class="field">
+            <label for="date-to">To date</label>
+            <input id="date-to" class="field-control" type="date">
+          </div>
+          <button id="apply-filters" class="action-button" type="button">Apply</button>
+          <button id="reset-filters" class="action-button secondary" type="button">Reset</button>
+        </div>
+        <p id="filter-error" class="filter-error" role="alert">The start date must be before the end date.</p>
+      </section>
+
+      <section class="summary-band" aria-label="Selected period summary">
+        <article class="summary-item">
+          <div class="summary-label">Orders in period</div>
+          <div class="summary-value accent" id="summary-orders">—</div>
+          <div class="summary-sub" id="summary-orders-sub">Loading</div>
+        </article>
+        <article class="summary-item">
+          <div class="summary-label">Service bookings</div>
+          <div class="summary-value" id="summary-selections">—</div>
+          <div class="summary-sub">Combined packages count each service</div>
+        </article>
+        <article class="summary-item">
+          <div class="summary-label">Services booked</div>
+          <div class="summary-value" id="summary-services">—</div>
+          <div class="summary-sub">Distinct services in period</div>
+        </article>
+        <article class="summary-item">
+          <div class="summary-label">Most booked service</div>
+          <div class="summary-value summary-value-text" id="summary-top-service">—</div>
+          <div class="summary-sub" id="summary-top-service-sub">Waiting for data</div>
+        </article>
+      </section>
+
+      <div class="report-grid">
+        <section class="report-panel" aria-labelledby="service-report-title">
+          <header class="panel-header">
+            <div>
+              <h2 id="service-report-title">Service booking totals</h2>
+              <p id="service-range-label">Current month</p>
+            </div>
+            <span class="panel-count" id="service-count-badge">0 services</span>
+          </header>
+          <div class="service-list-head" aria-hidden="true">
+            <span>Service</span>
+            <span>In period</span>
+            <span>All-time orders</span>
+            <span>Share</span>
+          </div>
+          <div id="service-list" aria-live="polite">
+            <div class="state-message"><span class="loading-line"></span></div>
+          </div>
+        </section>
+
+        <section class="report-panel" aria-labelledby="daily-report-title">
+          <header class="panel-header">
+            <div>
+              <h2 id="daily-report-title">Bookings by date</h2>
+              <p id="daily-range-label">Dates with booking activity</p>
+            </div>
+            <span class="panel-count" id="daily-count-badge">0 dates</span>
+          </header>
+          <div class="daily-list-head" aria-hidden="true">
+            <span>Date</span>
+            <span style="text-align:right;">Orders</span>
+            <span style="text-align:right;">Services</span>
+          </div>
+          <div id="daily-list" class="daily-list" aria-live="polite">
+            <div class="state-message"><span class="loading-line"></span></div>
+          </div>
+        </section>
+      </div>
+
+      <footer class="page-footer">
+        <span>Production bookings only · obvious spelling duplicates are combined</span>
+        <span id="last-updated">Not loaded</span>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const PAGE_SIZE = 1000;
+    const IST_DATE_FORMATTER = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+    const DISPLAY_DATE_FORMATTER = new Intl.DateTimeFormat('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+    const WEEKDAY_FORMATTER = new Intl.DateTimeFormat('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      weekday: 'short'
+    });
+
+    const SERVICE_ALIASES = {
+      'battery replacement': 'Battery Replacement',
+      'carborater cleaning': 'Carburetor Cleaning',
+      'carburetor cleaning': 'Carburetor Cleaning',
+      'disc replacement': 'Disc Replacement',
+      'engine full': 'Engine Full',
+      'engine half': 'Engine Half',
+      'general service': 'General Service',
+      'general service with engine oil': 'General Service with Engine Oil',
+      'inspection with obd scanner': 'Inspection with OBD Scanner',
+      'jump start': 'Jump Start',
+      'pick and drop': 'Pick and Drop',
+      'pick and drop charge': 'Pick and Drop Charge',
+      'puncture': 'Puncture',
+      'punchure': 'Puncture',
+      'running repair': 'Running Repair',
+      'service': 'Service',
+      'service charge': 'Service Charge'
+    };
+
+    let allBookings = [];
+    let normalizedBookings = [];
+    let activePreset = 'month';
+
+    function escapeHtml(value) {
+      return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function formatNumber(value) {
+      return Number(value || 0).toLocaleString('en-IN');
+    }
+
+    function getISTDateKey(date) {
+      return IST_DATE_FORMATTER.format(date);
+    }
+
+    function parseBookingDate(value) {
+      if (!value) return null;
+      const text = String(value);
+      const normalized = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(text) ? text : text + 'Z';
+      const date = new Date(normalized);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function canonicalizeService(value) {
+      const clean = String(value || '').trim().replace(/\s+/g, ' ');
+      if (!clean) return '';
+      const key = clean.toLowerCase();
+      if (SERVICE_ALIASES[key]) return SERVICE_ALIASES[key];
+      return clean.replace(/\b\w/g, function(char) { return char.toUpperCase(); });
+    }
+
+    function getServices(packageValue) {
+      const services = String(packageValue || 'Service')
+        .split(',')
+        .map(canonicalizeService)
+        .filter(Boolean);
+      return Array.from(new Set(services));
+    }
+
+    function isProductionBooking(booking) {
+      const status = String((booking.order_status || '') + ' ' + (booking.status || '')).toLowerCase();
+      return booking.is_test_order !== true && booking.is_test_order !== 'true' && !status.includes('test order') && !status.includes('sandbox');
+    }
+
+    function normalizeBooking(booking) {
+      const date = parseBookingDate(booking.createdAt);
+      return {
+        date: date,
+        dateKey: date ? getISTDateKey(date) : '',
+        services: getServices(booking.package)
+      };
+    }
+
+    function todayKey() {
+      return getISTDateKey(new Date());
+    }
+
+    function shiftDateKey(dateKey, amount) {
+      const parts = dateKey.split('-').map(Number);
+      const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2] + amount, 12, 0, 0));
+      return getISTDateKey(date);
+    }
+
+    function monthStartKey() {
+      return todayKey().slice(0, 8) + '01';
+    }
+
+    function setPreset(preset) {
+      const today = todayKey();
+      activePreset = preset;
+      if (preset === 'today') {
+        document.getElementById('date-from').value = today;
+        document.getElementById('date-to').value = today;
+      } else if (preset === 'last7') {
+        document.getElementById('date-from').value = shiftDateKey(today, -6);
+        document.getElementById('date-to').value = today;
+      } else {
+        document.getElementById('date-from').value = monthStartKey();
+        document.getElementById('date-to').value = today;
+      }
+      updatePresetButtons();
+      renderAnalytics();
+    }
+
+    function updatePresetButtons() {
+      document.querySelectorAll('[data-preset]').forEach(function(button) {
+        button.classList.toggle('active', button.dataset.preset === activePreset);
+      });
+    }
+
+    function markCustomRange() {
+      activePreset = 'custom';
+      updatePresetButtons();
+    }
+
+    function formatRangeLabel(from, to) {
+      const fromDate = new Date(from + 'T12:00:00+05:30');
+      const toDate = new Date(to + 'T12:00:00+05:30');
+      if (from === to) return DISPLAY_DATE_FORMATTER.format(fromDate);
+      return DISPLAY_DATE_FORMATTER.format(fromDate) + ' – ' + DISPLAY_DATE_FORMATTER.format(toDate);
+    }
+
+    async function fetchAllBookings() {
+      const rows = [];
+      let from = 0;
+      while (true) {
+        const response = await supabaseClient
+          .from('Booking')
+          .select('bookingRef,createdAt,package,order_status,status')
+          .order('createdAt', { ascending: false })
+          .range(from, from + PAGE_SIZE - 1);
+
+        if (response.error) throw response.error;
+        const pageRows = response.data || [];
+        rows.push.apply(rows, pageRows);
+        if (pageRows.length < PAGE_SIZE) break;
+        from += PAGE_SIZE;
+      }
+      return rows.filter(isProductionBooking);
+    }
+
+    function buildServiceStats(rows) {
+      const map = new Map();
+      rows.forEach(function(booking) {
+        booking.services.forEach(function(service) {
+          map.set(service, (map.get(service) || 0) + 1);
+        });
+      });
+      return map;
+    }
+
+    function populateServiceFilter() {
+      const select = document.getElementById('service-filter');
+      const services = Array.from(buildServiceStats(normalizedBookings).keys()).sort(function(a, b) { return a.localeCompare(b); });
+      select.innerHTML = '<option value="all">All services</option>' + services.map(function(service) {
+        return '<option value="' + escapeHtml(service) + '">' + escapeHtml(service) + '</option>';
+      }).join('');
+    }
+
+    function renderServiceRows(periodRows, selectedService) {
+      const periodStats = buildServiceStats(periodRows);
+      const allTimeStats = buildServiceStats(normalizedBookings);
+      const totalSelections = Array.from(periodStats.values()).reduce(function(sum, value) { return sum + value; }, 0);
+      let services;
+
+      if (selectedService === 'all') {
+        services = Array.from(periodStats.keys());
+      } else {
+        services = allTimeStats.has(selectedService) ? [selectedService] : [];
+      }
+
+      services.sort(function(a, b) {
+        return (periodStats.get(b) || 0) - (periodStats.get(a) || 0) || (allTimeStats.get(b) || 0) - (allTimeStats.get(a) || 0) || a.localeCompare(b);
+      });
+
+      const maxCount = Math.max(1, ...services.map(function(service) { return periodStats.get(service) || 0; }));
+      document.getElementById('service-count-badge').textContent = services.length + (services.length === 1 ? ' service' : ' services');
+
+      if (!services.length) {
+        document.getElementById('service-list').innerHTML = '<div class="state-message"><strong>No service bookings found</strong>Try a wider date range or choose another service.</div>';
+        return { periodStats: periodStats, totalSelections: totalSelections, services: services };
+      }
+
+      document.getElementById('service-list').innerHTML = services.map(function(service, index) {
+        const periodCount = periodStats.get(service) || 0;
+        const allTimeCount = allTimeStats.get(service) || 0;
+        const share = totalSelections ? Math.round((periodCount / totalSelections) * 100) : 0;
+        const barWidth = Math.max(periodCount ? 5 : 0, Math.round((periodCount / maxCount) * 100));
+        return '<button type="button" class="service-row" data-service="' + escapeHtml(service) + '" aria-label="Filter report to ' + escapeHtml(service) + '">' +
+          '<span class="service-identity"><span class="service-rank">' + String(index + 1).padStart(2, '0') + '</span><span><span class="service-name">' + escapeHtml(service) + '</span><span class="service-bar" aria-hidden="true"><span style="width:' + barWidth + '%"></span></span></span></span>' +
+          '<span class="metric-cell"><strong>' + formatNumber(periodCount) + '</strong><span>orders</span></span>' +
+          '<span class="metric-cell"><strong>' + formatNumber(allTimeCount) + '</strong><span>orders</span></span>' +
+          '<span class="share-value">' + share + '%</span>' +
+        '</button>';
+      }).join('');
+
+      document.querySelectorAll('.service-row').forEach(function(row) {
+        row.addEventListener('click', function() {
+          document.getElementById('service-filter').value = row.dataset.service;
+          renderAnalytics();
+          document.getElementById('daily-report-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+
+      return { periodStats: periodStats, totalSelections: totalSelections, services: services };
+    }
+
+    function renderDailyRows(periodRows, selectedService) {
+      const dailyMap = new Map();
+      periodRows.forEach(function(booking) {
+        const matchingServices = selectedService === 'all' ? booking.services : booking.services.filter(function(service) { return service === selectedService; });
+        if (!matchingServices.length) return;
+        if (!dailyMap.has(booking.dateKey)) dailyMap.set(booking.dateKey, { orders: 0, services: 0 });
+        const item = dailyMap.get(booking.dateKey);
+        item.orders += 1;
+        item.services += matchingServices.length;
+      });
+
+      const dates = Array.from(dailyMap.keys()).sort().reverse();
+      document.getElementById('daily-count-badge').textContent = dates.length + (dates.length === 1 ? ' date' : ' dates');
+      document.getElementById('daily-range-label').textContent = selectedService === 'all' ? 'All services · dates with booking activity' : selectedService + ' · dates with booking activity';
+
+      if (!dates.length) {
+        document.getElementById('daily-list').innerHTML = '<div class="state-message"><strong>No daily activity</strong>No matching bookings were found in this date range.</div>';
+        return;
+      }
+
+      document.getElementById('daily-list').innerHTML = dates.map(function(dateKey) {
+        const item = dailyMap.get(dateKey);
+        const date = new Date(dateKey + 'T12:00:00+05:30');
+        return '<div class="daily-row">' +
+          '<div class="daily-date">' + escapeHtml(DISPLAY_DATE_FORMATTER.format(date)) + '<span>' + escapeHtml(WEEKDAY_FORMATTER.format(date)) + '</span></div>' +
+          '<div class="daily-number">' + formatNumber(item.orders) + '</div>' +
+          '<div class="daily-number muted">' + formatNumber(item.services) + '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function renderAnalytics() {
+      if (!normalizedBookings.length && !allBookings.length) return;
+      const from = document.getElementById('date-from').value;
+      const to = document.getElementById('date-to').value;
+      const selectedService = document.getElementById('service-filter').value;
+      const error = document.getElementById('filter-error');
+
+      if (!from || !to || from > to) {
+        error.classList.add('visible');
+        return;
+      }
+      error.classList.remove('visible');
+
+      const periodRows = normalizedBookings.filter(function(booking) {
+        return booking.dateKey && booking.dateKey >= from && booking.dateKey <= to;
+      });
+      const matchingRows = selectedService === 'all' ? periodRows : periodRows.filter(function(booking) { return booking.services.includes(selectedService); });
+      const result = renderServiceRows(periodRows, selectedService);
+      renderDailyRows(periodRows, selectedService);
+
+      const currentStats = result.periodStats;
+      const sortedCurrent = Array.from(currentStats.entries()).sort(function(a, b) { return b[1] - a[1] || a[0].localeCompare(b[0]); });
+      const topEntry = selectedService === 'all' ? sortedCurrent[0] : [selectedService, currentStats.get(selectedService) || 0];
+      const serviceSelections = selectedService === 'all' ? result.totalSelections : (currentStats.get(selectedService) || 0);
+      const distinctServices = selectedService === 'all' ? currentStats.size : (currentStats.has(selectedService) ? 1 : 0);
+      const rangeLabel = formatRangeLabel(from, to);
+
+      document.getElementById('summary-orders').textContent = formatNumber(matchingRows.length);
+      document.getElementById('summary-orders-sub').textContent = selectedService === 'all' ? rangeLabel : selectedService;
+      document.getElementById('summary-selections').textContent = formatNumber(serviceSelections);
+      document.getElementById('summary-services').textContent = formatNumber(distinctServices);
+      document.getElementById('summary-top-service').textContent = topEntry ? topEntry[0] : 'None';
+      document.getElementById('summary-top-service-sub').textContent = topEntry ? formatNumber(topEntry[1]) + ' bookings in period' : 'No bookings in period';
+      document.getElementById('service-range-label').textContent = rangeLabel + (selectedService === 'all' ? ' · click a service to focus' : ' · ' + selectedService);
+    }
+
+    function renderError(error) {
+      console.error('Service analytics query error:', error);
+      const message = escapeHtml(error && error.message ? error.message : 'Unable to load booking data.');
+      const errorHtml = '<div class="state-message"><strong>Booking data could not be loaded</strong>' + message + '<br><button type="button" class="retry-button" onclick="loadAnalytics()">Try again</button></div>';
+      document.getElementById('service-list').innerHTML = errorHtml;
+      document.getElementById('daily-list').innerHTML = errorHtml;
+      document.getElementById('data-status').textContent = 'Data unavailable';
+    }
+
+    async function loadAnalytics() {
+      document.getElementById('data-status').textContent = 'Loading booking data…';
+      try {
+        allBookings = await fetchAllBookings();
+        normalizedBookings = allBookings.map(normalizeBooking).filter(function(booking) { return booking.dateKey; });
+        populateServiceFilter();
+        setPreset('month');
+        const loadedAt = new Date();
+        document.getElementById('data-status').textContent = formatNumber(normalizedBookings.length) + ' production orders loaded';
+        document.getElementById('last-updated').textContent = 'Updated ' + loadedAt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      } catch (error) {
+        renderError(error);
+      }
+    }
+
+    function updateThemeIcon() {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      document.getElementById('theme-text').textContent = isLight ? 'Dark' : 'Light';
+      document.getElementById('theme-icon').innerHTML = isLight
+        ? '<path d="M12 3a6 6 0 1 0 9 9 7 7 0 0 1-9-9z"></path>'
+        : '<circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"></line><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="6.34" y2="17.66"></line><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"></line>';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      renderSidebar('service_analytics');
+
+      const staffUser = localStorage.getItem('fixwheel_staff_user');
+      if (staffUser) {
+        try {
+          const user = JSON.parse(staffUser);
+          if (user.email) document.getElementById('admin-email').textContent = user.email;
+        } catch (error) {}
+      }
+
+      document.querySelectorAll('[data-preset]').forEach(function(button) {
+        button.addEventListener('click', function() { setPreset(button.dataset.preset); });
+      });
+      document.getElementById('date-from').addEventListener('change', markCustomRange);
+      document.getElementById('date-to').addEventListener('change', markCustomRange);
+      document.getElementById('service-filter').addEventListener('change', renderAnalytics);
+      document.getElementById('apply-filters').addEventListener('click', renderAnalytics);
+      document.getElementById('reset-filters').addEventListener('click', function() {
+        document.getElementById('service-filter').value = 'all';
+        setPreset('month');
+      });
+      document.getElementById('theme-toggle').addEventListener('click', function() {
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        if (isLight) {
+          document.documentElement.removeAttribute('data-theme');
+          localStorage.setItem('theme', 'dark');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          localStorage.setItem('theme', 'light');
+        }
+        updateThemeIcon();
+      });
+
+      updateThemeIcon();
+      loadAnalytics();
+    });
+  </script>
+</body>
+</html>
