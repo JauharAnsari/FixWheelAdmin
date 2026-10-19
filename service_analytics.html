@@ -242,7 +242,7 @@
 
     .service-list-head, .service-row {
       display: grid;
-      grid-template-columns: minmax(220px, 1.7fr) minmax(110px, 0.6fr) minmax(110px, 0.6fr) minmax(100px, 0.5fr);
+      grid-template-columns: minmax(220px, 1.7fr) minmax(110px, 0.6fr) minmax(110px, 0.6fr) minmax(74px, 0.4fr) 84px;
       align-items: center;
       gap: 14px;
     }
@@ -256,11 +256,11 @@
       background: transparent;
       color: inherit;
       text-align: left;
-      cursor: pointer;
     }
 
     .service-row:last-child { border-bottom: 0; }
     .service-row:hover { background: var(--surface-2); }
+    .service-row.active { background: var(--red-soft); }
     .service-identity { min-width: 0; display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: center; }
     .service-rank { color: var(--text-3); font-family: var(--mono); font-size: 10px; }
     .service-name { overflow: hidden; font-size: 13px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
@@ -270,6 +270,21 @@
     .metric-cell strong { color: var(--text-1); font-family: var(--mono); font-size: 15px; font-variant-numeric: tabular-nums; }
     .metric-cell span { color: var(--text-3); font-family: var(--mono); font-size: 9px; }
     .share-value { color: var(--text-2); font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+    .service-filter-action {
+      min-height: 32px;
+      padding: 6px 10px;
+      border: 1px solid var(--border-hi);
+      border-radius: 6px;
+      background: var(--surface-2);
+      color: var(--text-2);
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .service-filter-action:hover { border-color: var(--red-dim); color: var(--text-1); }
+    .service-filter-action:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+    .service-filter-action.active { border-color: var(--red-dim); background: var(--red); color: #fff; }
 
     .daily-list-head, .daily-row { display: grid; grid-template-columns: minmax(118px, 1fr) 74px 88px; gap: 10px; align-items: center; }
     .daily-list-head { padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface-2); color: var(--text-3); font-family: var(--mono); font-size: 9px; letter-spacing: 0.05em; text-transform: uppercase; }
@@ -315,6 +330,7 @@
       .service-row { grid-template-columns: 1fr 1fr; gap: 12px 16px; padding: 16px; }
       .service-identity { grid-column: 1 / -1; }
       .share-value { display: none; }
+      .service-filter-action { grid-column: 1 / -1; width: 100%; min-height: 40px; }
     }
 
     @media (max-width: 520px) {
@@ -434,6 +450,7 @@
             <span>In period</span>
             <span>All-time orders</span>
             <span>Share</span>
+            <span>Filter</span>
           </div>
           <div id="service-list" aria-live="polite">
             <div class="state-message"><span class="loading-line"></span></div>
@@ -680,19 +697,22 @@
         const allTimeCount = allTimeStats.get(service) || 0;
         const share = totalSelections ? Math.round((periodCount / totalSelections) * 100) : 0;
         const barWidth = Math.max(periodCount ? 5 : 0, Math.round((periodCount / maxCount) * 100));
-        return '<button type="button" class="service-row" data-service="' + escapeHtml(service) + '" aria-label="Filter report to ' + escapeHtml(service) + '">' +
+        const isSelected = selectedService === service;
+        return '<div class="service-row' + (isSelected ? ' active' : '') + '" data-service="' + escapeHtml(service) + '">' +
           '<span class="service-identity"><span class="service-rank">' + String(index + 1).padStart(2, '0') + '</span><span><span class="service-name">' + escapeHtml(service) + '</span><span class="service-bar" aria-hidden="true"><span style="width:' + barWidth + '%"></span></span></span></span>' +
           '<span class="metric-cell"><strong>' + formatNumber(periodCount) + '</strong><span>orders</span></span>' +
           '<span class="metric-cell"><strong>' + formatNumber(allTimeCount) + '</strong><span>orders</span></span>' +
           '<span class="share-value">' + share + '%</span>' +
-        '</button>';
+          '<button type="button" class="service-filter-action' + (isSelected ? ' active' : '') + '" data-service="' + escapeHtml(service) + '" aria-pressed="' + isSelected + '" aria-label="' + (isSelected ? 'Clear ' : 'Filter to ') + escapeHtml(service) + '">' + (isSelected ? 'Clear' : 'Filter') + '</button>' +
+        '</div>';
       }).join('');
 
-      document.querySelectorAll('.service-row').forEach(function(row) {
-        row.addEventListener('click', function() {
-          document.getElementById('service-filter').value = row.dataset.service;
+      document.querySelectorAll('.service-filter-action').forEach(function(button) {
+        button.addEventListener('click', function() {
+          const isSelected = document.getElementById('service-filter').value === button.dataset.service;
+          document.getElementById('service-filter').value = isSelected ? 'all' : button.dataset.service;
           renderAnalytics();
-          document.getElementById('daily-report-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          if (!isSelected) document.getElementById('daily-report-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
       });
 
@@ -763,7 +783,7 @@
       document.getElementById('summary-services').textContent = formatNumber(distinctServices);
       document.getElementById('summary-top-service').textContent = topEntry ? topEntry[0] : 'None';
       document.getElementById('summary-top-service-sub').textContent = topEntry ? formatNumber(topEntry[1]) + ' bookings in period' : 'No bookings in period';
-      document.getElementById('service-range-label').textContent = rangeLabel + (selectedService === 'all' ? ' · click a service to focus' : ' · ' + selectedService);
+      document.getElementById('service-range-label').textContent = rangeLabel + (selectedService === 'all' ? ' · use Filter to focus a service' : ' · ' + selectedService);
     }
 
     function renderError(error) {
