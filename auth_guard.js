@@ -60,9 +60,9 @@
     return;
   }
 
-  // Role Restriction: Employee is restricted ONLY to index.html and partners.html / active_partners.html
+  // Role Restriction: Employee is restricted to orders and partner operations pages.
   if (role === 'employee') {
-    const allowedPages = ['index.html', 'partners.html', 'active_partners.html'];
+    const allowedPages = ['index.html', 'partners.html', 'active_partners.html', 'partner_performance.html'];
     const isAllowed = allowedPages.includes(currentPath);
 
     if (!isAllowed) {

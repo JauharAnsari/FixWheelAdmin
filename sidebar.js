@@ -29,6 +29,10 @@ function renderSidebar(activeKey) {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
               Partners
             </a>
+            <a href="partner_performance.html?v=2029" class="nav-item ${activeKey === 'partner_performance' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"></path><path d="M7 16v2"></path><path d="M12 11v7"></path><path d="M17 6v12"></path><path d="m6 12 5-5 4 3 5-6"></path></svg>
+              Partner Performance
+            </a>
           </div>
         `;
       } else {
@@ -86,6 +90,10 @@ function renderSidebar(activeKey) {
             <a href="partner_workload.html?v=2027" class="nav-item ${activeKey === 'partner_workload' ? 'active' : ''}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
               Partner Workload
+            </a>
+            <a href="partner_performance.html?v=2029" class="nav-item ${activeKey === 'partner_performance' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"></path><path d="M7 16v2"></path><path d="M12 11v7"></path><path d="M17 6v12"></path><path d="m6 12 5-5 4 3 5-6"></path></svg>
+              Partner Performance
             </a>
             <a href="partner_payouts.html?v=2027" class="nav-item ${activeKey === 'payouts' ? 'active' : ''}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
@@ -383,6 +391,7 @@ const SEARCH_DATABASE = [
   { type: 'page', title: 'Total Partners Directory', sub: 'Partners · All Registered Garages', icon: '🏪', url: 'partners.html?v=2027' },
   { type: 'page', title: 'Pending Approval', sub: 'Partners · Onboarding Approvals', icon: '⏳', url: 'pending_partners.html?v=2027' },
   { type: 'page', title: 'Partner Workload', sub: 'Partners · Workload Distribution', icon: '⚡', url: 'partner_workload.html?v=2027' },
+  { type: 'page', title: 'Partner Performance', sub: 'Partners · Completed & Cancelled Jobs by Date', icon: '📈', url: 'partner_performance.html?v=2029' },
   { type: 'page', title: 'Partner Payouts', sub: 'Partners · Earnings & Commission Payouts', icon: '💰', url: 'partner_payouts.html?v=2027' },
   { type: 'page', title: 'Customer Directory', sub: 'Customers · User Profiles & Registered Riders', icon: '👤', url: 'customers.html?v=2027' },
   { type: 'page', title: 'Blocked / Flagged Customers', sub: 'Customers · Flagged Accounts', icon: '🚫', url: 'blocked_customers.html?v=2027' },

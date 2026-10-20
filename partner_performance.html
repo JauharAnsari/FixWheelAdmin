@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    function isFixWheelAuthenticated() {
+      return sessionStorage.getItem('fixwheel_admin_logged_in') === 'true' ||
+             localStorage.getItem('fixwheel_admin_logged_in') === 'true' ||
+             sessionStorage.getItem('fixwheel_admin_session_v2') === 'true' ||
+             localStorage.getItem('fixwheel_admin_session_v2') === 'true';
+    }
+    if (!isFixWheelAuthenticated()) window.location.replace('login.html');
+    if (localStorage.getItem('theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FixWheel — Partner Performance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="sidebar.css">
+  <script src="auth_guard.js?v=2026"></script>
+  <script src="sidebar.js?v=2029"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0a0a0a;--surface:#141414;--surface-2:#1e1e1e;--surface-3:#262626;--border:#2a2a2a;--border-hi:#3f3f3f;--red:#ef4444;--red-soft:rgba(239,68,68,.12);--green:#22c55e;--green-soft:rgba(34,197,94,.12);--blue:#60a5fa;--blue-soft:rgba(96,165,250,.12);--text-1:#fff;--text-2:#a1a1aa;--text-3:#71717a;--topbar-bg:rgba(10,10,10,.92);--mono:'DM Mono',monospace;--sans:'Syne',sans-serif}
+    [data-theme="light"]{--bg:#f3f4f6;--surface:#fff;--surface-2:#f8fafc;--surface-3:#e5e7eb;--border:#e5e7eb;--border-hi:#cbd5e1;--red-soft:rgba(239,68,68,.08);--green-soft:rgba(34,197,94,.08);--blue-soft:rgba(96,165,250,.1);--text-1:#111827;--text-2:#4b5563;--text-3:#6b7280;--topbar-bg:rgba(255,255,255,.92)}
+    html{background:var(--bg)} body{min-height:100vh;background:var(--bg);color:var(--text-1);font-family:var(--sans)}
+    ::selection{background:var(--red);color:#fff}:focus-visible{outline:2px solid var(--blue);outline-offset:2px}button,input,select{font:inherit}
+    .topbar{position:sticky;top:0;z-index:100;height:60px;padding:0 36px;display:flex;align-items:center;justify-content:space-between;gap:20px;background:var(--topbar-bg);border-bottom:1px solid var(--border);backdrop-filter:blur(16px)}
+    .topbar-brand{min-width:0;display:flex;align-items:center;gap:10px}.topbar-brand span{font-size:15px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}.topbar-brand em{min-width:0;overflow:hidden;color:var(--text-3);font:normal 12px var(--mono);text-overflow:ellipsis;white-space:nowrap}
+    .topbar-right{display:flex;align-items:center;gap:10px}.live-dot{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid #166534;border-radius:999px;color:var(--green);background:var(--green-soft);font:10px var(--mono)}.live-dot::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}.admin-chip{padding:5px 10px;border:1px solid var(--border);border-radius:5px;background:var(--surface-2);color:var(--text-2);font:11px var(--mono)}
+    .performance-main{width:min(1440px,100%);margin:0 auto;padding:32px 36px 44px;display:flex;flex-direction:column;gap:22px}
+    .page-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:28px}.eyebrow{margin-bottom:8px;color:var(--red);font:500 10px var(--mono);letter-spacing:.14em;text-transform:uppercase}.page-intro h1{max-width:780px;font-size:clamp(27px,3vw,40px);line-height:1.08;letter-spacing:-.03em}.page-intro p{max-width:68ch;margin-top:9px;color:var(--text-2);font-size:14px;line-height:1.6}.data-status{flex:0 0 auto;color:var(--text-3);font:10px/1.5 var(--mono);text-align:right}
+    .filter-panel{display:flex;flex-direction:column;gap:15px;padding:18px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}.preset-row{display:flex;align-items:center;justify-content:space-between;gap:16px}.preset-buttons{display:flex;flex-wrap:wrap;gap:7px}.preset-button{min-height:35px;padding:7px 12px;border:1px solid var(--border-hi);border-radius:999px;background:var(--surface-2);color:var(--text-2);font-size:12px;font-weight:600;cursor:pointer}.preset-button:hover{color:var(--text-1)}.preset-button.active{border-color:#991b1b;background:var(--red-soft);color:var(--red)}.filter-hint{color:var(--text-3);font:10px var(--mono)}
+    .filter-grid{display:grid;grid-template-columns:minmax(230px,1.5fr) repeat(2,minmax(145px,.75fr)) minmax(170px,.85fr) auto auto;gap:10px;align-items:end}.field{display:flex;flex-direction:column;gap:6px}.field label{color:var(--text-3);font:9px var(--mono);letter-spacing:.09em;text-transform:uppercase}.control{width:100%;height:40px;padding:0 11px;border:1px solid var(--border-hi);border-radius:7px;background:var(--surface-2);color:var(--text-1);font-size:12px}.control::placeholder{color:var(--text-3)}.button{height:40px;padding:0 16px;border:1px solid var(--border-hi);border-radius:7px;background:var(--surface-2);color:var(--text-2);font-size:12px;font-weight:700;cursor:pointer}.button:hover{color:var(--text-1)}.button.primary{border-color:var(--red);background:var(--red);color:#fff}.filter-error{display:none;color:var(--red);font:11px var(--mono)}.filter-error.visible{display:block}
+    .summary-band{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden}.summary-item{min-height:118px;padding:20px 22px;border-right:1px solid var(--border)}.summary-item:last-child{border-right:0}.summary-label{color:var(--text-3);font:10px var(--mono);letter-spacing:.08em;text-transform:uppercase}.summary-value{margin-top:12px;font-size:clamp(27px,3vw,38px);font-weight:800;line-height:1}.summary-value.green{color:var(--green)}.summary-value.red{color:var(--red)}.summary-detail{margin-top:8px;color:var(--text-3);font:10px var(--mono)}
+    .report-panel{border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden}.report-header{padding:20px 24px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;border-bottom:1px solid var(--border)}.report-header h2{font-size:19px}.report-header p{margin-top:5px;color:var(--text-3);font:11px/1.5 var(--mono)}.count-badge{padding:5px 9px;border-radius:999px;background:var(--blue-soft);color:var(--blue);font:10px var(--mono);white-space:nowrap}
+    .list-head,.performance-row{display:grid;grid-template-columns:minmax(280px,2fr) repeat(3,minmax(110px,.65fr)) minmax(150px,.9fr);align-items:center;gap:16px}.list-head{padding:11px 24px;background:var(--surface-2);color:var(--text-3);font:9px var(--mono);letter-spacing:.08em;text-transform:uppercase}.performance-row{min-height:82px;padding:14px 24px;border-top:1px solid var(--border)}.performance-row:first-child{border-top:0}.performance-row:hover{background:var(--surface-2)}.mechanic-identity{min-width:0;display:flex;align-items:center;gap:14px}.rank{flex:0 0 27px;color:var(--text-3);font:11px var(--mono)}.mechanic-copy{min-width:0}.mechanic-copy strong{display:block;overflow:hidden;font-size:14px;text-overflow:ellipsis;white-space:nowrap}.mechanic-copy span{display:block;margin-top:4px;overflow:hidden;color:var(--text-3);font:10px var(--mono);text-overflow:ellipsis;white-space:nowrap}.metric strong{font-size:18px}.metric small{display:block;margin-top:3px;color:var(--text-3);font:9px var(--mono)}.metric.completed strong{color:var(--green)}.metric.cancelled strong{color:var(--red)}.mobile-label{display:none}.rate-wrap{display:flex;align-items:center;gap:10px}.rate-track{width:72px;height:4px;border-radius:99px;background:var(--surface-3);overflow:hidden}.rate-fill{height:100%;border-radius:99px;background:var(--green)}.rate-value{font:500 11px var(--mono)}
+    .state{padding:54px 24px;text-align:center}.state svg{width:28px;height:28px;color:var(--text-3)}.state h3{margin-top:12px;font-size:16px}.state p{max-width:480px;margin:7px auto 0;color:var(--text-3);font:11px/1.6 var(--mono)}.spinner{width:24px;height:24px;margin:0 auto;border:2px solid var(--surface-3);border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+    .report-note{padding:13px 24px;border-top:1px solid var(--border);color:var(--text-3);font:10px/1.5 var(--mono)}
+    @media(max-width:1050px){.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.summary-band{grid-template-columns:repeat(2,1fr)}.summary-item:nth-child(2){border-right:0}.summary-item:nth-child(-n+2){border-bottom:1px solid var(--border)}}
+    @media(max-width:760px){.topbar{height:58px;padding:0 14px 0 64px}.topbar-brand em,.admin-chip{display:none}.topbar-brand span{font-size:13px}.performance-main{padding:22px 14px 34px;gap:16px}.page-intro{display:block}.data-status{margin-top:10px;text-align:left}.filter-panel{padding:14px}.preset-row{align-items:flex-start;flex-direction:column}.filter-hint{display:none}.filter-grid{grid-template-columns:1fr 1fr}.search-field,.outcome-field{grid-column:1/-1}.button{padding:0 12px}.summary-item{min-height:100px;padding:16px}.summary-value{font-size:27px}.report-header{padding:17px}.list-head{display:none}.performance-row{grid-template-columns:1fr 1fr;padding:16px;gap:14px}.mechanic-identity{grid-column:1/-1;padding-bottom:11px;border-bottom:1px solid var(--border)}.metric{display:flex;align-items:center;justify-content:space-between;gap:8px}.metric small{display:none}.mobile-label{display:inline;color:var(--text-3);font:9px var(--mono);letter-spacing:.05em;text-transform:uppercase}.rate-wrap{justify-content:flex-end}.rate-track{width:55px}.report-note{padding:12px 16px}}
+    @media(max-width:420px){.topbar-right{display:none}.filter-grid{grid-template-columns:1fr}.search-field,.outcome-field{grid-column:auto}.summary-band{grid-template-columns:1fr 1fr}.summary-item{padding:14px 12px}.summary-label{font-size:8px}.summary-detail{font-size:9px}.performance-row{grid-template-columns:1fr}.metric{min-height:26px}.rate-wrap{justify-content:flex-start}.rate-track{flex:1}.button{width:100%}}
+  </style>
+</head>
+<body>
+  <div class="main-wrapper">
+    <header class="topbar">
+      <div class="topbar-brand"><span>Partner Performance</span><em>/ Closed Job Outcomes</em></div>
+      <div class="topbar-right"><span class="live-dot">LIVE DATA</span><span class="admin-chip" id="adminEmail">admin@fixwheel.com</span></div>
+    </header>
+    <main class="performance-main">
+      <section class="page-intro">
+        <div><div class="eyebrow">Partner Operations</div><h1>See who completed—and cancelled—every job.</h1><p>Compare mechanic outcomes for any date range. Counts use the date each order was created, so completed and cancelled jobs are measured consistently.</p></div>
+        <div class="data-status" id="dataStatus">CONNECTING TO BOOKING DATA…</div>
+      </section>
+      <section class="filter-panel" aria-label="Partner performance filters">
+        <div class="preset-row"><div class="preset-buttons" aria-label="Quick date ranges"><button class="preset-button" data-preset="today">Today</button><button class="preset-button" data-preset="last7">Last 7 days</button><button class="preset-button active" data-preset="month">This month</button><button class="preset-button" data-preset="all">All time</button></div><span class="filter-hint">ORDER CREATED DATE · IST</span></div>
+        <div class="filter-grid">
+          <div class="field search-field"><label for="partnerSearch">Find a mechanic</label><input class="control" id="partnerSearch" type="search" placeholder="Garage, owner, city…"></div>
+          <div class="field"><label for="dateFrom">From</label><input class="control" id="dateFrom" type="date"></div>
+          <div class="field"><label for="dateTo">To</label><input class="control" id="dateTo" type="date"></div>
+          <div class="field outcome-field"><label for="outcomeFilter">Show partners with</label><select class="control" id="outcomeFilter"><option value="all">Any closed job</option><option value="completed">Completed jobs</option><option value="cancelled">Cancelled jobs</option></select></div>
+          <button class="button primary" id="applyFilters" type="button">Apply</button><button class="button" id="resetFilters" type="button">Reset</button>
+        </div>
+        <div class="filter-error" id="filterError" role="alert"></div>
+      </section>
+      <section class="summary-band" aria-label="Performance summary">
+        <div class="summary-item"><div class="summary-label">Mechanics</div><div class="summary-value" id="mechanicCount">—</div><div class="summary-detail">with closed jobs</div></div>
+        <div class="summary-item"><div class="summary-label">Completed jobs</div><div class="summary-value green" id="completedCount">—</div><div class="summary-detail">in selected period</div></div>
+        <div class="summary-item"><div class="summary-label">Cancelled jobs</div><div class="summary-value red" id="cancelledCount">—</div><div class="summary-detail">in selected period</div></div>
+        <div class="summary-item"><div class="summary-label">Completion rate</div><div class="summary-value" id="completionRate">—</div><div class="summary-detail">of closed jobs</div></div>
+      </section>
+      <section class="report-panel">
+        <div class="report-header"><div><h2>Mechanic job outcomes</h2><p id="reportPeriod">Loading selected period…</p></div><span class="count-badge" id="resultCount">—</span></div>
+        <div class="list-head"><span>Mechanic</span><span>Completed</span><span>Cancelled</span><span>Closed jobs</span><span>Completion rate</span></div>
+        <div id="performanceList"><div class="state"><div class="spinner"></div><h3>Loading partner performance</h3><p>Reading bookings and matching assigned mechanics.</p></div></div>
+        <div class="report-note">Dates use the order-created date in India Standard Time. Test and sandbox orders are excluded.</div>
+      </section>
+    </main>
+  </div>
+  <script>
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const PAGE_SIZE = 1000;
+    const IST_OFFSET_MS = 330 * 60 * 1000;
+    let closedJobs = [];
+    let partnerLookup = new Map();
+
+    const $ = id => document.getElementById(id);
+    const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+    const normalize = value => String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+    const dateKeyIST = date => new Date(date.getTime() + IST_OFFSET_MS).toISOString().slice(0, 10);
+    const todayKey = () => dateKeyIST(new Date());
+    const shiftDateKey = (key, days) => { const date = new Date(key + 'T00:00:00Z'); date.setUTCDate(date.getUTCDate() + days); return date.toISOString().slice(0, 10); };
+    const startOfMonth = key => key.slice(0, 8) + '01';
+    const displayDate = key => new Intl.DateTimeFormat('en-IN', { day:'2-digit', month:'short', year:'numeric', timeZone:'Asia/Kolkata' }).format(new Date(key + 'T12:00:00Z'));
+    const orderState = order => `${order.order_status || ''} ${order.status || ''}`.toLowerCase();
+    const isProduction = order => !/test|sandbox/.test(orderState(order));
+    const outcomeOf = order => { const state = orderState(order); if (state.includes('cancel')) return 'cancelled'; if (state.includes('complete')) return 'completed'; return ''; };
+    const createdDateKey = order => { if (!order.createdAt) return ''; const date = new Date(order.createdAt); return Number.isNaN(date.getTime()) ? '' : dateKeyIST(date); };
+
+    async function fetchAll(table) {
+      const rows = [];
+      for (let from = 0; ; from += PAGE_SIZE) {
+        const { data, error } = await supabaseClient.from(table).select('*').range(from, from + PAGE_SIZE - 1);
+        if (error) throw error;
+        rows.push(...(data || []));
+        if (!data || data.length < PAGE_SIZE) break;
+      }
+      return rows;
+    }
+
+    function buildPartnerLookup(partners) {
+      const map = new Map();
+      partners.forEach(partner => {
+        [partner.garageName, partner.ownerName].forEach(name => { if (normalize(name)) map.set(normalize(name), partner); });
+      });
+      return map;
+    }
+
+    function setPreset(preset) {
+      const today = todayKey();
+      let from = startOfMonth(today);
+      if (preset === 'today') from = today;
+      if (preset === 'last7') from = shiftDateKey(today, -6);
+      if (preset === 'all') from = closedJobs.length ? closedJobs.reduce((min, job) => job.date < min ? job.date : min, closedJobs[0].date) : '2000-01-01';
+      $('dateFrom').value = from;
+      $('dateTo').value = today;
+      document.querySelectorAll('.preset-button').forEach(button => button.classList.toggle('active', button.dataset.preset === preset));
+      renderPerformance();
+    }
+
+    function renderPerformance() {
+      const from = $('dateFrom').value;
+      const to = $('dateTo').value;
+      const query = normalize($('partnerSearch').value);
+      const outcomeFilter = $('outcomeFilter').value;
+      const error = $('filterError');
+      error.classList.remove('visible');
+      if (!from || !to || from > to) {
+        error.textContent = from > to ? 'The From date must be before the To date.' : 'Choose both a From and To date.';
+        error.classList.add('visible');
+        return;
+      }
+
+      const stats = new Map();
+      closedJobs.filter(job => job.date >= from && job.date <= to).forEach(job => {
+        if (!stats.has(job.key)) stats.set(job.key, { key:job.key, assigned:job.assigned, completed:0, cancelled:0 });
+        stats.get(job.key)[job.outcome] += 1;
+      });
+
+      let rows = [...stats.values()].map(row => {
+        const partner = partnerLookup.get(row.key) || {};
+        const name = partner.garageName || row.assigned;
+        const meta = [partner.ownerName && normalize(partner.ownerName) !== normalize(name) ? partner.ownerName : '', partner.city].filter(Boolean).join(' · ') || 'Assigned mechanic';
+        const closed = row.completed + row.cancelled;
+        return {...row, name, meta, closed, rate: closed ? Math.round(row.completed / closed * 100) : 0, haystack:normalize(`${name} ${row.assigned} ${meta}`)};
+      }).filter(row => (!query || row.haystack.includes(query)) && (outcomeFilter === 'all' || row[outcomeFilter] > 0))
+        .sort((a,b) => b.completed - a.completed || b.closed - a.closed || a.name.localeCompare(b.name));
+
+      const totals = rows.reduce((sum,row) => ({ completed:sum.completed + row.completed, cancelled:sum.cancelled + row.cancelled }), {completed:0,cancelled:0});
+      const totalClosed = totals.completed + totals.cancelled;
+      $('mechanicCount').textContent = rows.length.toLocaleString('en-IN');
+      $('completedCount').textContent = totals.completed.toLocaleString('en-IN');
+      $('cancelledCount').textContent = totals.cancelled.toLocaleString('en-IN');
+      $('completionRate').textContent = totalClosed ? `${Math.round(totals.completed / totalClosed * 100)}%` : '0%';
+      $('reportPeriod').textContent = `${displayDate(from)} – ${displayDate(to)} · sorted by completed jobs`;
+      $('resultCount').textContent = `${rows.length} ${rows.length === 1 ? 'mechanic' : 'mechanics'}`;
+
+      if (!rows.length) {
+        $('performanceList').innerHTML = `<div class="state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg><h3>No matching closed jobs</h3><p>Try a wider date range, a different outcome, or clear the mechanic search.</p></div>`;
+        return;
+      }
+      $('performanceList').innerHTML = rows.map((row,index) => `<div class="performance-row">
+        <div class="mechanic-identity"><span class="rank">${String(index + 1).padStart(2,'0')}</span><div class="mechanic-copy"><strong>${escapeHtml(row.name)}</strong><span>${escapeHtml(row.meta)}</span></div></div>
+        <div class="metric completed"><span class="mobile-label">Completed</span><strong>${row.completed.toLocaleString('en-IN')}</strong><small>jobs</small></div>
+        <div class="metric cancelled"><span class="mobile-label">Cancelled</span><strong>${row.cancelled.toLocaleString('en-IN')}</strong><small>jobs</small></div>
+        <div class="metric"><span class="mobile-label">Closed jobs</span><strong>${row.closed.toLocaleString('en-IN')}</strong><small>total</small></div>
+        <div class="rate-wrap"><span class="mobile-label">Completion rate</span><div class="rate-track" aria-hidden="true"><div class="rate-fill" style="width:${row.rate}%"></div></div><span class="rate-value">${row.rate}%</span></div>
+      </div>`).join('');
+    }
+
+    async function loadData() {
+      $('dataStatus').textContent = 'CONNECTING TO BOOKING DATA…';
+      try {
+        const [bookings, partners] = await Promise.all([fetchAll('Booking'), fetchAll('Partner')]);
+        partnerLookup = buildPartnerLookup(partners);
+        closedJobs = bookings.map(order => ({
+          assigned:String(order['Assign Mechanic'] || order.mechanic || '').trim(),
+          key:normalize(order['Assign Mechanic'] || order.mechanic),
+          date:createdDateKey(order),
+          outcome:outcomeOf(order),
+          production:isProduction(order)
+        })).filter(job => job.assigned && job.key && job.date && job.outcome && job.production);
+        $('dataStatus').textContent = `${bookings.length.toLocaleString('en-IN')} ORDERS SYNCED · ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}`;
+        setPreset('month');
+      } catch (error) {
+        console.error('Partner performance load failed:', error);
+        $('dataStatus').textContent = 'DATA CONNECTION FAILED';
+        $('performanceList').innerHTML = `<div class="state"><h3>Could not load partner performance</h3><p>${escapeHtml(error.message || 'Check the Supabase connection and try again.')}</p><button class="button" style="margin-top:16px" onclick="loadData()">Retry</button></div>`;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSidebar('partner_performance');
+      const staff = JSON.parse(localStorage.getItem('fixwheel_staff_user') || '{}');
+      if (staff.email) $('adminEmail').textContent = staff.email;
+      document.querySelectorAll('.preset-button').forEach(button => button.addEventListener('click', () => setPreset(button.dataset.preset)));
+      ['dateFrom','dateTo'].forEach(id => $(id).addEventListener('change', () => document.querySelectorAll('.preset-button').forEach(button => button.classList.remove('active'))));
+      $('applyFilters').addEventListener('click', renderPerformance);
+      $('resetFilters').addEventListener('click', () => { $('partnerSearch').value=''; $('outcomeFilter').value='all'; setPreset('month'); });
+      $('partnerSearch').addEventListener('input', renderPerformance);
+      $('outcomeFilter').addEventListener('change', renderPerformance);
+      loadData();
+    });
+  </script>
+</body>
+</html>
