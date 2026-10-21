@@ -2035,7 +2035,7 @@
         return;
       }
       
-      let csvContent = "\uFEFFOrder ID,Date,Finished On,Customer Name,Phone,Vehicle,Service,Source,Address,Slot,Mechanic,Order Status,Amount,Final Amount,Remark\r\n";
+      let csvContent = "\uFEFFOrder ID,Date,Finished On,Customer Name,Phone,Vehicle,Service,Source,City,Address,Slot,Mechanic,Order Status,Amount,Final Amount,Remark\r\n";
       
       window.allBookings.forEach(order => {
         const orderId = `"${(order.bookingRef || order.id || '').toString().replace(/"/g, '""')}"`;
@@ -2049,6 +2049,7 @@
         const vehicle = `"${((order.bikeModel || '') + ' ' + (order.bikeType || '')).trim().replace(/"/g, '""')}"`;
         const service = `"${(order.package || '').toString().replace(/"/g, '""')}"`;
         const source = `"${(order.source || '').toString().replace(/"/g, '""')}"`;
+        const city = `"${(order.city || '').toString().replace(/"/g, '""')}"`;
         const address = `"${(order.address || '').toString().replace(/"/g, '""')}"`;
         const slot = `"${(order.preferredSlot || '').toString().replace(/"/g, '""')}"`;
         const mechanic = `"${(order['Assign Mechanic'] || '').toString().replace(/"/g, '""')}"`;
@@ -2057,7 +2058,7 @@
         const finalAmount = `"${(order.Final_Amount || order.price || 0).toString().replace(/"/g, '""')}"`;
         const remark = `"${(order.Remarks || '').toString().replace(/"/g, '""')}"`;
         
-        csvContent += [orderId, date, finishedOn, customer, phone, vehicle, service, source, address, slot, mechanic, orderStatus, amount, finalAmount, remark].join(',') + "\r\n";
+        csvContent += [orderId, date, finishedOn, customer, phone, vehicle, service, source, city, address, slot, mechanic, orderStatus, amount, finalAmount, remark].join(',') + "\r\n";
       });
       
       const now = new Date();
