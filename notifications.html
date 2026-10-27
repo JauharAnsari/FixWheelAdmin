@@ -3,20 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <script>
-    
-  function isFixWheelAuthenticated() {
-    return sessionStorage.getItem('fixwheel_admin_logged_in') === 'true' ||
-           localStorage.getItem('fixwheel_admin_logged_in') === 'true' ||
-           sessionStorage.getItem('fixwheel_admin_session_v2') === 'true' ||
-           localStorage.getItem('fixwheel_admin_session_v2') === 'true';
-  }
-
-    if (!isFixWheelAuthenticated()) {
-      window.location.replace('login.html');
+    function isFixWheelAuthenticated() {
+      return sessionStorage.getItem('fixwheel_admin_logged_in') === 'true' ||
+             localStorage.getItem('fixwheel_admin_logged_in') === 'true' ||
+             sessionStorage.getItem('fixwheel_admin_session_v2') === 'true' ||
+             localStorage.getItem('fixwheel_admin_session_v2') === 'true';
     }
+
+    if (!isFixWheelAuthenticated()) window.location.replace('login.html');
   </script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FixWheel — Notification Logs</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FixWheel — App Notifications</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
@@ -25,44 +22,253 @@
   <script src="sidebar.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --bg: #0a0a0a; --surface: #141414; --surface-2: #1e1e1e; --border: #2a2a2a; --border-hi: #3f3f3f; --red: #ef4444; --red-dim: #991b1b; --red-glow: rgba(239, 68, 68, 0.15); --text-1: #ffffff; --text-2: #a1a1aa; --text-3: #71717a; --topbar-bg: rgba(10, 10, 10, 0.85); --mono: 'DM Mono', monospace; --sans: 'Syne', sans-serif; }
-    [data-theme="light"] { --bg: #f3f4f6; --surface: #ffffff; --surface-2: #f9fafb; --border: #e5e7eb; --text-1: #111827; --text-2: #4b5563; --text-3: #6b7280; --topbar-bg: rgba(255, 255, 255, 0.85); }
-    body { background: var(--bg); color: var(--text-1); font-family: var(--sans); }
+    :root {
+      --bg:#0a0a0a; --surface:#141414; --surface-2:#1e1e1e; --border:#2a2a2a;
+      --border-hi:#3f3f3f; --red:#ef4444; --red-hover:#dc2626;
+      --red-glow:rgba(239,68,68,.15); --green:#22c55e; --green-soft:rgba(34,197,94,.12);
+      --text-1:#fff; --text-2:#a1a1aa; --text-3:#71717a;
+      --topbar-bg:rgba(10,10,10,.9); --mono:'DM Mono',monospace; --sans:'Syne',sans-serif;
+    }
+    [data-theme="light"] {
+      --bg:#f3f4f6; --surface:#fff; --surface-2:#f9fafb; --border:#e5e7eb;
+      --border-hi:#d1d5db; --text-1:#111827; --text-2:#4b5563; --text-3:#6b7280;
+      --topbar-bg:rgba(255,255,255,.9);
+    }
+    body { min-height:100vh; background:var(--bg); color:var(--text-1); font-family:var(--sans); }
+    button, input, textarea { font:inherit; }
+    .topbar-brand { display:flex; align-items:center; gap:12px; min-width:0; }
+    .topbar-brand span { font-size:15px; font-weight:700; text-transform:uppercase; white-space:nowrap; }
+    .live-indicator { display:inline-flex; align-items:center; gap:7px; color:var(--text-2); font:500 11px/1 var(--mono); }
+    .live-indicator::before { width:7px; height:7px; border-radius:50%; background:var(--green); content:''; box-shadow:0 0 0 4px var(--green-soft); }
+    #theme-toggle { display:inline-flex; align-items:center; gap:7px; min-height:34px; padding:6px 12px; border:1px solid var(--border-hi); border-radius:8px; background:var(--surface-2); color:var(--text-2); cursor:pointer; font:500 12px/1 var(--mono); }
+    #theme-toggle:hover { color:var(--text-1); border-color:var(--text-3); }
+    #theme-toggle svg { width:15px; height:15px; }
+    .admin-chip { border:1px solid var(--border-hi); border-radius:20px; background:var(--surface-2); color:var(--text-2); padding:6px 14px; font:400 12px/1 var(--mono); }
+    .notification-page { width:min(1180px,100%); margin:0 auto; padding:38px 36px 56px; }
+    .page-heading { margin-bottom:20px; }
+    .page-heading h1 { font-size:32px; line-height:1.1; letter-spacing:-.025em; }
+    .workspace-grid { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr); gap:18px; align-items:start; }
+    .panel { border:1px solid var(--border); border-radius:12px; background:var(--surface); overflow:hidden; }
+    .panel-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:22px 22px 18px; border-bottom:1px solid var(--border); }
+    .panel-header h2 { font-size:18px; line-height:1.2; }
+    .panel-header p { margin-top:6px; color:var(--text-3); font:400 11px/1.5 var(--mono); }
+    .editor-form, .preview-body { padding:22px; }
+    .field + .field { margin-top:20px; }
+    .field-label-row { display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:8px; }
+    .field-label-row label { color:var(--text-1); font-size:13px; font-weight:700; }
+    .character-count { color:var(--text-3); font:400 10px/1 var(--mono); }
+    .notification-input { display:block; width:100%; min-height:46px; border:1px solid var(--border-hi); border-radius:8px; outline:none; background:var(--surface-2); color:var(--text-1); padding:12px 13px; font-size:14px; line-height:1.55; resize:vertical; transition:border-color 150ms ease,box-shadow 150ms ease; }
+    textarea.notification-input { min-height:94px; }
+    .notification-input::placeholder { color:var(--text-3); }
+    .notification-input:focus { border-color:var(--red); box-shadow:0 0 0 3px var(--red-glow); }
+    .field-help { margin-top:7px; color:var(--text-3); font:400 10px/1.45 var(--mono); }
+    .form-message { display:none; margin-top:18px; padding:11px 12px; border:1px solid var(--border); border-radius:8px; color:var(--text-2); font:400 11px/1.5 var(--mono); }
+    .form-message.visible { display:block; }
+    .form-message.success { border-color:rgba(34,197,94,.3); background:var(--green-soft); color:var(--green); }
+    .form-message.error { border-color:rgba(239,68,68,.35); background:var(--red-glow); color:var(--red); }
+    .form-actions { display:flex; align-items:center; gap:10px; margin-top:20px; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:42px; border:1px solid transparent; border-radius:8px; padding:10px 15px; cursor:pointer; font-size:12px; font-weight:700; transition:background 150ms ease,border-color 150ms ease,color 150ms ease; }
+    .btn:disabled { cursor:wait; opacity:.62; }
+    .btn-primary { background:var(--red); color:#fff; }
+    .btn-primary:hover:not(:disabled) { background:var(--red-hover); }
+    .btn-secondary { border-color:var(--border-hi); background:var(--surface-2); color:var(--text-2); }
+    .btn-secondary:hover:not(:disabled) { border-color:var(--text-3); color:var(--text-1); }
+    .btn svg { width:15px; height:15px; }
+    .phone-preview { position:relative; min-height:330px; border:1px solid var(--border-hi); border-radius:22px; background:#101010; padding:46px 16px 20px; color:#fff; overflow:hidden; }
+    .phone-preview::before { position:absolute; top:13px; left:50%; width:58px; height:5px; border-radius:999px; background:#393939; content:''; transform:translateX(-50%); }
+    .preview-time { margin-bottom:18px; color:#a1a1aa; font:400 10px/1 var(--mono); text-align:center; }
+    .notification-card { display:grid; grid-template-columns:38px minmax(0,1fr); gap:11px; border:1px solid #363636; border-radius:12px; background:#202020; padding:13px; }
+    .app-mark { display:flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:9px; background:#ef4444; color:#fff; }
+    .app-mark svg { width:19px; height:19px; }
+    .notification-meta { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:7px; color:#a1a1aa; font:500 9px/1 var(--mono); text-transform:uppercase; }
+    .preview-line-1 { overflow-wrap:anywhere; font-size:13px; font-weight:700; line-height:1.35; }
+    .preview-line-2 { margin-top:4px; overflow-wrap:anywhere; color:#d4d4d8; font-size:11px; line-height:1.5; }
+    .record-panel { grid-column:1/-1; }
+    .record-content { display:grid; grid-template-columns:minmax(180px,.65fr) minmax(0,1.35fr); }
+    .record-meta { padding:20px 22px; border-right:1px solid var(--border); }
+    .record-meta dt, .saved-line-label { color:var(--text-3); font:500 9px/1.2 var(--mono); letter-spacing:.09em; text-transform:uppercase; }
+    .record-meta dd { margin-top:7px; color:var(--text-2); font:400 11px/1.5 var(--mono); overflow-wrap:anywhere; }
+    .record-meta div + div { margin-top:16px; }
+    .saved-copy { padding:20px 22px; }
+    .saved-copy-row + .saved-copy-row { margin-top:17px; }
+    .saved-line-value { margin-top:7px; color:var(--text-1); font-size:13px; line-height:1.55; overflow-wrap:anywhere; }
+    .empty-value { color:var(--text-3); }
+    @media (max-width:900px) {
+      .workspace-grid { grid-template-columns:1fr; }
+      .record-panel { grid-column:auto; }
+      .phone-preview { min-height:280px; }
+    }
+    @media (max-width:640px) {
+      .notification-page { padding:20px 16px 34px !important; }
+      .page-heading { margin-bottom:18px; }
+      .page-heading h1 { font-size:26px; }
+      .panel-header, .editor-form, .preview-body { padding:17px; }
+      .panel-header { align-items:center; }
+      .form-actions { align-items:stretch; flex-direction:column; }
+      .btn { width:100%; }
+      .record-content { grid-template-columns:1fr; }
+      .record-meta { border-right:0; border-bottom:1px solid var(--border); }
+      .phone-preview { min-height:250px; padding-inline:12px; }
+    }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition-duration:.01ms!important; } }
   </style>
-  <script> if (localStorage.getItem('theme') === 'light') document.documentElement.setAttribute('data-theme', 'light'); </script>
+  <script>if (localStorage.getItem('theme') === 'light') document.documentElement.setAttribute('data-theme','light');</script>
 </head>
 <body>
   <div class="main-wrapper">
     <header class="topbar">
-      <div style="display:flex; align-items:center; gap:12px;">
-        <span style="font-weight:700; font-size:15px; text-transform:uppercase;">Team</span>
-        <span style="font-family:var(--mono); color:var(--text-3); font-size:12px;">/ Notification Logs</span>
-      </div>
-      <div class="topbar-right" style="display:flex; align-items:center; gap:20px;">
-        <div style="display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; color:var(--text-2);">LIVE</div>
-        <button id="theme-toggle" style="cursor:pointer; background:var(--surface-2); border:1px solid var(--border-hi); color:var(--text-2); padding:5px 12px; border-radius:20px; font-family:var(--mono); font-size:12px;">Theme</button>
-        <div style="background:var(--surface-2); border:1px solid var(--border-hi); border-radius:20px; padding:5px 14px; font-size:12px; font-family:var(--mono); color:var(--text-2);">admin@fixwheel.in</div>
+      <div class="topbar-brand"><span>Notifications</span></div>
+      <div class="topbar-right" style="display:flex;align-items:center;gap:12px;">
+        <div class="live-indicator">LIVE DATA</div>
+        <button id="theme-toggle" type="button" aria-label="Toggle color theme">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"></path></svg>
+          <span id="theme-text">Theme</span>
+        </button>
+        <div class="admin-chip">admin@fixwheel.in</div>
       </div>
     </header>
-    <main class="placeholder-container">
-      <div class="placeholder-card">
-        <div class="placeholder-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-        </div>
-        <h1 class="placeholder-title">Notification Audit Logs</h1>
-        <p class="placeholder-desc">Push notifications, SMS alert logs, WhatsApp dispatch logs, and delivery status reports.</p>
-        <span class="placeholder-badge">Coming Soon</span>
+
+    <main class="notification-page">
+      <section class="page-heading" aria-labelledby="page-title">
+        <h1 id="page-title">Notifications</h1>
+      </section>
+
+      <div class="workspace-grid">
+        <section class="panel" aria-label="Notification editor">
+          <form id="notification-form" class="editor-form" novalidate>
+            <div class="field">
+              <div class="field-label-row"><label for="notification-line-1">Line 1</label><span id="line-1-count" class="character-count">0 characters</span></div>
+              <input id="notification-line-1" class="notification-input" name="line1" type="text" autocomplete="off" placeholder="Enter the notification headline" required />
+              <p class="field-help">Use a short headline that is clear at a glance.</p>
+            </div>
+            <div class="field">
+              <div class="field-label-row"><label for="notification-line-2">Line 2</label><span id="line-2-count" class="character-count">0 characters</span></div>
+              <textarea id="notification-line-2" class="notification-input" name="line2" placeholder="Enter the supporting notification message" required></textarea>
+              <p class="field-help">Add the supporting detail users need before opening the app.</p>
+            </div>
+            <div id="form-message" class="form-message" aria-live="polite"></div>
+            <div class="form-actions">
+              <button id="publish-button" class="btn btn-primary" type="submit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2Z"></path><path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path></svg>
+                <span>Publish notification</span>
+              </button>
+              <button id="reload-button" class="btn btn-secondary" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 11a8.1 8.1 0 1 0 .4 4"></path><path d="M20 4v7h-7"></path></svg>
+                Reload saved copy
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <aside class="panel" aria-labelledby="preview-title">
+          <div class="panel-header"><div><h2 id="preview-title">User preview</h2><p>Updates as you type</p></div></div>
+          <div class="preview-body">
+            <div class="phone-preview">
+              <div class="preview-time">NOW</div>
+              <div class="notification-card">
+                <div class="app-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></div>
+                <div>
+                  <div class="notification-meta"><span>FixWheel</span><span>now</span></div>
+                  <div id="preview-line-1" class="preview-line-1">Your notification headline</div>
+                  <div id="preview-line-2" class="preview-line-2">Your supporting message will appear here.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <section class="panel record-panel" aria-labelledby="record-title">
+          <div class="panel-header"><div><h2 id="record-title">Current Supabase record</h2><p>The promotion message currently loaded from the database</p></div></div>
+          <div class="record-content">
+            <dl class="record-meta">
+              <div><dt>Record ID</dt><dd id="record-id">Loading…</dd></div>
+              <div><dt>Created</dt><dd id="record-created">Loading…</dd></div>
+            </dl>
+            <div class="saved-copy">
+              <div class="saved-copy-row"><div class="saved-line-label">Saved line 1</div><div id="saved-line-1" class="saved-line-value empty-value">Loading…</div></div>
+              <div class="saved-copy-row"><div class="saved-line-label">Saved line 2</div><div id="saved-line-2" class="saved-line-value empty-value">Loading…</div></div>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let currentPromotion = null;
+    const line1Input = document.getElementById('notification-line-1');
+    const line2Input = document.getElementById('notification-line-2');
+    const publishButton = document.getElementById('publish-button');
+    const reloadButton = document.getElementById('reload-button');
+    const formMessage = document.getElementById('form-message');
+
+    function showFormMessage(message,state='') { formMessage.textContent=message; formMessage.className=`form-message visible ${state}`.trim(); }
+    function clearFormMessage() { formMessage.textContent=''; formMessage.className='form-message'; }
+    function setBusy(isBusy,label='Publishing…') { publishButton.disabled=isBusy; reloadButton.disabled=isBusy; publishButton.querySelector('span').textContent=isBusy?label:'Publish notification'; }
+    function updatePreview() {
+      const line1=line1Input.value.trim(), line2=line2Input.value.trim();
+      document.getElementById('preview-line-1').textContent=line1||'Your notification headline';
+      document.getElementById('preview-line-2').textContent=line2||'Your supporting message will appear here.';
+      document.getElementById('line-1-count').textContent=`${line1Input.value.length} characters`;
+      document.getElementById('line-2-count').textContent=`${line2Input.value.length} characters`;
+    }
+    function formatCreatedAt(value) {
+      if (!value) return 'Not available';
+      const date=new Date(value);
+      if (Number.isNaN(date.getTime())) return 'Not available';
+      return new Intl.DateTimeFormat('en-IN',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Kolkata'}).format(date);
+    }
+    function renderSavedRecord(record) {
+      const id=document.getElementById('record-id'), created=document.getElementById('record-created');
+      const saved1=document.getElementById('saved-line-1'), saved2=document.getElementById('saved-line-2');
+      if (!record) {
+        id.textContent='A record will be created on publish'; created.textContent='Not created yet';
+        saved1.textContent='No saved message'; saved2.textContent='No saved message';
+        saved1.classList.add('empty-value'); saved2.classList.add('empty-value'); return;
+      }
+      id.textContent=record.id; created.textContent=formatCreatedAt(record.created_at);
+      saved1.textContent=record.line1; saved2.textContent=record.line2;
+      saved1.classList.remove('empty-value'); saved2.classList.remove('empty-value');
+    }
+    function populateEditor(record) { line1Input.value=record?.line1||''; line2Input.value=record?.line2||''; updatePreview(); }
+
+    async function loadPromotion() {
+      clearFormMessage(); setBusy(true,'Loading…');
+      const {data,error}=await supabaseClient.from('promotion_message').select('id, line1, line2, is_active, created_at').order('created_at',{ascending:false}).limit(1);
+      if (error) { showFormMessage(`Could not load the promotion message: ${error.message}`,'error'); setBusy(false); return; }
+      currentPromotion=data?.[0]||null; populateEditor(currentPromotion); renderSavedRecord(currentPromotion);
+      setBusy(false);
+    }
+
+    async function publishPromotion(event) {
+      event.preventDefault(); clearFormMessage();
+      const line1=line1Input.value.trim(), line2=line2Input.value.trim();
+      if (!line1||!line2) { showFormMessage('Both Line 1 and Line 2 are required before publishing.','error'); (!line1?line1Input:line2Input).focus(); return; }
+      setBusy(true);
+      const payload={line1,line2,is_active:true};
+      const mutation=currentPromotion?.id
+        ? supabaseClient.from('promotion_message').update(payload).eq('id',currentPromotion.id).select('id, line1, line2, is_active, created_at')
+        : supabaseClient.from('promotion_message').insert(payload).select('id, line1, line2, is_active, created_at');
+      const {data,error}=await mutation.single();
+      if (error) { showFormMessage(`The notification was not published: ${error.message}`,'error'); setBusy(false); return; }
+      currentPromotion=data; populateEditor(currentPromotion); renderSavedRecord(currentPromotion);
+      showFormMessage('Notification published successfully.','success'); setBusy(false);
+    }
+
+    document.addEventListener('DOMContentLoaded',()=>{
       renderSidebar('notifications');
-      document.getElementById('theme-toggle')?.addEventListener('click', () => {
-        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-        if (isLight) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('theme', 'dark'); }
-        else { document.documentElement.setAttribute('data-theme', 'light'); localStorage.setItem('theme', 'light'); }
+      line1Input.addEventListener('input',updatePreview); line2Input.addEventListener('input',updatePreview);
+      document.getElementById('notification-form').addEventListener('submit',publishPromotion);
+      reloadButton.addEventListener('click',loadPromotion);
+      document.getElementById('theme-toggle').addEventListener('click',()=>{
+        const isLight=document.documentElement.getAttribute('data-theme')==='light';
+        if (isLight) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('theme','dark'); }
+        else { document.documentElement.setAttribute('data-theme','light'); localStorage.setItem('theme','light'); }
       });
+      updatePreview(); loadPromotion();
     });
   </script>
 </body>
