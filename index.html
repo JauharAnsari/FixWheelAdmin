@@ -1280,6 +1280,7 @@
             <option value="Service Started">Service Started</option>
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+            <option value="Cancel - order taken by competitor">Cancel - order taken by competitor</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
             <option value="Completed - Payment received">Completed - Payment received</option>
             <option value="Test Order">Test Order</option>
@@ -1469,6 +1470,7 @@
             <option value="Service Started">Service Started</option>
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+            <option value="Cancel - order taken by competitor">Cancel - order taken by competitor</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
             <option value="Completed - Payment received">Completed - Payment received</option>
             <option value="Test Order">Test Order</option>
@@ -1597,6 +1599,7 @@
             <option value="Service Started">Service Started</option>
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+            <option value="Cancel - order taken by competitor">Cancel - order taken by competitor</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
             <option value="Completed - Payment received">Completed - Payment received</option>
             <option value="Test Order">Test Order</option>
@@ -1717,6 +1720,7 @@
             <option value="Service Started">Service Started</option>
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+            <option value="Cancel - order taken by competitor">Cancel - order taken by competitor</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
             <option value="Completed - Payment received">Completed - Payment received</option>
             <option value="Test Order">Test Order</option>
@@ -1835,6 +1839,7 @@
             <option value="Service Started">Service Started</option>
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+            <option value="Cancel - order taken by competitor">Cancel - order taken by competitor</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
             <option value="Completed - Payment received">Completed - Payment received</option>
             <option value="Test Order">Test Order</option>
@@ -2585,6 +2590,14 @@
       syncDailyRevenueToSupabase(bookings);
     }
 
+    function formatBikeTypeLabel(value) {
+      const original = String(value || '').trim();
+      const normalized = original.toLowerCase().replace(/\s+/g, ' ');
+      if (/^non[- ]electric(?: motorbike)?$/.test(normalized)) return 'Non-Electric';
+      if (/^electric(?: motorbike)?$/.test(normalized)) return 'Electric';
+      return original;
+    }
+
     function createOrderRow(order, isCompleted) {
       const originalStatusClass = getStatusClass(order.status);
       const currentStatus = order.order_status || 'Pending';
@@ -2606,6 +2619,7 @@
         "Service Started",
         "Cancel - spare parts",
         "Cancel - mechanic not available",
+        "Cancel - order taken by competitor",
         "Customer cancel",
         "Customer cancel - rate high",
         "Completed - Payment received by FixWheel",
@@ -2763,7 +2777,7 @@
           </td>
           <td>
             <div class="bike-model" style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${order.bikeModel || ''}">${order.bikeModel || ''}</div>
-            <div class="bike-brand" style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${order.bikeType || ''}</div>
+            <div class="bike-brand" style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${formatBikeTypeLabel(order.bikeType)}</div>
           </td>
           <td style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
             <span class="fw-badge fw-badge-neutral fw-badge-truncate" style="cursor: pointer; transition: all 0.15s ease;" onclick="openServiceDetailsModal('${uniqueIdentifier}')" title="Click to view full service package details">${order.package || 'Service'} 🔍</span>
@@ -3666,7 +3680,7 @@
       const customerName = order.customerName || 'Unknown Customer';
       const phone = order.phone || 'N/A';
       const bikeModel = order.bikeModel || 'N/A';
-      const bikeBrand = order.bikeType || 'N/A';
+      const bikeBrand = formatBikeTypeLabel(order.bikeType) || 'N/A';
       const city = order.city || 'N/A';
       const slot = order.preferredSlot || 'Anytime';
       const amount = order.Final_Amount || order.price || 0;

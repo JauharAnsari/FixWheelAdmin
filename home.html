@@ -739,6 +739,50 @@
       color: var(--text-1);
     }
 
+    .chart-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .chart-range-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-3);
+    }
+
+    .chart-view-more {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 34px;
+      padding: 7px 10px;
+      border: 1px solid var(--border-hi);
+      border-radius: 8px;
+      color: var(--text-2);
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .chart-view-more:hover {
+      color: var(--text-1);
+      border-color: var(--red);
+      background: var(--red-glow);
+    }
+
+    .chart-view-more:focus-visible {
+      outline: 3px solid var(--red);
+      outline-offset: 2px;
+    }
+
+    .chart-view-more svg {
+      width: 14px;
+      height: 14px;
+      flex: 0 0 auto;
+    }
+
     .chart-header-custom {
       margin-bottom: 16px;
     }
@@ -1034,6 +1078,9 @@
       .monthly-revenue-pair { gap: 12px; }
       .revenue-metric + .revenue-metric { padding-left: 12px; }
       .monthly-revenue-pair .big-number { font-size: clamp(18px, 5.5vw, 22px); }
+      .chart-header { align-items: flex-start; gap: 12px; }
+      .chart-header-actions { gap: 8px; }
+      .chart-range-label { display: none; }
       .revenue-card-footer { flex-direction: column; align-items: flex-start; }
     }
   </style>
@@ -1313,7 +1360,16 @@
         <div class="chart-box">
           <div class="chart-header">
             <h3 class="chart-title">Earnings & Completed Orders</h3>
-            <span style="font-family: var(--mono); font-size: 11px; color: var(--text-3);">Last 7 Days</span>
+            <div class="chart-header-actions">
+              <span class="chart-range-label">Last 7 Days</span>
+              <a class="chart-view-more" href="revenue.html" aria-label="View more revenue analytics">
+                <span>View more</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M5 12h14"></path>
+                  <path d="m13 6 6 6-6 6"></path>
+                </svg>
+              </a>
+            </div>
           </div>
           <div id="sales-bar-chart"></div>
 
