@@ -74,6 +74,10 @@ function renderSidebar(activeKey) {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="4" y1="20" x2="4" y2="10"></line><line x1="10" y1="20" x2="10" y2="4"></line><line x1="16" y1="20" x2="16" y2="14"></line><line x1="22" y1="20" x2="22" y2="7"></line></svg>
               Service Demand
             </a>
+            <a href="revenue.html?v=2030" class="nav-item ${activeKey === 'revenue' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"></path><path d="m7 16 4-5 4 3 5-7"></path></svg>
+              Revenue Analytics
+            </a>
           </div>
 
           <!-- Partners Group -->
@@ -126,10 +130,6 @@ function renderSidebar(activeKey) {
           <!-- Finance Group -->
           <div class="nav-group">
             <div class="nav-group-title">Finance</div>
-            <a href="revenue.html?v=2027" class="nav-item ${activeKey === 'revenue' ? 'active' : ''}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-              Revenue
-            </a>
             <a href="refunds.html?v=2027" class="nav-item ${activeKey === 'refunds' ? 'active' : ''}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
               Refunds
@@ -396,7 +396,7 @@ const SEARCH_DATABASE = [
   { type: 'page', title: 'Customer Directory', sub: 'Customers · User Profiles & Registered Riders', icon: '👤', url: 'customers.html?v=2027' },
   { type: 'page', title: 'Blocked / Flagged Customers', sub: 'Customers · Flagged Accounts', icon: '🚫', url: 'blocked_customers.html?v=2027' },
   { type: 'page', title: 'Cities & Localities Coverage', sub: 'Coverage · Operational Areas', icon: '🗺️', url: 'coverage.html?v=2027' },
-  { type: 'page', title: 'Revenue Analytics', sub: 'Finance · Gross & Net Revenue Reports', icon: '💵', url: 'revenue.html?v=2027' },
+  { type: 'page', title: 'Revenue Analytics', sub: 'Analytics · GMV, Orders & Revenue Reports', icon: '💵', url: 'revenue.html?v=2030' },
   { type: 'page', title: 'Refunds Queue', sub: 'Finance · Customer Refund Processing', icon: '🔄', url: 'refunds.html?v=2027' },
   { type: 'page', title: 'Pages & Sitemap Inventory', sub: 'Content · All Public Website Pages & Health Check', icon: '📄', url: 'pages.html?v=2027' },
   { type: 'page', title: 'Bike Types Sitemap Inventory', sub: 'Content · All 2,268 Service-City-Locality Pages', icon: '🏍️', url: 'bike_type_pages.html?v=2027' },

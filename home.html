@@ -540,6 +540,99 @@
       font-size: 13px;
     }
 
+    .order-comparison-card {
+      gap: 18px;
+    }
+
+    .order-card-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .order-card-heading h3 {
+      color: var(--text-1);
+      font-size: 15px;
+      font-weight: 700;
+      margin: 0 0 3px;
+    }
+
+    .order-card-heading p {
+      color: var(--text-3);
+      font-family: var(--mono);
+      font-size: 10px;
+      margin: 0;
+    }
+
+    .order-comparison-pair {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      padding: 4px 0 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .order-period-metric {
+      min-width: 0;
+    }
+
+    .order-period-metric + .order-period-metric {
+      border-left: 1px solid var(--border-hi);
+      padding-left: 18px;
+    }
+
+    .order-period-label,
+    .order-total-label {
+      display: block;
+      color: var(--text-3);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .order-period-value {
+      display: block;
+      color: var(--text-1);
+      font-family: var(--sans);
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-top: 6px;
+    }
+
+    .order-period-copy {
+      display: block;
+      color: var(--text-3);
+      font-family: var(--mono);
+      font-size: 9px;
+      line-height: 1.4;
+      margin-top: 3px;
+    }
+
+    .order-card-footer {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .order-total {
+      min-width: 78px;
+      text-align: right;
+    }
+
+    .order-total-value {
+      display: block;
+      color: var(--text-1);
+      font-family: var(--sans);
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-top: 4px;
+    }
+
     .sparkline-header {
       display: flex;
       justify-content: space-between;
@@ -981,13 +1074,13 @@
         </div>
 
         <div class="needs-attention-grid">
-          <!-- Item 1: SLA Aging Orders -->
-          <a class="attention-card" href="live_ops.html">
+          <!-- Item 1: Pending Orders -->
+          <a class="attention-card" href="index.html">
             <div class="attention-info">
-              <span class="attention-label">Unassigned SLA (>20m)</span>
-              <span class="attention-sub">Live Dispatch Queue</span>
+              <span class="attention-label">Pending Orders</span>
+              <span class="attention-sub">Awaiting completion</span>
             </div>
-            <span class="attention-badge" id="badge-sla">0</span>
+            <span class="attention-badge" id="badge-pending-orders">0</span>
           </a>
 
           <!-- Item 2: Open Disputes -->
@@ -1066,18 +1159,36 @@
           </div>
         </div>
         
-        <!-- Total Orders Card -->
-        <div class="stat-card">
-          <div>
-            <div class="stat-card-header">
-              <div class="icon-box blue">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-              </div>
-              <span class="stat-trend up" title="vs previous 7 days">+15% vs last week ↗</span>
+        <!-- Monthly Order Comparison Card -->
+        <div class="stat-card order-comparison-card">
+          <div class="order-card-heading">
+            <div class="icon-box blue">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
             </div>
-            <div class="stat-card-body">
-              <h3 id="dash-total-orders">0</h3>
-              <p>Total Production Orders</p>
+            <div>
+              <h3>Monthly Orders</h3>
+              <p id="orders-current-period">Current month through today</p>
+            </div>
+          </div>
+
+          <div class="order-comparison-pair">
+            <div class="order-period-metric">
+              <span class="order-period-label">This month</span>
+              <strong class="order-period-value" id="dash-current-month-orders">0</strong>
+              <span class="order-period-copy">Orders received</span>
+            </div>
+            <div class="order-period-metric">
+              <span class="order-period-label">Last month</span>
+              <strong class="order-period-value" id="dash-previous-month-orders">0</strong>
+              <span class="order-period-copy" id="orders-previous-period">Same period last month</span>
+            </div>
+          </div>
+
+          <div class="order-card-footer">
+            <span class="stat-trend neutral" id="orders-change-badge">—</span>
+            <div class="order-total">
+              <span class="order-total-label">Total orders</span>
+              <strong class="order-total-value" id="dash-total-orders">0</strong>
             </div>
           </div>
         </div>
@@ -1394,6 +1505,8 @@
       let todayEarnings = 0;
       let monthlyEarnings = 0;
       let previousMonthComparableEarnings = 0;
+      let currentMonthOrders = 0;
+      let previousMonthComparableOrders = 0;
       let yearlyEarnings = 0;
       let lastYearEarnings = 0;
 
@@ -1409,7 +1522,6 @@
       let todayRevenueSum = 0;
 
       // Needs Attention Counters
-      let slaAgingCount = 0;
       let openDisputesCount = 0;
 
       const getISTISO = (dStr) => {
@@ -1465,8 +1577,6 @@
         if (phone) customerPhoneCounts[phone] = (customerPhoneCounts[phone] || 0) + 1;
       });
 
-      const nowMs = Date.now();
-
       // Process Production Bookings
       productionBookings.forEach(b => {
         const statusStr = ((b.order_status || '') + ' ' + (b.status || '')).toLowerCase();
@@ -1484,15 +1594,10 @@
         const createdISO = getISTISO(b.createdAt);
         const isCreatedToday = createdISO === todayISO;
 
-        if (isDisputed) openDisputesCount++;
+        if (createdISO >= currentMonthStartISO && createdISO <= todayISO) currentMonthOrders++;
+        if (createdISO >= previousMonthStartISO && createdISO <= previousMonthEndISO) previousMonthComparableOrders++;
 
-        // SLA Aging check (<20m threshold for unassigned pending orders)
-        if (!isCompleted && !isCanceled && !b['Assign Mechanic'] && !b.mechanic) {
-          const createdMs = b.createdAt ? new Date(b.createdAt.endsWith('Z') || b.createdAt.includes('+') ? b.createdAt : b.createdAt + 'Z').getTime() : 0;
-          if (createdMs && (nowMs - createdMs > 20 * 60 * 1000)) {
-            slaAgingCount++;
-          }
-        }
+        if (isDisputed) openDisputesCount++;
 
         if (isCreatedToday) {
           todayTotalOrdersCount++;
@@ -1554,12 +1659,12 @@
       }).length;
 
       // Update Needs Attention Badges
-      updateAttentionBadge('badge-sla', slaAgingCount, 'alert');
+      updateAttentionBadge('badge-pending-orders', totalPending, 'warning', true);
       updateAttentionBadge('badge-disputes', openDisputesCount, 'warning');
       updateAttentionBadge('badge-pending-partners', pendingPartnersCount, 'warning');
       updateAttentionBadge('badge-duplicates', duplicatePartnersCount, 'alert');
 
-      const totalAttentionCount = slaAgingCount + openDisputesCount + pendingPartnersCount + duplicatePartnersCount;
+      const totalAttentionCount = totalPending + openDisputesCount + pendingPartnersCount + duplicatePartnersCount;
       const pulseDot = document.getElementById('attention-pulse-dot');
       const statusText = document.getElementById('attention-status-text');
       if (totalAttentionCount === 0) {
@@ -1601,6 +1706,29 @@
       monthlyChangeBadge.className = `stat-trend ${monthlyTrendClass}`;
       monthlyChangeBadge.textContent = monthlyChangeText;
       monthlyComparisonCopy.innerHTML = `Total revenue: <strong>₹${totalEarnings.toLocaleString()}</strong>`;
+
+      document.getElementById('dash-current-month-orders').textContent = currentMonthOrders.toLocaleString();
+      document.getElementById('dash-previous-month-orders').textContent = previousMonthComparableOrders.toLocaleString();
+      document.getElementById('orders-current-period').textContent = `${currentMonthPeriodLabel} · created orders`;
+      document.getElementById('orders-previous-period').textContent = previousMonthPeriodLabel;
+
+      const ordersChangeBadge = document.getElementById('orders-change-badge');
+      const orderDifference = currentMonthOrders - previousMonthComparableOrders;
+      let ordersChangeText = '0% vs same period';
+      let ordersTrendClass = 'neutral';
+
+      if (previousMonthComparableOrders > 0) {
+        const ordersChangePercent = Math.round((orderDifference / previousMonthComparableOrders) * 100);
+        ordersChangeText = `${ordersChangePercent > 0 ? '+' : ''}${ordersChangePercent}% ${ordersChangePercent > 0 ? '↗' : ordersChangePercent < 0 ? '↘' : '→'}`;
+        ordersTrendClass = ordersChangePercent > 0 ? 'up' : ordersChangePercent < 0 ? 'down' : 'neutral';
+      } else if (currentMonthOrders > 0) {
+        ordersChangeText = 'New ↗';
+        ordersTrendClass = 'up';
+      }
+
+      ordersChangeBadge.className = `stat-trend ${ordersTrendClass}`;
+      ordersChangeBadge.textContent = ordersChangeText;
+      ordersChangeBadge.title = 'Compared with the same date range last month';
       document.getElementById('dash-total-orders').textContent = totalOrders;
       document.getElementById('dash-new-partners').textContent = activePartnersCount;
 
@@ -1637,12 +1765,12 @@
       renderCharts(totalCompleted, totalPending, totalCanceled, totalCompleted + totalPending + totalCanceled, last7Days, dailyEarnings, dailyCompletedOrders, monthlyPercent, yearlyPercent);
     }
 
-    function updateAttentionBadge(elementId, count, styleType) {
+    function updateAttentionBadge(elementId, count, styleType, showZero = false) {
       const el = document.getElementById(elementId);
       if (!el) return;
-      if (count > 0) {
+      if (count > 0 || showZero) {
         el.textContent = count;
-        el.className = `attention-badge ${styleType}`;
+        el.className = count > 0 ? `attention-badge ${styleType}` : 'attention-badge clear';
       } else {
         el.textContent = 'All clear ✓';
         el.className = 'attention-badge clear';
