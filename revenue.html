@@ -234,6 +234,12 @@
       border-color: var(--green-dim);
     }
 
+    .time-btn.more-active {
+      background: rgba(96, 165, 250, 0.12);
+      color: #60a5fa;
+      border-color: rgba(96, 165, 250, 0.45);
+    }
+
     .date-pickers {
       display: flex;
       align-items: center;
@@ -254,6 +260,129 @@
       outline: none;
       cursor: pointer;
     }
+
+    .controls-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: auto;
+    }
+
+    .export-report-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 34px;
+      padding: 7px 13px;
+      border: 1px solid var(--border-hi);
+      border-radius: 7px;
+      background: var(--surface-2);
+      color: var(--text-1);
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+    }
+
+    .export-report-btn:hover:not(:disabled) {
+      border-color: var(--green-dim);
+      background: var(--green-glow);
+      color: var(--green);
+    }
+
+    .export-report-btn:focus-visible {
+      outline: 3px solid var(--green-dim);
+      outline-offset: 2px;
+    }
+
+    .export-report-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .export-report-btn svg {
+      width: 15px;
+      height: 15px;
+      flex: 0 0 auto;
+    }
+
+    .date-range-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.68);
+    }
+
+    .date-range-overlay.open { display: flex; }
+
+    .date-range-dialog {
+      width: min(560px, 100%);
+      max-height: min(680px, calc(100vh - 40px));
+      overflow: auto;
+      border: 1px solid var(--border-hi);
+      border-radius: 14px;
+      background: var(--surface);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+    }
+
+    .date-range-title {
+      padding: 22px 24px 14px;
+      font-size: 21px;
+      font-weight: 700;
+    }
+
+    .date-range-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .date-range-tab {
+      position: relative;
+      min-width: 110px;
+      padding: 12px 24px;
+      border: 0;
+      background: transparent;
+      color: var(--text-2);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .date-range-tab.active { color: #60a5fa; }
+    .date-range-tab.active::after { content: ''; position: absolute; left: 24px; right: 24px; bottom: -1px; height: 2px; background: #60a5fa; }
+    .date-range-panel { display: none; padding: 14px 24px 6px; }
+    .date-range-panel.active { display: block; }
+
+    .date-choice {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 51px;
+      color: var(--text-1);
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .date-choice input { width: 17px; height: 17px; accent-color: #60a5fa; }
+    .date-choice-copy span { display: block; }
+    .date-choice-copy small { display: block; margin-top: 3px; color: var(--text-3); font: 10px/1.4 var(--mono); }
+
+    .date-range-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 9px;
+      padding: 18px 24px 22px;
+      border-top: 1px solid var(--border);
+    }
+
+    .dialog-button { min-height: 36px; padding: 7px 15px; border: 1px solid var(--border-hi); border-radius: 7px; background: var(--surface-2); color: var(--text-2); font-size: 12px; font-weight: 700; cursor: pointer; }
+    .dialog-button.primary { border-color: #2563eb; background: #2563eb; color: #fff; }
 
     /* ─── Charts Section ─── */
     .charts-row {
@@ -297,8 +426,8 @@
 
     .trend-metric-selector {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      width: min(660px, 100%);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      width: min(880px, 100%);
       margin-bottom: 22px;
       gap: 10px;
     }
@@ -328,6 +457,7 @@
     .trend-metric-toggle[data-metric="revenue"].active { background: rgba(250, 204, 21, 0.10); }
     .trend-metric-toggle[data-metric="completed"].active { background: rgba(59, 130, 246, 0.12); }
     .trend-metric-toggle[data-metric="received"].active { background: rgba(239, 68, 68, 0.10); }
+    .trend-metric-toggle[data-metric="average"].active { background: rgba(168, 85, 247, 0.12); }
 
     .trend-metric-label {
       display: flex;
@@ -481,7 +611,7 @@
       text-transform: uppercase;
     }
 
-    .breakdown-table th:first-child { width: 60%; }
+    .breakdown-table th:first-child { width: 46%; }
     .breakdown-table th:not(:first-child),
     .breakdown-table td:not(:first-child) { text-align: right; }
 
@@ -518,6 +648,12 @@
       font-weight: 600;
     }
 
+    .breakdown-average {
+      color: #c084fc;
+      font-family: var(--mono);
+      font-weight: 600;
+    }
+
     @media (max-width: 980px) {
       .charts-row { grid-template-columns: 1fr; }
     }
@@ -534,7 +670,9 @@
       }
       .time-pills::-webkit-scrollbar { display: none; }
       .time-btn { flex: 0 0 auto; }
-      .date-pickers { width: 100%; display: grid; grid-template-columns: auto 1fr; }
+      .controls-actions { width: 100%; margin-left: 0; align-items: stretch; }
+      .controls-actions { justify-content: flex-end; }
+      .export-report-btn { flex: 0 0 auto; }
       .chart-card { padding: 18px 16px; }
       .chart-card-header { align-items: flex-start; }
       .trend-metric-selector {
@@ -553,19 +691,17 @@
       #trend-line-chart { min-height: 300px; }
       .breakdown-heading { align-items: flex-start; padding: 16px; }
       .breakdown-count { white-space: normal; text-align: right; }
-      .breakdown-table {
-        width: 100% !important;
-        min-width: 0 !important;
-        max-width: 100%;
-      }
+      .breakdown-table { width: 100%; min-width: 640px; }
       .breakdown-table th,
       .breakdown-table td { padding: 12px 10px; }
       .breakdown-table th:first-child,
-      .breakdown-table td:first-child { width: 52%; max-width: 0; }
+      .breakdown-table td:first-child { width: 40%; max-width: 0; }
       .breakdown-table th:nth-child(2),
-      .breakdown-table td:nth-child(2) { width: 18%; }
+      .breakdown-table td:nth-child(2) { width: 17%; }
       .breakdown-table th:nth-child(3),
-      .breakdown-table td:nth-child(3) { width: 30%; }
+      .breakdown-table td:nth-child(3) { width: 23%; }
+      .breakdown-table th:nth-child(4),
+      .breakdown-table td:nth-child(4) { width: 20%; }
     }
   </style>
 </head>
@@ -598,14 +734,18 @@
           <button class="time-btn" onclick="setWindow('week')">This Week (7d)</button>
           <button class="time-btn" onclick="setWindow('month')">This Month (30d)</button>
           <button class="time-btn" onclick="setWindow('year')">This Year (YTD)</button>
-          <button class="time-btn" onclick="setWindow('all')">All-Time</button>
+          <button class="time-btn" id="more-range-button" type="button" onclick="openDateRangeDialog()" aria-haspopup="dialog">More</button>
         </div>
 
-        <div class="date-pickers">
-          <span>From:</span>
-          <input type="date" id="date-from" class="date-input" onchange="onCustomDateChange()">
-          <span>To:</span>
-          <input type="date" id="date-to" class="date-input" onchange="onCustomDateChange()">
+        <div class="controls-actions">
+          <button class="export-report-btn" id="export-report-btn" type="button" onclick="exportRevenueReport()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3v12"></path>
+              <path d="m7 10 5 5 5-5"></path>
+              <path d="M5 21h14"></path>
+            </svg>
+            <span>Export report</span>
+          </button>
         </div>
       </div>
 
@@ -626,6 +766,10 @@
               <span class="trend-metric-label"><span class="trend-metric-check" aria-hidden="true"></span><span id="metric-label-received">Orders Received</span></span>
               <strong class="trend-metric-value" id="metric-value-received">0</strong>
             </button>
+            <button class="trend-metric-toggle" type="button" data-metric="average" aria-pressed="false" onclick="toggleTrendMetric('average', this)" style="--metric-color:#a855f7;">
+              <span class="trend-metric-label"><span class="trend-metric-check" aria-hidden="true"></span><span>Average Order Value</span></span>
+              <strong class="trend-metric-value" id="metric-value-average">₹0</strong>
+            </button>
           </div>
           <div class="chart-card-header">
             <div>
@@ -635,14 +779,6 @@
           </div>
           <div id="trend-line-chart"></div>
         </div>
-      </div>
-
-      <!-- Individual Service Breakdown Chart -->
-      <div class="chart-card">
-        <div class="chart-card-header">
-          <div class="chart-title">Revenue by Individual Service</div>
-        </div>
-        <div id="service-bar-chart"></div>
       </div>
 
       <!-- ─── Performance Breakdown ─── -->
@@ -670,16 +806,42 @@
                 <th id="breakdown-dimension-heading">Service</th>
                 <th>Orders</th>
                 <th>Revenue</th>
+                <th>Avg. order</th>
               </tr>
             </thead>
             <tbody id="breakdown-table-body">
-              <tr><td colspan="3" style="text-align:center; color:var(--text-3); font-family:var(--mono);">Loading analytics…</td></tr>
+              <tr><td colspan="4" style="text-align:center; color:var(--text-3); font-family:var(--mono);">Loading analytics…</td></tr>
             </tbody>
           </table>
         </div>
       </section>
 
     </main>
+  </div>
+
+  <div class="date-range-overlay" id="date-range-overlay" role="dialog" aria-modal="true" aria-labelledby="date-range-title">
+    <div class="date-range-dialog">
+      <h2 class="date-range-title" id="date-range-title">Date range</h2>
+      <div class="date-range-tabs" role="tablist" aria-label="Date range mode">
+        <button class="date-range-tab active" type="button" data-range-tab="filter" onclick="setDateRangeTab('filter')">Filter</button>
+        <button class="date-range-tab" type="button" data-range-tab="compare" onclick="setDateRangeTab('compare')">Compare</button>
+      </div>
+      <div class="date-range-panel active" data-range-panel="filter">
+        <label class="date-choice"><input type="radio" name="analytics-filter-range" value="months6" checked><span class="date-choice-copy"><span>Last 6 months</span><small>Show completed and received orders from the most recent six months.</small></span></label>
+        <label class="date-choice"><input type="radio" name="analytics-filter-range" value="months9"><span class="date-choice-copy"><span>Last 9 months</span><small>Extend the report to the most recent nine months.</small></span></label>
+        <label class="date-choice"><input type="radio" name="analytics-filter-range" value="months12"><span class="date-choice-copy"><span>Last 12 months</span><small>Review one full year of revenue and order activity.</small></span></label>
+      </div>
+      <div class="date-range-panel" data-range-panel="compare">
+        <label class="date-choice"><input type="radio" name="analytics-compare-range" value="compare24h" checked><span class="date-choice-copy"><span>Last 24 hours</span><small>Compare the latest 24 hours with the previous 24 hours.</small></span></label>
+        <label class="date-choice"><input type="radio" name="analytics-compare-range" value="compare7d"><span class="date-choice-copy"><span>Last 7 days</span><small>Compare the latest seven days with the seven days before them.</small></span></label>
+        <label class="date-choice"><input type="radio" name="analytics-compare-range" value="compare1m"><span class="date-choice-copy"><span>Last month</span><small>Compare the latest 30 days with the preceding 30 days.</small></span></label>
+        <label class="date-choice"><input type="radio" name="analytics-compare-range" value="compare3m"><span class="date-choice-copy"><span>Last 3 months</span><small>Compare the latest 90 days with the preceding 90 days.</small></span></label>
+      </div>
+      <div class="date-range-actions">
+        <button class="dialog-button" type="button" onclick="closeDateRangeDialog()">Cancel</button>
+        <button class="dialog-button primary" type="button" onclick="applyDateRangeDialog()">Apply</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -711,9 +873,13 @@
     let currentWindow = 'today';
     let currentBreakdownDimension = 'service';
     let currentActiveCompletedBookings = [];
+    let currentActiveReceivedBookings = [];
+    let currentTrendExportRows = [];
+    let currentBreakdownRows = [];
+    let currentBreakdownMeta = { heading: 'Service', title: 'Service performance' };
+    let activeRangeTab = 'filter';
     const selectedTrendMetrics = new Set(['revenue', 'completed']);
     let trendChartInstance = null;
-    let serviceChartInstance = null;
 
     async function fetchRevenueData() {
       const { data: bookings, error } = await supabaseClient.from('Booking').select('*');
@@ -740,28 +906,49 @@
 
     function setWindow(w) {
       currentWindow = w;
-      document.querySelectorAll('#time-pills .time-btn').forEach(btn => btn.classList.remove('active'));
-      if (w === 'today') document.querySelectorAll('#time-pills .time-btn')[0].classList.add('active');
-      else if (w === 'week') document.querySelectorAll('#time-pills .time-btn')[1].classList.add('active');
-      else if (w === 'month') document.querySelectorAll('#time-pills .time-btn')[2].classList.add('active');
-      else if (w === 'year') document.querySelectorAll('#time-pills .time-btn')[3].classList.add('active');
-      else if (w === 'all') document.querySelectorAll('#time-pills .time-btn')[4].classList.add('active');
-
-      document.getElementById('date-from').value = '';
-      document.getElementById('date-to').value = '';
-
+      const buttons = document.querySelectorAll('#time-pills .time-btn');
+      buttons.forEach(btn => btn.classList.remove('active', 'more-active'));
+      const indexes = { today: 0, week: 1, month: 2, year: 3 };
+      if (indexes[w] !== undefined) buttons[indexes[w]].classList.add('active');
+      const moreButton = document.getElementById('more-range-button');
+      if (moreButton) moreButton.textContent = 'More';
       calculateAndRender();
     }
 
-    function onCustomDateChange() {
-      const fromVal = document.getElementById('date-from').value;
-      const toVal = document.getElementById('date-to').value;
+    function setDateRangeTab(tab) {
+      activeRangeTab = tab;
+      document.querySelectorAll('.date-range-tab').forEach(button => button.classList.toggle('active', button.dataset.rangeTab === tab));
+      document.querySelectorAll('.date-range-panel').forEach(panel => panel.classList.toggle('active', panel.dataset.rangePanel === tab));
+    }
 
-      if (fromVal || toVal) {
-        currentWindow = 'custom';
-        document.querySelectorAll('#time-pills .time-btn').forEach(btn => btn.classList.remove('active'));
-        calculateAndRender();
-      }
+    function openDateRangeDialog() {
+      const overlay = document.getElementById('date-range-overlay');
+      overlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      overlay.querySelector('input:checked')?.focus();
+    }
+
+    function closeDateRangeDialog() {
+      document.getElementById('date-range-overlay').classList.remove('open');
+      document.body.style.overflow = '';
+      document.getElementById('more-range-button')?.focus();
+    }
+
+    function applyDateRangeDialog() {
+      const selector = activeRangeTab === 'filter' ? 'input[name="analytics-filter-range"]:checked' : 'input[name="analytics-compare-range"]:checked';
+      const selected = document.querySelector(selector);
+      if (!selected) return;
+      currentWindow = selected.value;
+      document.querySelectorAll('#time-pills .time-btn').forEach(button => button.classList.remove('active', 'more-active'));
+      const labels = {
+        months6: 'Last 6 months', months9: 'Last 9 months', months12: 'Last 12 months',
+        compare24h: 'Compare: 24 hours', compare7d: 'Compare: 7 days', compare1m: 'Compare: 1 month', compare3m: 'Compare: 3 months'
+      };
+      const moreButton = document.getElementById('more-range-button');
+      moreButton.textContent = labels[currentWindow] || 'More';
+      moreButton.classList.add('more-active');
+      closeDateRangeDialog();
+      calculateAndRender();
     }
 
     function toggleTrendMetric(metric, button) {
@@ -793,75 +980,60 @@
       return new Date(created.endsWith('Z') || created.includes('+') ? created : created + 'Z').getTime();
     }
 
-    function filterByWindow(list, windowType, dateFrom, dateTo) {
+    function getWindowBounds(windowType) {
       const now = new Date();
-
-      if (windowType === 'today') {
-        const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-        return list.filter(b => getBookingDate(b) >= startToday);
-      } else if (windowType === 'week') {
-        const weekMs = 7 * 24 * 60 * 60 * 1000;
-        return list.filter(b => (now.getTime() - getBookingDate(b)) <= weekMs);
-      } else if (windowType === 'month') {
-        const monthMs = 30 * 24 * 60 * 60 * 1000;
-        return list.filter(b => (now.getTime() - getBookingDate(b)) <= monthMs);
-      } else if (windowType === 'year') {
-        const startYear = new Date(now.getFullYear(), 0, 1).getTime();
-        return list.filter(b => getBookingDate(b) >= startYear);
-      } else if (windowType === 'custom') {
-        const fromMs = dateFrom ? new Date(dateFrom).getTime() : 0;
-        const toMs = dateTo ? new Date(dateTo + 'T23:59:59').getTime() : Date.now();
-        return list.filter(b => {
-          const t = getBookingDate(b);
-          return t >= fromMs && t <= toMs;
-        });
-      }
-
-      return list;
+      const end = now.getTime();
+      const dayMs = 24 * 60 * 60 * 1000;
+      let start;
+      if (windowType === 'today') start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      else if (windowType === 'week' || windowType === 'compare7d') start = end - 7 * dayMs;
+      else if (windowType === 'month' || windowType === 'compare1m') start = end - 30 * dayMs;
+      else if (windowType === 'compare24h') start = end - dayMs;
+      else if (windowType === 'compare3m') start = end - 90 * dayMs;
+      else if (windowType === 'year') start = new Date(now.getFullYear(), 0, 1).getTime();
+      else if (windowType === 'months6') start = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate()).getTime();
+      else if (windowType === 'months9') start = new Date(now.getFullYear(), now.getMonth() - 9, now.getDate()).getTime();
+      else if (windowType === 'months12') start = new Date(now.getFullYear(), now.getMonth() - 12, now.getDate()).getTime();
+      else start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      return { start, end, duration: Math.max(1, end - start) };
     }
 
-    function filterReceivedByWindow(list, windowType, dateFrom, dateTo) {
-      const now = new Date();
+    function isComparisonWindow(windowType = currentWindow) {
+      return windowType.startsWith('compare');
+    }
 
-      if (windowType === 'today') {
-        const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-        return list.filter(b => getCreatedDate(b) >= startToday);
-      } else if (windowType === 'week') {
-        const weekMs = 7 * 24 * 60 * 60 * 1000;
-        return list.filter(b => (now.getTime() - getCreatedDate(b)) <= weekMs);
-      } else if (windowType === 'month') {
-        const monthMs = 30 * 24 * 60 * 60 * 1000;
-        return list.filter(b => (now.getTime() - getCreatedDate(b)) <= monthMs);
-      } else if (windowType === 'year') {
-        const startYear = new Date(now.getFullYear(), 0, 1).getTime();
-        return list.filter(b => getCreatedDate(b) >= startYear);
-      } else if (windowType === 'custom') {
-        const fromMs = dateFrom ? new Date(dateFrom).getTime() : 0;
-        const toMs = dateTo ? new Date(dateTo + 'T23:59:59').getTime() : Date.now();
-        return list.filter(b => {
-          const t = getCreatedDate(b);
-          return t >= fromMs && t <= toMs;
-        });
-      }
+    function filterByWindow(list, windowType) {
+      const { start, end } = getWindowBounds(windowType);
+      return list.filter(booking => {
+        const timestamp = getBookingDate(booking);
+        return timestamp >= start && timestamp <= end;
+      });
+    }
 
-      return list;
+    function filterReceivedByWindow(list, windowType) {
+      const { start, end } = getWindowBounds(windowType);
+      return list.filter(booking => {
+        const timestamp = getCreatedDate(booking);
+        return timestamp >= start && timestamp <= end;
+      });
     }
 
     function calculateAndRender() {
-      const fromVal = document.getElementById('date-from').value;
-      const toVal = document.getElementById('date-to').value;
-
-      const activeList = filterByWindow(rawCompletedBookings, currentWindow, fromVal, toVal);
-      const receivedList = filterReceivedByWindow(rawBookings, currentWindow, fromVal, toVal);
+      const activeList = filterByWindow(rawCompletedBookings, currentWindow);
+      const receivedList = filterReceivedByWindow(rawBookings, currentWindow);
       currentActiveCompletedBookings = activeList;
+      currentActiveReceivedBookings = receivedList;
 
       const totalGmv = activeList.reduce((sum, b) => sum + (Number(b.Final_Amount) || Number(b.price) || 0), 0);
 
       const completedCount = activeList.length;
+      const averageOrderValue = completedCount ? totalGmv / completedCount : 0;
       document.getElementById('metric-label-revenue').textContent = currentWindow === 'today' ? "Today's Revenue" : 'Revenue';
       document.getElementById('metric-value-revenue').textContent = `₹${totalGmv.toLocaleString('en-IN')}`;
       document.getElementById('metric-value-completed').textContent = completedCount.toLocaleString('en-IN');
       document.getElementById('metric-value-received').textContent = receivedList.length.toLocaleString('en-IN');
+      document.getElementById('metric-value-average').textContent = `₹${Math.round(averageOrderValue).toLocaleString('en-IN')}`;
+      document.getElementById('export-report-btn').disabled = false;
 
       renderBreakdown(activeList);
       renderCharts(activeList, receivedList);
@@ -894,8 +1066,8 @@
       return getPackageLabel(booking).includes(',');
     }
 
-    function renderBreakdown(list) {
-      const configs = {
+    function getBreakdownConfigs() {
+      return {
         service: {
           heading: 'Service',
           title: 'Service performance',
@@ -914,7 +1086,11 @@
           heading: 'City',
           title: 'City performance',
           groupLabel: 'cities',
-          getValue: booking => booking.city || 'Unspecified city'
+          getValue: booking => {
+            const city = String(booking.city || '').trim();
+            if (/^gur(?:gaon|ugram)$/i.test(city)) return 'Gurugram';
+            return city || 'Unspecified city';
+          }
         },
         partner: {
           heading: 'Partner',
@@ -934,7 +1110,11 @@
           }
         }
       };
-      const config = configs[currentBreakdownDimension] || configs.service;
+    }
+
+    function buildBreakdownData(list, dimension) {
+      const configs = getBreakdownConfigs();
+      const config = configs[dimension] || configs.service;
       const groups = new Map();
       const matchingBookings = list.filter(booking => !config.include || config.include(booking));
 
@@ -942,20 +1122,28 @@
         const label = config.getValue(booking);
         const groupKey = label.toLocaleLowerCase('en-IN');
         const amount = Number(booking.Final_Amount) || Number(booking.price) || 0;
-        const existing = groups.get(groupKey) || { label, orders: 0, revenue: 0 };
+        const existing = groups.get(groupKey) || { label, orders: 0, revenue: 0, average: 0 };
         existing.orders += 1;
         existing.revenue += amount;
+        existing.average = existing.revenue / existing.orders;
         groups.set(groupKey, existing);
       });
 
       const rows = [...groups.values()].sort((a, b) => b.orders - a.orders || b.revenue - a.revenue || a.label.localeCompare(b.label));
+      return { config, matchingBookings, rows };
+    }
+
+    function renderBreakdown(list) {
+      const { config, matchingBookings, rows } = buildBreakdownData(list, currentBreakdownDimension);
+      currentBreakdownRows = rows;
+      currentBreakdownMeta = { heading: config.heading, title: config.title };
       document.getElementById('breakdown-title').textContent = config.title;
       document.getElementById('breakdown-dimension-heading').textContent = config.heading;
       document.getElementById('breakdown-count').textContent = `${rows.length} ${config.groupLabel} · ${matchingBookings.length.toLocaleString('en-IN')} completed orders`;
 
       const tbody = document.getElementById('breakdown-table-body');
       if (rows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" style="padding:28px 16px; text-align:center; color:var(--text-3); font-family:var(--mono);">No completed orders in the selected period.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" style="padding:28px 16px; text-align:center; color:var(--text-3); font-family:var(--mono);">No completed orders in the selected period.</td></tr>`;
         return;
       }
 
@@ -964,8 +1152,78 @@
           <td><span class="breakdown-dimension-value">${escapeHtml(row.label)}</span></td>
           <td><span class="breakdown-orders">${row.orders.toLocaleString('en-IN')}</span></td>
           <td><span class="breakdown-revenue">₹${row.revenue.toLocaleString('en-IN')}</span></td>
+          <td><span class="breakdown-average">₹${Math.round(row.average).toLocaleString('en-IN')}</span></td>
         </tr>
       `).join('');
+    }
+
+    function getReportPeriodLabel() {
+      const labels = {
+        today: 'Today',
+        week: 'This Week (7 days)',
+        month: 'This Month (30 days)',
+        year: 'This Year (YTD)',
+        months6: 'Last 6 months',
+        months9: 'Last 9 months',
+        months12: 'Last 12 months',
+        compare24h: 'Last 24 hours compared with previous 24 hours',
+        compare7d: 'Last 7 days compared with previous 7 days',
+        compare1m: 'Last 30 days compared with previous 30 days',
+        compare3m: 'Last 3 months compared with previous 3 months'
+      };
+      return labels[currentWindow] || 'Selected period';
+    }
+
+    function csvCell(value) {
+      const text = String(value ?? '');
+      return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+    }
+
+    function exportRevenueReport() {
+      const totalRevenue = currentActiveCompletedBookings.reduce((sum, booking) => sum + (Number(booking.Final_Amount) || Number(booking.price) || 0), 0);
+      const completedOrders = currentActiveCompletedBookings.length;
+      const averageOrderValue = completedOrders ? totalRevenue / completedOrders : 0;
+      const generatedAt = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' });
+      const graphHeaders = isComparisonWindow()
+        ? ['Period', 'Revenue', 'Completed orders', 'Orders received', 'Average order value', 'Previous revenue', 'Previous completed', 'Previous received', 'Previous average']
+        : ['Period', 'Revenue', 'Completed orders', 'Orders received', 'Average order value'];
+      const graphRows = currentTrendExportRows.map(row => isComparisonWindow()
+        ? [row.period, Math.round(row.revenue), row.completed, row.received, Math.round(row.average), Math.round(row.previousRevenue), row.previousCompleted, row.previousReceived, Math.round(row.previousAverage)]
+        : [row.period, Math.round(row.revenue), row.completed, row.received, Math.round(row.average)]);
+      const breakdownSections = ['service', 'package', 'city', 'partner', 'source'].flatMap(dimension => {
+        const { config, rows } = buildBreakdownData(currentActiveCompletedBookings, dimension);
+        return [
+          [],
+          [`${config.title} — full table`],
+          [config.heading, 'Orders', 'Revenue', 'Average order value'],
+          ...rows.map(row => [row.label, row.orders, Math.round(row.revenue), Math.round(row.average)])
+        ];
+      });
+      const rows = [
+        ['FixWheel Revenue Analytics'],
+        ['Period', getReportPeriodLabel()],
+        ['Generated at', `${generatedAt} IST`],
+        [],
+        ['Overview'],
+        ['Revenue', 'Completed orders', 'Orders received', 'Average order value'],
+        [Math.round(totalRevenue), completedOrders, currentActiveReceivedBookings.length, Math.round(averageOrderValue)],
+        [],
+        ['Graph overview'],
+        graphHeaders,
+        ...graphRows,
+        ...breakdownSections
+      ];
+      const csv = '\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\r\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      const dateStamp = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+      anchor.href = url;
+      anchor.download = `fixwheel-revenue-analytics-${dateStamp}.csv`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
     }
 
     function renderCharts(activeList = rawCompletedBookings, receivedList = rawBookings) {
@@ -978,12 +1236,16 @@
       const periodGmv = [];
       const periodOrders = [];
       const periodReceived = [];
+      const periodAverage = [];
+      const previousPeriodGmv = [];
+      const previousPeriodOrders = [];
+      const previousPeriodReceived = [];
+      const previousPeriodAverage = [];
       const dayMs = 24 * 60 * 60 * 1000;
-      let trendTitlePrefix = 'All-Time';
+      const comparisonMode = isComparisonWindow();
+      const comparisonOffset = comparisonMode ? getWindowBounds(currentWindow).duration : 0;
+      let trendTitlePrefix = 'Selected';
       let periodLabel = 'Monthly';
-
-      const fromVal = document.getElementById('date-from').value;
-      const toVal = document.getElementById('date-to').value;
 
       const addTrendBucket = (label, start, end) => {
         const completedBucket = rawCompletedBookings.filter(b => {
@@ -995,9 +1257,26 @@
           return t >= start && t < end;
         });
         trendCategories.push(label);
-        periodGmv.push(completedBucket.reduce((sum, b) => sum + (Number(b.Final_Amount) || Number(b.price) || 0), 0));
+        const bucketRevenue = completedBucket.reduce((sum, b) => sum + (Number(b.Final_Amount) || Number(b.price) || 0), 0);
+        periodGmv.push(bucketRevenue);
         periodOrders.push(completedBucket.length);
         periodReceived.push(receivedBucket.length);
+        periodAverage.push(completedBucket.length ? bucketRevenue / completedBucket.length : 0);
+        if (comparisonMode) {
+          const previousCompletedBucket = rawCompletedBookings.filter(b => {
+            const t = getBookingDate(b);
+            return t >= start - comparisonOffset && t < end - comparisonOffset;
+          });
+          const previousReceivedBucket = rawBookings.filter(b => {
+            const t = getCreatedDate(b);
+            return t >= start - comparisonOffset && t < end - comparisonOffset;
+          });
+          const previousRevenue = previousCompletedBucket.reduce((sum, b) => sum + (Number(b.Final_Amount) || Number(b.price) || 0), 0);
+          previousPeriodGmv.push(previousRevenue);
+          previousPeriodOrders.push(previousCompletedBucket.length);
+          previousPeriodReceived.push(previousReceivedBucket.length);
+          previousPeriodAverage.push(previousCompletedBucket.length ? previousRevenue / previousCompletedBucket.length : 0);
+        }
       };
 
       const addDailyBuckets = (startDate, count) => {
@@ -1046,53 +1325,96 @@
         periodLabel = 'Monthly';
         const now = new Date();
         addMonthlyBuckets(new Date(now.getFullYear(), 0, 1), now);
-      } else if (currentWindow === 'custom' && (fromVal || toVal)) {
-        const fromDate = fromVal ? new Date(`${fromVal}T00:00:00`) : new Date(Date.now() - 29 * dayMs);
-        const toDate = toVal ? new Date(`${toVal}T23:59:59`) : new Date();
-        const diffDays = Math.max(1, Math.floor((toDate.getTime() - fromDate.getTime()) / dayMs) + 1);
-        trendTitlePrefix = 'Selected Period';
-
-        if (diffDays > 60) {
-          periodLabel = 'Monthly';
-          addMonthlyBuckets(fromDate, toDate);
-        } else {
-          periodLabel = 'Daily';
-          addDailyBuckets(fromDate, diffDays);
+      } else if (['months6','months9','months12'].includes(currentWindow)) {
+        const months = Number(currentWindow.replace('months',''));
+        trendTitlePrefix = `${months}-Month`;
+        periodLabel = 'Monthly';
+        const now = new Date();
+        addMonthlyBuckets(new Date(now.getFullYear(), now.getMonth() - months, 1), now);
+      } else if (currentWindow === 'compare24h') {
+        trendTitlePrefix = '24-Hour Comparison';
+        periodLabel = 'Hourly';
+        const end = new Date();
+        const start = new Date(end.getTime() - dayMs);
+        for (let hour = 0; hour < 24; hour++) {
+          const bucketStart = start.getTime() + hour * 60 * 60 * 1000;
+          addTrendBucket(new Date(bucketStart).toLocaleTimeString('en-IN',{hour:'numeric'}), bucketStart, bucketStart + 60 * 60 * 1000);
         }
-      } else {
-        const validTimes = [
-          ...rawCompletedBookings.map(getBookingDate),
-          ...rawBookings.map(getCreatedDate)
-        ].filter(Boolean);
-        const earliestDate = validTimes.length ? new Date(Math.min(...validTimes)) : new Date();
-        addMonthlyBuckets(earliestDate, new Date());
+      } else if (currentWindow === 'compare7d') {
+        trendTitlePrefix = '7-Day Comparison';
+        periodLabel = 'Daily';
+        const start = new Date(Date.now() - 6 * dayMs);
+        addDailyBuckets(start, 7);
+      } else if (currentWindow === 'compare1m') {
+        trendTitlePrefix = '30-Day Comparison';
+        periodLabel = 'Daily';
+        const start = new Date(Date.now() - 29 * dayMs);
+        addDailyBuckets(start, 30);
+      } else if (currentWindow === 'compare3m') {
+        trendTitlePrefix = '3-Month Comparison';
+        periodLabel = 'Weekly';
+        const end = Date.now();
+        const start = end - 90 * dayMs;
+        for (let week = 0; week < 13; week++) {
+          const bucketStart = start + week * 7 * dayMs;
+          const bucketEnd = Math.min(end + 1, bucketStart + 7 * dayMs);
+          addTrendBucket(new Date(bucketStart).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}), bucketStart, bucketEnd);
+        }
       }
 
       const titleEl = document.getElementById('trend-chart-title');
       const subtitleEl = document.getElementById('trend-chart-subtitle');
       if (titleEl) titleEl.textContent = currentWindow === 'today' ? "Today's Revenue & Order Activity" : `${trendTitlePrefix} Revenue & Order Activity`;
-      if (subtitleEl) subtitleEl.textContent = `Revenue is realized on completion; received orders use booking creation time · ${periodLabel.toLowerCase()} view`;
+      if (subtitleEl) subtitleEl.textContent = comparisonMode
+        ? `Solid lines show the selected period; dashed lines show the immediately preceding equal period · ${periodLabel.toLowerCase()} view`
+        : `Revenue is realized on completion; received orders use booking creation time · ${periodLabel.toLowerCase()} view`;
 
       const metricDefinitions = [
         { id: 'revenue', name: 'Revenue (₹)', data: periodGmv, color: '#facc15', kind: 'money' },
         { id: 'completed', name: 'Completed Orders', data: periodOrders, color: '#3b82f6', kind: 'count' },
-        { id: 'received', name: 'Orders Received', data: periodReceived, color: '#ef4444', kind: 'count' }
+        { id: 'received', name: 'Orders Received', data: periodReceived, color: '#ef4444', kind: 'count' },
+        { id: 'average', name: 'Average Order Value (₹)', data: periodAverage, color: '#a855f7', kind: 'money' }
       ];
-      const activeMetrics = metricDefinitions.filter(metric => selectedTrendMetrics.has(metric.id));
+      currentTrendExportRows = trendCategories.map((period, index) => ({
+        period,
+        revenue: periodGmv[index] || 0,
+        completed: periodOrders[index] || 0,
+        received: periodReceived[index] || 0,
+        average: periodAverage[index] || 0,
+        previousRevenue: previousPeriodGmv[index] || 0,
+        previousCompleted: previousPeriodOrders[index] || 0,
+        previousReceived: previousPeriodReceived[index] || 0,
+        previousAverage: previousPeriodAverage[index] || 0
+      }));
+      const activeCurrentMetrics = metricDefinitions.filter(metric => selectedTrendMetrics.has(metric.id));
+      const previousMetricData = { revenue: previousPeriodGmv, completed: previousPeriodOrders, received: previousPeriodReceived, average: previousPeriodAverage };
+      const activeMetrics = comparisonMode
+        ? activeCurrentMetrics.flatMap(metric => [
+            metric,
+            { ...metric, id: `${metric.id}-previous`, name: `${metric.name} — previous`, data: previousMetricData[metric.id], previous: true }
+          ])
+        : activeCurrentMetrics;
       const hasRevenueAxis = activeMetrics.some(metric => metric.kind === 'money');
-      const firstCountMetric = activeMetrics.find(metric => metric.kind === 'count');
+      const firstMoneyMetric = activeMetrics.find(metric => metric.kind === 'money' && !metric.previous);
+      const firstCountMetric = activeMetrics.find(metric => metric.kind === 'count' && !metric.previous);
+      const moneyMax = Math.max(1, ...activeMetrics.filter(metric => metric.kind === 'money').flatMap(metric => metric.data));
       const trendSeries = activeMetrics.map(metric => ({ name: metric.name, data: metric.data }));
       const trendColors = activeMetrics.map(metric => metric.color);
       const trendYAxes = activeMetrics.map(metric => {
         if (metric.kind === 'money') {
+          const showMoneyAxis = !metric.previous && metric.id === firstMoneyMetric?.id;
           return {
             seriesName: metric.name,
-            title: { text: 'Revenue (₹)', style: { color: metric.color, fontFamily: 'DM Mono', fontSize: '11px' } },
-            labels: { style: { colors: textColor, fontFamily: 'DM Mono' }, formatter: (value) => `₹${Math.round(value).toLocaleString('en-IN')}` }
+            min: 0,
+            max: moneyMax,
+            forceNiceScale: true,
+            show: showMoneyAxis,
+            title: { text: showMoneyAxis ? 'Value (₹)' : '', style: { color: metric.color, fontFamily: 'DM Mono', fontSize: '11px' } },
+            labels: { show: showMoneyAxis, style: { colors: textColor, fontFamily: 'DM Mono' }, formatter: (value) => `₹${Math.round(value).toLocaleString('en-IN')}` }
           };
         }
 
-        const showCountAxis = metric.id === firstCountMetric?.id;
+        const showCountAxis = !metric.previous && metric.id === firstCountMetric?.id;
         return {
           seriesName: metric.name,
           opposite: hasRevenueAxis,
@@ -1108,10 +1430,15 @@
       });
       const mobileYAxes = activeMetrics.map(metric => {
         if (metric.kind === 'money') {
+          const showMoneyAxis = !metric.previous && metric.id === firstMoneyMetric?.id;
           return {
             seriesName: metric.name,
+            min: 0,
+            max: moneyMax,
+            show: showMoneyAxis,
             title: { text: '' },
             labels: {
+              show: showMoneyAxis,
               minWidth: 42,
               maxWidth: 48,
               style: { colors: textColor, fontFamily: 'DM Mono', fontSize: '9px' },
@@ -1126,7 +1453,7 @@
           min: 0,
           forceNiceScale: true,
           title: { text: '' },
-          labels: { show: metric.id === firstCountMetric?.id && !hasRevenueAxis }
+          labels: { show: !metric.previous && metric.id === firstCountMetric?.id && !hasRevenueAxis }
         };
       });
 
@@ -1136,7 +1463,7 @@
         chart: { type: 'area', height: 410, background: 'transparent', toolbar: { show: false }, zoom: { enabled: false } },
         colors: trendColors,
         fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.38, opacityTo: 0.04, stops: [0, 90, 100] } },
-        stroke: { curve: 'smooth', width: activeMetrics.map(() => 3) },
+        stroke: { curve: 'smooth', width: activeMetrics.map(metric => metric.previous ? 2 : 3), dashArray: activeMetrics.map(metric => metric.previous ? 7 : 0) },
         markers: { size: 4, strokeWidth: 2, hover: { size: 6 } },
         dataLabels: { enabled: false },
         legend: { position: 'top', horizontalAlign: 'right', labels: { colors: textColor }, markers: { width: 9, height: 9, radius: 9 } },
@@ -1179,39 +1506,13 @@
       };
       trendChartInstance = new ApexCharts(document.querySelector("#trend-line-chart"), optionsTrend);
       trendChartInstance.render();
-
-      // 2. Individual service revenue chart. Multi-service packages are reported separately.
-      const serviceMap = {};
-      activeList.filter(b => !isMultiServicePackage(b)).forEach(b => {
-        const pkg = getPackageLabel(b) || 'Unspecified service';
-        const serviceKey = pkg.toLocaleLowerCase('en-IN');
-        const amt = Number(b.Final_Amount) || Number(b.price) || 0;
-        if (!serviceMap[serviceKey]) serviceMap[serviceKey] = { label: pkg, revenue: 0 };
-        serviceMap[serviceKey].revenue += amt;
-      });
-
-      const serviceRows = Object.values(serviceMap).sort((a, b) => b.revenue - a.revenue || a.label.localeCompare(b.label));
-      const serviceNames = serviceRows.map(row => row.label);
-      const serviceGmv = serviceRows.map(row => row.revenue);
-
-      if (serviceChartInstance) serviceChartInstance.destroy();
-      const optionsService = {
-        series: [{ name: 'GMV (₹)', data: serviceGmv }],
-        chart: { type: 'bar', height: 220, background: 'transparent', toolbar: { show: false } },
-        plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '50%' } },
-        colors: ['#60a5fa'],
-        dataLabels: { enabled: false },
-        xaxis: { categories: serviceNames, labels: { style: { colors: textColor, fontFamily: 'DM Mono' }, formatter: (v) => `₹${v}` } },
-        yaxis: { labels: { style: { colors: textColor, fontFamily: 'Syne' } } },
-        grid: { borderColor: gridColor, strokeDashArray: 4 },
-        tooltip: { theme: isDark ? 'dark' : 'light', y: { formatter: (v) => `₹${v.toLocaleString()}` } }
-      };
-      serviceChartInstance = new ApexCharts(document.querySelector("#service-bar-chart"), optionsService);
-      serviceChartInstance.render();
     }
 
     document.addEventListener('DOMContentLoaded', () => {
       renderSidebar('revenue');
+      const overlay = document.getElementById('date-range-overlay');
+      overlay.addEventListener('click', event => { if (event.target === overlay) closeDateRangeDialog(); });
+      document.addEventListener('keydown', event => { if (event.key === 'Escape' && overlay.classList.contains('open')) closeDateRangeDialog(); });
       fetchRevenueData();
     });
   </script>

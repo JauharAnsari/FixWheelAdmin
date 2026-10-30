@@ -544,9 +544,13 @@
     thead th:nth-child(14) { width: 210px; }  /* Order Status */
     thead th:nth-child(15) { width: 100px; }  /* Amount */
     thead th:nth-child(16) { width: 110px; }  /* Final Amount */
-    thead th:nth-child(17) { width: 180px; }  /* Remark */
-    thead th:nth-child(18) { width: 220px; }  /* Assigned Mechanic */
-    thead th:nth-child(19) { width: 180px; color: #4ade80; font-weight: 700; background: rgba(34, 197, 94, 0.08); } /* Settlement */
+    thead th:nth-child(17) { width: 100px; }  /* Amount */
+    thead th:nth-child(18) { width: 110px; }  /* Final Amount */
+    thead th:nth-child(19) { width: 180px; }  /* Remark */
+    thead th:nth-child(20) { width: 220px; }  /* Issues */
+    thead th:nth-child(21) { width: 220px; }  /* Assigned Mechanic */
+    thead th:nth-child(22) { width: 130px; }  /* Warranty */
+    thead th:nth-child(23) { width: 180px; color: #4ade80; font-weight: 700; background: rgba(34, 197, 94, 0.08); } /* Settlement */
 
     thead th:first-child {
       padding-left: 16px;
@@ -1152,64 +1156,6 @@
       </div>
     </header>
 
-    <!-- ─── Stats KPI Grid ─── -->
-    <div class="fw-stat-grid" style="margin: 24px 36px 0;">
-      <div class="fw-stat-card" onclick="switchTab('pending')">
-        <div class="fw-stat-header">
-          <span class="fw-stat-label">Pending Queue</span>
-          <div class="fw-stat-icon" style="color:var(--red); background:var(--red-glow); border-color:var(--red-dim);">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          </div>
-        </div>
-        <div id="stat-pending-count" class="fw-stat-value red">0</div>
-        <span class="fw-stat-sub" id="stat-unassigned-count">0 unassigned</span>
-      </div>
-
-      <div class="fw-stat-card" onclick="switchTab('completed')">
-        <div class="fw-stat-header">
-          <span class="fw-stat-label">Completed Jobs</span>
-          <div class="fw-stat-icon" style="color:#4ade80; background:var(--green-glow); border-color:var(--green-dim);">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          </div>
-        </div>
-        <div id="stat-completed-count" class="fw-stat-value green">0</div>
-        <span class="fw-stat-sub" id="stat-avg-time">avg. -- min/job</span>
-      </div>
-
-      <div class="fw-stat-card" id="card-revenue-today">
-        <div class="fw-stat-header">
-          <span class="fw-stat-label">Revenue Today</span>
-          <div class="fw-stat-icon" style="color:#facc15; background:var(--yellow-glow); border-color:var(--yellow-dim);">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          </div>
-        </div>
-        <div id="stat-revenue" class="fw-stat-value amber">₹0</div>
-        <span class="fw-stat-sub" id="stat-revenue-sub">Today's completed</span>
-      </div>
-
-      <div class="fw-stat-card" id="card-total-revenue">
-        <div class="fw-stat-header">
-          <span class="fw-stat-label">Total Revenue</span>
-          <div class="fw-stat-icon" style="color:#60a5fa; background:var(--blue-glow); border-color:var(--blue-dim);">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          </div>
-        </div>
-        <div id="stat-total-revenue" class="fw-stat-value blue">₹0</div>
-        <span class="fw-stat-sub">Lifetime completed</span>
-      </div>
-
-      <div class="fw-stat-card">
-        <div class="fw-stat-header">
-          <span class="fw-stat-label">Total Orders</span>
-          <div class="fw-stat-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-          </div>
-        </div>
-        <div id="stat-total-count" class="fw-stat-value">0</div>
-        <span class="fw-stat-sub">Excludes test sandbox</span>
-      </div>
-    </div>
-
     <!-- ─── Main ─── -->
     <main class="main">
 
@@ -1228,11 +1174,6 @@
           <span class="fw-badge fw-badge-success" style="padding: 2px 8px; font-size:10px;">✓ Done</span>
           Completed Orders
           <span class="tab-count" id="completed-tab-count">0</span>
-        </button>
-        <button class="tab-trigger" onclick="switchTab('cancelled')">
-          <span class="fw-badge fw-badge-danger" style="padding: 2px 8px; font-size:10px;">✗ Cancelled</span>
-          Cancel Orders
-          <span class="tab-count" id="cancelled-tab-count">0</span>
         </button>
         <button class="tab-trigger" onclick="switchTab('test_order')">
           <span class="fw-badge fw-badge-info" style="padding: 2px 8px; font-size:10px;">🧪 Test</span>
@@ -1353,6 +1294,7 @@
               <th>Amount</th>
               <th>Final Amount</th>
               <th>Remark</th>
+              <th>Issues</th>
               <th>Assigned Mechanic</th>
               <th>Warranty</th>
               <th>Settlement</th>
@@ -1423,6 +1365,7 @@
               <th>Amount</th>
               <th>Final Amount</th>
               <th>Remark</th>
+              <th>Issues</th>
               <th>Assigned Mechanic</th>
               <th>Warranty</th>
               <th>Payment Received By</th>
@@ -1553,6 +1496,7 @@
               <th>Amount</th>
               <th>Final Amount</th>
               <th>Remark</th>
+              <th>Issues</th>
               <th>Assigned Mechanic</th>
               <th>Warranty</th>
               <th>Settlement</th>
@@ -1672,6 +1616,7 @@
               <th>Amount</th>
               <th>Final Amount</th>
               <th>Remark</th>
+              <th>Issues</th>
               <th>Assigned Mechanic</th>
               <th>Warranty</th>
               <th>Settlement</th>
@@ -1793,6 +1738,7 @@
               <th>Amount</th>
               <th>Final Amount</th>
               <th>Remark</th>
+              <th>Issues</th>
               <th>Assigned Mechanic</th>
               <th>Warranty</th>
               <th>Settlement</th>
@@ -1912,6 +1858,7 @@
               <th>Amount</th>
               <th>Final Amount</th>
               <th>Remark</th>
+              <th>Issues</th>
               <th>Assigned Mechanic</th>
               <th>Warranty</th>
               <th>Settlement</th>
@@ -2040,7 +1987,7 @@
         return;
       }
       
-      let csvContent = "\uFEFFOrder ID,Date,Finished On,Customer Name,Phone,Vehicle,Service,Source,City,Address,Slot,Mechanic,Order Status,Amount,Final Amount,Remark\r\n";
+      let csvContent = "\uFEFFOrder ID,Date,Finished On,Customer Name,Phone,Vehicle,Service,Source,City,Address,Slot,Mechanic,Order Status,Amount,Final Amount,Remark,Issues\r\n";
       
       window.allBookings.forEach(order => {
         const orderId = `"${(order.bookingRef || order.id || '').toString().replace(/"/g, '""')}"`;
@@ -2053,6 +2000,7 @@
         const phone = `"${(order.phone || '').toString().replace(/"/g, '""')}"`;
         const vehicle = `"${((order.bikeModel || '') + ' ' + (order.bikeType || '')).trim().replace(/"/g, '""')}"`;
         const service = `"${(order.package || '').toString().replace(/"/g, '""')}"`;
+        const issues = `"${(order.issueDescription || '').toString().replace(/"/g, '""')}"`;
         const source = `"${(order.source || '').toString().replace(/"/g, '""')}"`;
         const city = `"${(order.city || '').toString().replace(/"/g, '""')}"`;
         const address = `"${(order.address || '').toString().replace(/"/g, '""')}"`;
@@ -2063,7 +2011,7 @@
         const finalAmount = `"${(order.Final_Amount || order.price || 0).toString().replace(/"/g, '""')}"`;
         const remark = `"${(order.Remarks || '').toString().replace(/"/g, '""')}"`;
         
-        csvContent += [orderId, date, finishedOn, customer, phone, vehicle, service, source, city, address, slot, mechanic, orderStatus, amount, finalAmount, remark].join(',') + "\r\n";
+        csvContent += [orderId, date, finishedOn, customer, phone, vehicle, service, source, city, address, slot, mechanic, orderStatus, amount, finalAmount, remark, issues].join(',') + "\r\n";
       });
       
       const now = new Date();
@@ -2512,13 +2460,18 @@
       if (testOrderTable) testOrderTable.innerHTML = testOrderHtml;
 
       // Update Stats
-      document.getElementById('stat-total-count').textContent = totalCount;
-      document.getElementById('stat-pending-count').textContent = pendingCount;
-      document.getElementById('stat-completed-count').textContent = completedCount;
-      document.getElementById('stat-revenue').textContent = `₹${todayRevenue.toLocaleString()}`;
+      const totalCountStat = document.getElementById('stat-total-count');
+      const pendingCountStat = document.getElementById('stat-pending-count');
+      const completedCountStat = document.getElementById('stat-completed-count');
+      const todayRevenueStat = document.getElementById('stat-revenue');
+      if (totalCountStat) totalCountStat.textContent = totalCount;
+      if (pendingCountStat) pendingCountStat.textContent = pendingCount;
+      if (completedCountStat) completedCountStat.textContent = completedCount;
+      if (todayRevenueStat) todayRevenueStat.textContent = `₹${todayRevenue.toLocaleString()}`;
       const totRevEl = document.getElementById('stat-total-revenue');
       if (totRevEl) totRevEl.textContent = `₹${totalRevenue.toLocaleString()}`;
-      document.getElementById('stat-unassigned-count').textContent = `${unassignedCount} unassigned`;
+      const unassignedCountStat = document.getElementById('stat-unassigned-count');
+      if (unassignedCountStat) unassignedCountStat.textContent = `${unassignedCount} unassigned`;
 
       // Bug 3 Fix: Update avg time/job
       const avgMinutes = completedJobTimeCount > 0 ? Math.round(totalJobMinutes / completedJobTimeCount) : 45;
@@ -2596,6 +2549,15 @@
       if (/^non[- ]electric(?: motorbike)?$/.test(normalized)) return 'Non-Electric';
       if (/^electric(?: motorbike)?$/.test(normalized)) return 'Electric';
       return original;
+    }
+
+    function escapeOrderText(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
 
     function createOrderRow(order, isCompleted) {
@@ -2679,6 +2641,7 @@
       const serviceDateDisplay = serviceDateValue && !isNaN(serviceDateValue.getTime())
         ? serviceDateValue.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
         : 'Not scheduled';
+      const serviceSlotDisplay = escapeOrderText(order.preferredSlot || 'Anytime');
       const normalizedOrderState = `${currentStatus} ${order.status || ''}`.toLowerCase();
       const canRescheduleOrder = !isCompletedOrder && !normalizedOrderState.includes('cancel') && !normalizedOrderState.includes('test order');
       const rescheduleButtonHtml = canRescheduleOrder ? `
@@ -2764,7 +2727,7 @@
           <td>
             <div class="booking-date-stack">
               <span class="time-text" style="color: var(--text-2); font-size: 11.5px; font-weight: 500;" title="Order created">${dateDisplay}</span>
-              <span class="service-date-line">Service: <strong>${serviceDateDisplay}</strong></span>
+              <span class="service-date-line">Service: <strong>${serviceDateDisplay} · ${serviceSlotDisplay}</strong></span>
               ${(isRescheduled || isLegacyReschedule) ? '<span class="rescheduled-badge">Rescheduled</span>' : ''}
               <div class="booking-schedule-actions">${rescheduleButtonHtml}${unscheduleButtonHtml}</div>
             </div>
@@ -2832,6 +2795,9 @@
               <textarea id="remark-${uniqueIdentifier}" class="remark-input" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 4px 8px; border-radius: 4px; font-family: var(--mono); font-size: 11px; outline: none; width: 120px; resize: vertical; min-height: 28px;" placeholder="Add remark...">${order.Remarks || ''}</textarea>
               <button class="btn-action" onclick="updateOrderRemark('${uniqueIdentifier}', document.getElementById('remark-${uniqueIdentifier}').value, '${idColumn}')" style="padding: 2px 8px; font-size: 10px; align-self: flex-end;">Save</button>
             </div>
+          </td>
+          <td>
+            <span style="display:block; max-width:210px; color:${order.issueDescription ? 'var(--text-2)' : 'var(--text-3)'}; font-size:11.5px; line-height:1.45; white-space:normal; overflow-wrap:anywhere;" title="${escapeOrderText(order.issueDescription || 'No issue description provided')}">${order.issueDescription ? escapeOrderText(order.issueDescription) : '—'}</span>
           </td>
           <td>
             <div style="display:flex; flex-direction:column; gap:4px;">
@@ -3381,6 +3347,12 @@
       }).format(date);
     }
 
+    function hasExpectedSchedule(order, expectedDate, expectedSlot) {
+      return !!order &&
+        getISTDateInputValue(order.bookingDate) === expectedDate &&
+        String(order.preferredSlot || '').trim() === String(expectedSlot || '').trim();
+    }
+
     function getRescheduleOriginal(order) {
       if (!order || !order.reschedule_original) return null;
       let original = order.reschedule_original;
@@ -3564,7 +3536,20 @@
           throw error || new Error('The booking could not be updated. Refresh the dashboard and try again.');
         }
 
-        Object.assign(context.order, updatePayload);
+        const { data: verifiedRows, error: verificationError } = await supabaseClient
+          .from('Booking')
+          .select('bookingRef,bookingDate,preferredSlot,reschedule_original,Remarks,updated_by')
+          .eq(context.targetCol, context.targetVal)
+          .limit(2);
+        const verifiedOrder = !verificationError && Array.isArray(verifiedRows) && verifiedRows.length === 1
+          ? verifiedRows[0]
+          : null;
+
+        if (!verifiedOrder || !hasExpectedSchedule(verifiedOrder, newDateVal, newSlotVal)) {
+          throw verificationError || new Error('The selected date and time slot were not saved. Please try again.');
+        }
+
+        Object.assign(context.order, verifiedOrder);
         localStorage.setItem('fixwheel_rescheduled_' + context.targetVal, JSON.stringify({
           date: newIsoDate,
           slot: newSlotVal,

@@ -1,0 +1,13 @@
+---
+description: Keep FixWheel admin dashboard copy concise and operational
+globs: "**/*.{html,css,js}"
+alwaysApply: false
+---
+
+# Admin Dashboard Copy
+
+- Treat the FixWheel admin dashboard as an operations tool, not a marketing page.
+- Do not add hero statements, promotional copy, tutorial paragraphs, decorative subtitles, or text that merely explains what the visible controls and data already show.
+- Prefer compact page titles, precise field labels, status text, and action labels.
+- Add explanatory copy only when it prevents an operational mistake or resolves genuine ambiguity; keep it to one short sentence.
+- Preserve required validation, error, loading, empty, and accessibility text.

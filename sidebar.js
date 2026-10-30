@@ -20,6 +20,10 @@ function renderSidebar(activeKey) {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
               All Orders
             </a>
+            <a href="cancelled_orders.html?v=2031" class="nav-item ${activeKey === 'cancelled_orders' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"></circle><path d="m9 9 6 6M15 9l-6 6"></path></svg>
+              Cancelled Orders
+            </a>
           </div>
 
           <!-- Partners Group -->
@@ -57,13 +61,9 @@ function renderSidebar(activeKey) {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
               All Orders
             </a>
-            <a href="queries.html?v=2027" class="nav-item ${activeKey === 'queries' ? 'active' : ''}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-              Customer Queries
-            </a>
-            <a href="disputes.html?v=2027" class="nav-item ${activeKey === 'disputes' ? 'active' : ''}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-              Disputes
+            <a href="cancelled_orders.html?v=2031" class="nav-item ${activeKey === 'cancelled_orders' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"></circle><path d="m9 9 6 6M15 9l-6 6"></path></svg>
+              Cancelled Orders
             </a>
           </div>
 
@@ -111,6 +111,14 @@ function renderSidebar(activeKey) {
             <a href="customers.html?v=2027" class="nav-item ${activeKey === 'customer_list' ? 'active' : ''}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
               Customer List
+            </a>
+            <a href="queries.html?v=2027" class="nav-item ${activeKey === 'queries' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              Customer Queries
+            </a>
+            <a href="disputes.html?v=2027" class="nav-item ${activeKey === 'disputes' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              Disputes
             </a>
             <a href="blocked_customers.html?v=2027" class="nav-item ${activeKey === 'blocked_customers' ? 'active' : ''}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
@@ -384,8 +392,9 @@ const SEARCH_DATABASE = [
   { type: 'page', title: 'Live Ops Dispatch', sub: 'Overview · Realtime Dispatch & SLA Queue', icon: '⚡', url: 'live_ops.html?v=2027' },
   { type: 'page', title: 'All Orders Management', sub: 'Orders · Complete Production Orders', icon: '📋', url: 'index.html?v=2027' },
   { type: 'page', title: "Today's Orders", sub: 'Orders · Orders Received Today', icon: '📅', url: 'index.html?tab=today&v=2027' },
-  { type: 'page', title: 'Customer Queries', sub: 'Orders · Support Tickets & Inquiries', icon: '💬', url: 'queries.html?v=2027' },
-  { type: 'page', title: 'Order Disputes', sub: 'Orders · Customer & Mechanic Complaints', icon: '⚖️', url: 'disputes.html?v=2027' },
+  { type: 'page', title: 'Cancelled Orders', sub: 'Orders · Cancellation Intelligence', icon: '✕', url: 'cancelled_orders.html?v=2031' },
+  { type: 'page', title: 'Customer Queries', sub: 'Customers · Support Tickets & Inquiries', icon: '💬', url: 'queries.html?v=2027' },
+  { type: 'page', title: 'Order Disputes', sub: 'Customers · Customer & Mechanic Complaints', icon: '⚖️', url: 'disputes.html?v=2027' },
   { type: 'page', title: 'Service Demand Analytics', sub: 'Analytics · Service Bookings by Date', icon: '📊', url: 'service_analytics.html?v=2028' },
   { type: 'page', title: 'Active Partners', sub: 'Partners · Active Mechanics & On-Duty Garages', icon: '👥', url: 'active_partners.html?v=2027' },
   { type: 'page', title: 'Total Partners Directory', sub: 'Partners · All Registered Garages', icon: '🏪', url: 'partners.html?v=2027' },

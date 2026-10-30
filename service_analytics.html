@@ -143,9 +143,6 @@
       gap: 22px;
     }
 
-    .page-intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; }
-    .page-intro h1 { max-width: 760px; font-size: clamp(26px, 3vw, 40px); line-height: 1.08; letter-spacing: -0.03em; }
-    .page-intro p { max-width: 68ch; margin-top: 9px; color: var(--text-2); font-size: 14px; line-height: 1.6; }
     .data-status { flex: 0 0 auto; color: var(--text-3); font-family: var(--mono); font-size: 10px; line-height: 1.5; text-align: right; }
 
     .filter-panel {
@@ -174,7 +171,6 @@
 
     .preset-button:hover { color: var(--text-1); }
     .preset-button.active { border-color: var(--red-dim); background: var(--red-soft); color: var(--red); }
-    .filter-hint { color: var(--text-3); font-family: var(--mono); font-size: 10px; }
 
     .filter-grid {
       display: grid;
@@ -297,12 +293,8 @@
     @media (max-width: 860px) {
       .topbar { padding-right: 14px !important; }
       .analytics-main { padding: 20px 16px 34px !important; gap: 16px; }
-      .page-intro { display: block; }
-      .page-intro h1 { font-size: 27px; }
-      .page-intro p { font-size: 13px; }
-      .data-status { margin-top: 10px; text-align: left; }
+      .data-status { text-align: left; }
       .preset-row { display: block; }
-      .filter-hint { display: block; margin-top: 9px; }
       .filter-grid { grid-template-columns: 1fr 1fr; }
       .field:first-child { grid-column: 1 / -1; }
       .action-button { width: 100%; }
@@ -344,7 +336,6 @@
     <header class="topbar">
       <div class="topbar-brand">
         <span>Service Demand</span>
-        <em>/ Booking Mix & Date Analysis</em>
       </div>
       <div class="topbar-right">
         <button id="theme-toggle" class="icon-button" type="button" aria-label="Switch color theme">
@@ -357,14 +348,6 @@
     </header>
 
     <main class="analytics-main">
-      <section class="page-intro" aria-labelledby="page-title">
-        <div>
-          <h1 id="page-title">See which services customers are booking.</h1>
-          <p>Month-to-date demand is shown by default. Each order contributes once to every service included in its package, so combined packages are counted accurately.</p>
-        </div>
-        <div class="data-status" id="data-status" aria-live="polite">Loading booking data…</div>
-      </section>
-
       <section class="filter-panel" aria-label="Service booking filters">
         <div class="preset-row">
           <div class="preset-buttons" aria-label="Date presets">
@@ -372,7 +355,7 @@
             <button class="preset-button" type="button" data-preset="last7">Last 7 days</button>
             <button class="preset-button active" type="button" data-preset="month">This month</button>
           </div>
-          <span class="filter-hint">Dates use India Standard Time</span>
+          <span class="data-status" id="data-status" aria-live="polite">Loading booking data…</span>
         </div>
 
         <div class="filter-grid">
