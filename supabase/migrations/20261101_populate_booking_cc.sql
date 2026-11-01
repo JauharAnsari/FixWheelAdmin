@@ -1,16 +1,16 @@
 alter table public."Booking"
-  add column if not exists vehicle_cc text;
+  add column if not exists cc text;
 
-create or replace function public.populate_booking_vehicle_cc()
+create or replace function public.populate_booking_cc()
 returns trigger
 language plpgsql
-security definer
+security invoker
 set search_path = ''
 as $$
 declare
   matched_cc text;
 begin
-  if nullif(btrim(new.vehicle_cc), '') is not null then
+  if nullif(btrim(new.cc), '') is not null then
     return new;
   end if;
 
@@ -38,20 +38,20 @@ begin
     limit 1;
   end if;
 
-  new.vehicle_cc := nullif(btrim(matched_cc), '');
+  new.cc := nullif(btrim(matched_cc), '');
   return new;
 end;
 $$;
 
-revoke all on function public.populate_booking_vehicle_cc() from public, anon, authenticated;
+revoke all on function public.populate_booking_cc() from public, anon, authenticated;
 
-drop trigger if exists booking_populate_vehicle_cc on public."Booking";
-create trigger booking_populate_vehicle_cc
-before insert or update of phone, "bikeModel", vehicle_cc
+drop trigger if exists booking_populate_cc on public."Booking";
+create trigger booking_populate_cc
+before insert or update of phone, "bikeModel", cc
 on public."Booking"
 for each row
-execute function public.populate_booking_vehicle_cc();
+execute function public.populate_booking_cc();
 
 update public."Booking"
-set vehicle_cc = null
-where nullif(btrim(vehicle_cc), '') is null;
+set cc = null
+where nullif(btrim(cc), '') is null;

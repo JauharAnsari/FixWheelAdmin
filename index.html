@@ -2160,7 +2160,7 @@
     }
 
     function getVehicleCc(order) {
-      const storedCc = String(order?.vehicle_cc || order?.vehicleCc || '').trim();
+      const storedCc = String(order?.cc || order?.vehicle_cc || order?.vehicleCc || '').trim();
       if (storedCc) return storedCc;
 
       const model = String(order?.bikeModel || order?.vehicleModel || '');
@@ -2180,6 +2180,14 @@
       return withUnit
         .replace(/\s+(?:to|-)\s+/gi, '–')
         .replace(/\bcc\b/gi, 'CC');
+    }
+
+    function hasPaymentUuid(order) {
+      return Array.isArray(order?.payments) && order.payments.some(value => String(value || '').trim());
+    }
+
+    function isOrderSettled(order) {
+      return order?.settlement === 'Done' && hasPaymentUuid(order);
     }
 
     // Update topbar email display
@@ -2737,7 +2745,7 @@
       const service = order.package || order.servicePackage || order.service || 'Service';
       const customer = order.customerName || 'Unknown customer';
       const city = order.city || 'City not specified';
-      const settlement = order.settlement === 'Done' ? 'Settled' : 'Pending';
+      const settlement = isOrderSettled(order) ? 'Settled' : 'Pending';
       const rescheduled = !!getRescheduleOriginal(order) || hasActiveLegacyReschedule(order, localStorage.getItem('fixwheel_rescheduled_' + uniqueIdentifier));
 
       return `
@@ -3024,7 +3032,7 @@
           <td>${warrantyHtml}</td>
           <td>
             <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">
-              ${order.settlement === 'Done' 
+              ${isOrderSettled(order)
                 ? '<span class="fw-badge fw-badge-success" style="font-size:10px;">✓ Settled</span>' 
                 : (currentStatus.toLowerCase().includes('fixwheel') || (order.payment_received_by || '').toLowerCase() === 'fixwheel'
                     ? `<span class="fw-badge fw-badge-amber" style="font-size:10px;" title="FixWheel collected online payment. Pay 75% to mechanic.">Pay Mech ₹${Math.round(computedFinalAmount * 0.75).toLocaleString()} (75%)</span>`
@@ -3035,8 +3043,8 @@
                   )
               }
               <select class="fw-select" style="font-size:10px; padding:2px 14px 2px 4px;" onchange="updateSettlement('${uniqueIdentifier}', this.value, '${idColumn}')">
-                <option value="Pending" ${!order.settlement || order.settlement === 'Pending' ? 'selected' : ''}>Pending</option>
-                <option value="Done" ${order.settlement === 'Done' ? 'selected' : ''}>Mark Settled</option>
+                <option value="Pending" ${!isOrderSettled(order) ? 'selected' : ''}>Pending</option>
+                <option value="Done" ${isOrderSettled(order) ? 'selected' : ''}>Mark Settled</option>
               </select>
             </div>
           </td>
@@ -3253,7 +3261,8 @@
       const mechanic = order['Assign Mechanic'] || order.mechanic || 'Unassigned';
       const source = String(order.source || 'website').toLowerCase().includes('app') ? 'App' : 'Website';
       const service = order.package || order.servicePackage || order.service || 'Service';
-      const vehicleMeta = [formatBikeTypeLabel(order.bikeType), formatVehicleCc(getVehicleCc(order))].filter(Boolean).join(' · ');
+      const vehicleCc = formatVehicleCc(getVehicleCc(order));
+      const vehicleMeta = [formatBikeTypeLabel(order.bikeType), vehicleCc ? `CC: ${vehicleCc}` : 'CC not recorded'].filter(Boolean).join(' · ');
       const serviceDate = getOrderDisplayDate(order.bookingDate || order.createdAt);
       const finishedRaw = isCompletedOrder ? (order.finished_at || order.order_finished_date) : null;
       const finishedDate = getOrderDisplayDate(finishedRaw, true);
@@ -3338,7 +3347,7 @@
             <div class="order-detail-field"><label>Quoted amount</label><div class="order-detail-value">₹${Number(order.price || 0).toLocaleString('en-IN')}</div></div>
             <div class="order-detail-field"><label>Final amount</label><div class="final-price-container" style="display:flex; align-items:center; gap:8px;"><span class="price">₹${finalAmount.toLocaleString('en-IN')}</span><button type="button" class="btn-edit-price" ${dataAttrs} data-amount="${finalAmount}" onclick="handleDrawerFinalAmountEdit(this)" aria-label="Edit final amount"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button></div></div>
             <div class="order-detail-field"><label>Payment received by</label><div class="order-detail-value">${escapeOrderText(paymentReceiver)}</div></div>
-            <div class="order-detail-field"><label for="drawer-settlement-select">Settlement</label><select id="drawer-settlement-select" class="fw-select" ${dataAttrs} onchange="handleDrawerSettlementChange(this)"><option value="Pending" ${order.settlement !== 'Done' ? 'selected' : ''}>Pending</option><option value="Done" ${order.settlement === 'Done' ? 'selected' : ''}>Mark Settled</option></select></div>
+            <div class="order-detail-field"><label for="drawer-settlement-select">Settlement</label><select id="drawer-settlement-select" class="fw-select" ${dataAttrs} onchange="handleDrawerSettlementChange(this)"><option value="Pending" ${!isOrderSettled(order) ? 'selected' : ''}>Pending</option><option value="Done" ${isOrderSettled(order) ? 'selected' : ''}>Mark Settled</option></select><div class="order-detail-muted" style="margin-top:4px;">Payment UUID required</div></div>
             <div class="order-detail-field"><label>Warranty</label>${warrantyHtml}</div>
           </div>
         </section>
@@ -3409,6 +3418,12 @@
     }
 
     async function updatePaymentSettled(id, newValue, column = 'id') {
+      const order = findOrderForDrawer(id, column);
+      if (newValue === 'Done' && !hasPaymentUuid(order)) {
+        alert('Add a payment UUID in Settlements before marking this order settled.');
+        if (window.allBookings) renderDashboard(window.allBookings);
+        return false;
+      }
       console.log(`Updating payment_settled for ${id} via ${column} to: ${newValue}`);
       const payload = { payment_settled: newValue, updated_by: getCurrentUpdatedBy() };
 
@@ -3427,8 +3442,23 @@
     }
 
     async function updateSettlement(id, newSettlement, column = 'id') {
+      const order = findOrderForDrawer(id, column);
+      if (newSettlement === 'Done' && !hasPaymentUuid(order)) {
+        alert('Add a payment UUID in Settlements before marking this order settled.');
+        if (window.allBookings) renderDashboard(window.allBookings);
+        if (order && String(activeOrderDrawerKey) === String(id)) renderOrderDrawer(order);
+        return false;
+      }
       console.log(`Updating settlement for ${id} via ${column} to: ${newSettlement}`);
-      const payload = { settlement: newSettlement, updated_by: getCurrentUpdatedBy() };
+      const isSettled = newSettlement === 'Done';
+      const payload = {
+        settlement: newSettlement,
+        payment_settled: newSettlement,
+        fixwheel_payment_settled: isSettled,
+        partner_payment_settled: isSettled,
+        settled_at: isSettled ? new Date().toISOString() : null,
+        updated_by: getCurrentUpdatedBy()
+      };
 
       const { data, error } = await supabaseClient
         .from('Booking')
@@ -3441,7 +3471,9 @@
         const ok = await restUpdateBooking(column, id, payload);
         if (!ok) { alert('Update Failed: ' + error.message); return; }
       }
+      if (order) Object.assign(order, payload);
       fetchBookings();
+      return true;
     }
 
     async function updateMechanic(id, mechanicName, column = 'id') {
@@ -3511,7 +3543,7 @@
 
       if (lowerNew.includes('fixwheel')) {
         updatePayload.payment_received_by = 'FixWheel';
-        updatePayload.settlement = 'Done';
+        updatePayload.settlement = 'Pending';
       } else if (lowerNew.includes('mechanic')) {
         updatePayload.payment_received_by = 'Mechanic';
         updatePayload.settlement = 'Pending';
@@ -3629,7 +3661,7 @@
       if (!pendingPaymentOrderId) return;
 
       const finalStatus = `Completed - Payment received by ${receiver}`;
-      const settlementVal = receiver === 'FixWheel' ? 'Done' : 'Pending';
+      const settlementVal = 'Pending';
 
       const orderId = pendingPaymentOrderId;
       const col = pendingPaymentColumn;

@@ -77,6 +77,8 @@
     .side-checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
     .side-check { display: flex; align-items: center; gap: 9px; min-height: 42px; padding: 9px 10px; border: 1px solid var(--border-hi); border-radius: 7px; background: var(--surface); color: var(--text-2); cursor: pointer; }
     .side-check input { width: 16px; height: 16px; accent-color: #22c55e; }
+    .side-check.locked { color: var(--text-3); cursor: not-allowed; opacity: .68; }
+    .settlement-lock { display: block; margin-top: 7px; color: #fbbf24; font: 10px var(--mono); }
     .payment-list { display: flex; flex-wrap: wrap; gap: 7px; min-height: 28px; }
     .payment-id { max-width: 100%; border: 1px solid var(--border-hi); border-radius: 6px; background: var(--surface); color: #93c5fd; padding: 5px 8px; cursor: copy; font: 9.5px var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .payment-add { display: flex; gap: 8px; margin-top: 10px; }
@@ -150,11 +152,12 @@
     const orderKey = order => String(order.bookingRef || order.id);
     const orderColumn = order => order.bookingRef ? 'bookingRef' : 'id';
     const isUuid = value => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || '').trim());
+    const hasPaymentUuid = order => Array.isArray(order?.payments) && order.payments.some(value => isUuid(value));
     const isComplete = order => { const status = String(order.order_status || order.status || '').toLowerCase(); return (status.includes('completed') || status.includes('payment received')) && !status.includes('test order') && !status.includes('sandbox'); };
     const finishedIso = order => order.finished_at || order.order_finished_date || order.bookingDate || order.createdAt;
     const formatDate = value => { if (!value) return '—'; const raw = String(value); const date = new Date(raw.endsWith('Z') || raw.includes('+') ? raw : raw + 'Z'); return isNaN(date.getTime()) ? raw : date.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }); };
     function notify(message, isError = false) { const toast = document.getElementById('toast'); toast.textContent = message; toast.className = `toast show${isError ? ' error' : ''}`; clearTimeout(toastTimer); toastTimer = setTimeout(() => { toast.className = 'toast'; }, 2600); }
-    function settlementState(order) { if (order.fixwheel_payment_settled && order.partner_payment_settled) return 'settled'; if (order.fixwheel_payment_settled || order.partner_payment_settled) return 'partial'; return 'review'; }
+    function settlementState(order) { if (!hasPaymentUuid(order)) return 'review'; if (order.fixwheel_payment_settled && order.partner_payment_settled) return 'settled'; if (order.fixwheel_payment_settled || order.partner_payment_settled) return 'partial'; return 'review'; }
     function stateLabel(state) { if (state === 'settled') return 'Fully settled'; if (state === 'partial') return 'One side settled'; return 'Needs review'; }
     async function fetchSettlements() {
       const { data, error } = await supabaseClient.from('Booking').select('*').order('createdAt', { ascending: false });
@@ -192,7 +195,8 @@
       if (!visible.length) { body.innerHTML = '<tr><td colspan="9" class="empty">No completed orders match these filters.</td></tr>'; return; }
       body.innerHTML = visible.map(order => {
         const key = orderKey(order), column = orderColumn(order), encodedKey = encodeURIComponent(key), state = settlementState(order);
-        const payments = Array.isArray(order.payments) ? order.payments : [];
+        const payments = Array.isArray(order.payments) ? order.payments.filter(isUuid) : [];
+        const canSettle = payments.length > 0;
         const loss = Number(order.loss_amount || 0), open = expandedOrderKey === key, fullStatus = order.order_status || order.status || 'Completed';
         return `<tr class="order-row">
           <td><span class="primary" style="color:#60a5fa;font-family:var(--mono);">#${escapeText(order.bookingRef || String(order.id).slice(0, 8))}</span><span class="secondary">${escapeText(fullStatus)}</span></td>
@@ -200,8 +204,8 @@
           <td><span class="primary">${formatDate(finishedIso(order))}</span><span class="secondary">${escapeText(order.city || 'City not recorded')}</span></td>
           <td><span class="money primary">${money(Number(order.Final_Amount) || Number(order.price) || 0)}</span><span class="secondary">Quoted ${money(order.price || 0)}</span></td>
           <td><span class="money primary ${loss > 0 ? 'loss-value' : ''}">${money(loss)}</span><span class="secondary">${escapeText(order.loss_reason || (loss > 0 ? 'Reason required' : 'No loss recorded'))}</span></td>
-          <td><span class="status ${order.fixwheel_payment_settled ? 'settled' : 'review'}">${order.fixwheel_payment_settled ? 'Settled' : 'Pending'}</span></td>
-          <td><span class="status ${order.partner_payment_settled ? 'settled' : 'review'}">${order.partner_payment_settled ? 'Settled' : 'Pending'}</span></td>
+          <td><span class="status ${canSettle && order.fixwheel_payment_settled ? 'settled' : 'review'}">${canSettle && order.fixwheel_payment_settled ? 'Settled' : 'Pending'}</span></td>
+          <td><span class="status ${canSettle && order.partner_payment_settled ? 'settled' : 'review'}">${canSettle && order.partner_payment_settled ? 'Settled' : 'Pending'}</span></td>
           <td><span class="primary">${payments.length}</span><span class="secondary">${payments.length ? 'Recorded' : 'None recorded'}</span></td>
           <td><button type="button" class="review-button" onclick="toggleReview('${escapeText(encodedKey)}')">${open ? 'Close' : 'Review'}</button></td></tr>
           <tr class="review-row ${open ? 'open' : ''}"><td colspan="9" class="review-cell"><div class="review-panel">
@@ -212,7 +216,8 @@
                 <div class="field"><label>Order amount</label><input value="${escapeText(money(Number(order.Final_Amount) || Number(order.price) || 0))}" disabled></div>
                 <div class="field full"><label>Loss reason</label><textarea name="loss_reason" placeholder="Required when a loss is recorded">${escapeText(order.loss_reason || '')}</textarea></div>
               </div><div class="inline-error" role="alert"></div><div class="actions"><button type="submit" class="primary-button">Save loss review</button></div></form>
-              <div class="side-checks" style="margin-top:14px;"><label class="side-check"><input type="checkbox" ${order.fixwheel_payment_settled ? 'checked' : ''} onchange="updateSettlementSide('${escapeText(encodedKey)}','${column}','fixwheel',this.checked,this)">FixWheel payment settled</label><label class="side-check"><input type="checkbox" ${order.partner_payment_settled ? 'checked' : ''} onchange="updateSettlementSide('${escapeText(encodedKey)}','${column}','partner',this.checked,this)">Partner payment settled</label></div>
+              <div class="side-checks" style="margin-top:14px;"><label class="side-check ${canSettle ? '' : 'locked'}" title="${canSettle ? '' : 'Add a payment UUID first'}"><input type="checkbox" ${canSettle && order.fixwheel_payment_settled ? 'checked' : ''} ${canSettle ? '' : 'disabled'} onchange="updateSettlementSide('${escapeText(encodedKey)}','${column}','fixwheel',this.checked,this)">FixWheel payment settled</label><label class="side-check ${canSettle ? '' : 'locked'}" title="${canSettle ? '' : 'Add a payment UUID first'}"><input type="checkbox" ${canSettle && order.partner_payment_settled ? 'checked' : ''} ${canSettle ? '' : 'disabled'} onchange="updateSettlementSide('${escapeText(encodedKey)}','${column}','partner',this.checked,this)">Partner payment settled</label></div>
+              ${canSettle ? '' : '<span class="settlement-lock">Add a payment UUID first.</span>'}
             </section><section class="review-section"><h3>Payment UUIDs</h3>
               <div class="payment-list">${payments.length ? payments.map(id => `<button type="button" class="payment-id" title="Copy payment UUID" onclick="copyPaymentId('${escapeText(id)}')">${escapeText(id)}</button>`).join('') : '<span class="secondary">No payment UUID recorded.</span>'}</div>
               <form class="payment-add" data-id="${escapeText(encodedKey)}" data-column="${column}" onsubmit="addPaymentUuid(event, this)"><div class="field" style="flex:1;"><label>Payment UUID</label><input name="payment_uuid" placeholder="00000000-0000-4000-8000-000000000000" autocomplete="off"></div><button type="submit" class="primary-button" style="align-self:flex-end;">Add UUID</button></form><div class="inline-error payment-error" role="alert"></div>
@@ -232,7 +237,9 @@
       catch (error) { errorEl.textContent = `Could not save: ${error.message}`; button.disabled = false; button.textContent = 'Save loss review'; }
     }
     async function updateSettlementSide(encodedId, column, side, checked, checkbox) {
-      const id = decodeURIComponent(encodedId), order = findSettlementOrder(id, column); if (!order) return; checkbox.disabled = true;
+      const id = decodeURIComponent(encodedId), order = findSettlementOrder(id, column); if (!order) return;
+      if (checked && !hasPaymentUuid(order)) { checkbox.checked = false; notify('Add a payment UUID before marking a payment settled.', true); renderSettlements(); return; }
+      checkbox.disabled = true;
       const fixwheelSettled = side === 'fixwheel' ? checked : !!order.fixwheel_payment_settled;
       const partnerSettled = side === 'partner' ? checked : !!order.partner_payment_settled;
       const fullySettled = fixwheelSettled && partnerSettled;
