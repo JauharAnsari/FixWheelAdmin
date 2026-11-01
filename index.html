@@ -2159,6 +2159,29 @@
       return localStorage.getItem('fixwheel_staff_role') || window.FIXWHEEL_CURRENT_ROLE || 'admin';
     }
 
+    function getVehicleCc(order) {
+      const storedCc = String(order?.vehicle_cc || order?.vehicleCc || '').trim();
+      if (storedCc) return storedCc;
+
+      const model = String(order?.bikeModel || order?.vehicleModel || '');
+      const embeddedCc = model.match(/\b\d+\s*(?:to|[-–])\s*\d+\s*cc\b/i) || model.match(/\b\d+\s*cc\b/i);
+      return embeddedCc ? embeddedCc[0] : '';
+    }
+
+    function getVehicleDisplayName(order) {
+      const model = String(order?.bikeModel || order?.vehicleModel || '').trim();
+      return model.replace(/\s*\([^)]*\bcc\b[^)]*\)\s*/gi, ' ').replace(/\s{2,}/g, ' ').trim();
+    }
+
+    function formatVehicleCc(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return '';
+      const withUnit = /\bcc\b/i.test(raw) ? raw : `${raw} CC`;
+      return withUnit
+        .replace(/\s+(?:to|-)\s+/gi, '–')
+        .replace(/\bcc\b/gi, 'CC');
+    }
+
     // Update topbar email display
     const staffUserStr = localStorage.getItem('fixwheel_staff_user');
     if (staffUserStr) {
@@ -3230,6 +3253,7 @@
       const mechanic = order['Assign Mechanic'] || order.mechanic || 'Unassigned';
       const source = String(order.source || 'website').toLowerCase().includes('app') ? 'App' : 'Website';
       const service = order.package || order.servicePackage || order.service || 'Service';
+      const vehicleMeta = [formatBikeTypeLabel(order.bikeType), formatVehicleCc(getVehicleCc(order))].filter(Boolean).join(' · ');
       const serviceDate = getOrderDisplayDate(order.bookingDate || order.createdAt);
       const finishedRaw = isCompletedOrder ? (order.finished_at || order.order_finished_date) : null;
       const finishedDate = getOrderDisplayDate(finishedRaw, true);
@@ -3276,7 +3300,7 @@
           <div class="drawer-customer-view order-detail-grid">
             <div class="order-detail-field"><label>Customer</label><div class="order-detail-value">${escapeOrderText(order.customerName || 'Unknown customer')}</div><div class="order-detail-muted">${escapeOrderText(order.phone || 'No phone number')}</div></div>
             <div class="order-detail-field"><label>City</label><div class="order-detail-value">${escapeOrderText(order.city || 'Not specified')}</div><div class="order-detail-muted">${escapeOrderText(order.address || 'No address provided')}</div></div>
-            <div class="order-detail-field"><label>Vehicle</label><div class="order-detail-value">${escapeOrderText(order.bikeModel || order.vehicleModel || 'Not specified')}</div><div class="order-detail-muted">${escapeOrderText(formatBikeTypeLabel(order.bikeType) || 'Type not specified')}</div></div>
+            <div class="order-detail-field"><label>Vehicle</label><div class="order-detail-value">${escapeOrderText(getVehicleDisplayName(order) || 'Not specified')}</div><div class="order-detail-muted">${escapeOrderText(vehicleMeta || 'Type not specified')}</div></div>
             <div class="order-detail-field"><label>Service</label><div class="order-detail-value">${escapeOrderText(service)}</div><button type="button" class="btn-action" ${dataAttrs} onclick="handleDrawerServiceDetails(this)" style="margin-top:5px;">View package</button></div>
             <div class="order-detail-field full"><label>Issues</label><div class="order-detail-muted">${escapeOrderText(order.issueDescription || 'No issue description provided')}</div></div>
           </div>
