@@ -28,26 +28,30 @@
     [data-theme="light"]{--bg:#f3f4f6;--surface:#fff;--surface-2:#f8fafc;--surface-3:#e5e7eb;--border:#e5e7eb;--border-hi:#cbd5e1;--red-soft:rgba(239,68,68,.08);--blue-soft:rgba(96,165,250,.1);--text-1:#111827;--text-2:#4b5563;--text-3:#6b7280;--topbar-bg:rgba(255,255,255,.94)}
     html{background:var(--bg)}body{min-height:100vh;background:var(--bg);color:var(--text-1);font-family:var(--sans)}button,input{font:inherit}::selection{background:var(--red);color:#fff}:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
     .topbar{position:sticky;top:0;z-index:90;height:60px;padding:0 36px;display:flex;align-items:center;justify-content:space-between;gap:18px;background:var(--topbar-bg);border-bottom:1px solid var(--border);backdrop-filter:blur(14px)}
-    .topbar-brand{min-width:0;display:flex;align-items:center;gap:10px}.topbar-brand span{font-size:15px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}.topbar-brand em{overflow:hidden;color:var(--text-3);font:normal 12px var(--mono);text-overflow:ellipsis;white-space:nowrap}.live-state{display:inline-flex;align-items:center;gap:7px;color:var(--green);font:10px var(--mono)}.live-state::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+    .topbar-brand{min-width:0;display:flex;align-items:center;gap:10px}.topbar-brand span{font-size:15px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}.topbar-brand em{overflow:hidden;color:var(--text-3);font:normal 12px var(--mono);text-overflow:ellipsis;white-space:nowrap}.topbar-actions{display:flex;align-items:center;gap:14px}.export-button{height:34px;padding:0 12px;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border-hi);border-radius:7px;background:var(--surface);color:var(--text-1);font:500 10px var(--mono);cursor:pointer}.export-button:hover{border-color:var(--text-3);background:var(--surface-2)}.export-button:disabled{cursor:not-allowed;opacity:.45}.export-button svg{width:14px;height:14px}.live-state{display:inline-flex;align-items:center;gap:7px;color:var(--green);font:10px var(--mono)}.live-state::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
     .page{width:min(1480px,100%);margin:0 auto;padding:30px 36px 46px;display:flex;flex-direction:column;gap:20px}
     .sync-state{flex:0 0 auto;color:var(--text-3);font:10px/1.5 var(--mono);text-align:right}
     .filters{padding:16px 18px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}.filter-top{display:flex;align-items:center;justify-content:space-between;gap:16px}.preset-list{display:flex;flex-wrap:wrap;gap:7px}.preset{min-height:36px;padding:7px 13px;border:1px solid var(--border-hi);border-radius:999px;background:var(--surface-2);color:var(--text-2);font-size:12px;font-weight:600;cursor:pointer}.preset:hover{color:var(--text-1)}.preset.active{border-color:#991b1b;background:var(--red-soft);color:var(--red)}
     .custom-range{display:flex;align-items:flex-end;justify-content:flex-end;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}.field{display:flex;flex-direction:column;gap:5px}.field label{color:var(--text-3);font:9px var(--mono);letter-spacing:.08em;text-transform:uppercase}.control{height:38px;padding:0 11px;border:1px solid var(--border-hi);border-radius:7px;background:var(--surface-2);color:var(--text-1);font-size:12px}.apply{height:38px;padding:0 15px;border:1px solid var(--red);border-radius:7px;background:var(--red);color:#fff;font-size:12px;font-weight:700;cursor:pointer}.filter-error{display:none;margin-top:9px;color:var(--red);font:10px var(--mono)}.filter-error.visible{display:block}
-    .summary-strip{display:grid;grid-template-columns:1fr 1.35fr 1.35fr;border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden}.summary{min-height:108px;padding:19px 22px;border-right:1px solid var(--border)}.summary:last-child{border-right:0}.summary-label{color:var(--text-3);font:10px var(--mono);letter-spacing:.08em;text-transform:uppercase}.summary-value{margin-top:11px;font-size:clamp(25px,3vw,36px);font-weight:800;line-height:1}.summary-value.red{color:var(--red)}.summary-detail{margin-top:7px;color:var(--text-3);font:10px var(--mono)}
+    .summary-strip{display:grid;grid-template-columns:.85fr .85fr .9fr 1.35fr 1.2fr;border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden}.summary{min-width:0;min-height:108px;padding:19px 22px;border-right:1px solid var(--border)}.summary:last-child{border-right:0}.summary-label{color:var(--text-3);font:10px var(--mono);letter-spacing:.08em;text-transform:uppercase}.summary-value{margin-top:11px;overflow-wrap:anywhere;font-size:clamp(25px,3vw,36px);font-weight:800;line-height:1}.summary-value.red{color:var(--red)}.summary-value.blue{color:var(--blue)}.summary-detail{margin-top:7px;color:var(--text-3);font:10px var(--mono)}
     .panel{border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden}.panel-header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:18px 22px;border-bottom:1px solid var(--border)}.panel-header h2{font-size:18px}.panel-header p{margin-top:5px;color:var(--text-3);font:10px/1.5 var(--mono)}.count{padding:5px 9px;border-radius:999px;background:var(--blue-soft);color:var(--blue);font:10px var(--mono);white-space:nowrap}
     .dimension-tabs{display:flex;overflow-x:auto;border-bottom:1px solid var(--border);scrollbar-width:none}.dimension-tabs::-webkit-scrollbar{display:none}.dimension-tab{position:relative;flex:1 0 125px;min-height:48px;border:0;background:transparent;color:var(--text-2);font-size:12px;font-weight:600;cursor:pointer}.dimension-tab:hover{background:var(--surface-2);color:var(--text-1)}.dimension-tab.active{color:var(--text-1)}.dimension-tab.active::after{content:'';position:absolute;left:20px;right:20px;bottom:0;height:2px;background:var(--red)}
     .table-wrap{overflow-x:auto}.data-table{width:100%;border-collapse:collapse;text-align:left}.data-table th{padding:11px 20px;background:var(--surface-2);color:var(--text-3);font:9px var(--mono);letter-spacing:.08em;text-transform:uppercase}.data-table td{padding:13px 20px;border-top:1px solid var(--border);font-size:12px;vertical-align:middle}.data-table tbody tr:hover{background:var(--surface-2)}.data-table th:not(:first-child),.data-table td:not(:first-child){text-align:right}.category{font-weight:600}.bar-cell{display:flex;align-items:center;justify-content:flex-end;gap:10px}.bar-track{width:110px;height:5px;border-radius:999px;background:var(--surface-3);overflow:hidden}.bar-fill{height:100%;border-radius:999px;background:var(--red)}.number{color:var(--red);font:600 12px var(--mono)}.share{color:var(--text-2);font:11px var(--mono)}
     .orders-table{min-width:1040px}.orders-table th:not(:first-child),.orders-table td:not(:first-child){text-align:left}.orders-table td{padding-top:14px;padding-bottom:14px}.order-ref{color:var(--text-1);font:600 11px var(--mono)}.muted{color:var(--text-3);font:10px var(--mono)}.reason{color:var(--red);font-weight:600}.state{padding:46px 22px;text-align:center}.state h3{font-size:15px}.state p{max-width:520px;margin:7px auto 0;color:var(--text-3);font:10px/1.6 var(--mono)}.spinner{width:23px;height:23px;margin:0 auto 13px;border:2px solid var(--surface-3);border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
     .footnote{padding:12px 20px;border-top:1px solid var(--border);color:var(--text-3);font:10px/1.5 var(--mono)}
-    @media(max-width:800px){.topbar{height:58px;padding:0 14px 0 64px}.topbar-brand em{display:none}.page{padding:22px 14px 34px;gap:16px}.sync-state{text-align:left}.filter-top{align-items:flex-start;flex-direction:column}.custom-range{display:grid;grid-template-columns:1fr 1fr}.apply{grid-column:1/-1}.summary-strip{grid-template-columns:1fr 1fr}.summary:first-child{grid-column:1/-1;border-right:0;border-bottom:1px solid var(--border)}.summary:nth-child(2){border-right:1px solid var(--border)}.summary{min-height:95px;padding:16px}.panel-header{padding:16px}.data-table th,.data-table td{padding-left:14px;padding-right:14px}.bar-track{width:72px}}
-    @media(max-width:440px){.topbar .live-state{display:none}.preset-list{display:grid;grid-template-columns:1fr 1fr;width:100%}.preset{padding:7px 8px}.custom-range{grid-template-columns:1fr}.apply{grid-column:auto}.summary-strip{grid-template-columns:1fr}.summary,.summary:nth-child(2){grid-column:auto;border-right:0;border-bottom:1px solid var(--border)}.summary:last-child{border-bottom:0}.panel-header{align-items:flex-start}.count{white-space:normal;text-align:right}}
+    @media(max-width:1100px){.summary-strip{grid-template-columns:repeat(3,1fr)}.summary:nth-child(3){border-right:0}.summary:nth-child(-n+3){border-bottom:1px solid var(--border)}.summary:nth-child(4){grid-column:span 2}}
+    @media(max-width:800px){.topbar{height:58px;padding:0 14px 0 64px}.topbar-brand em{display:none}.page{padding:22px 14px 34px;gap:16px}.sync-state{text-align:left}.filter-top{align-items:flex-start;flex-direction:column}.custom-range{display:grid;grid-template-columns:1fr 1fr}.apply{grid-column:1/-1}.summary-strip{grid-template-columns:1fr 1fr}.summary:nth-child(3){border-right:1px solid var(--border)}.summary:nth-child(2n){border-right:0}.summary:nth-child(4){grid-column:auto}.summary:nth-child(-n+4){border-bottom:1px solid var(--border)}.summary:last-child{grid-column:1/-1}.summary{min-height:95px;padding:16px}.panel-header{padding:16px}.data-table th,.data-table td{padding-left:14px;padding-right:14px}.bar-track{width:72px}}
+    @media(max-width:440px){.topbar .live-state{display:none}.export-button span{display:none}.preset-list{display:grid;grid-template-columns:1fr 1fr;width:100%}.preset{padding:7px 8px}.custom-range{grid-template-columns:1fr}.apply{grid-column:auto}.summary-strip{grid-template-columns:1fr}.summary,.summary:nth-child(2n),.summary:nth-child(3){grid-column:auto;border-right:0;border-bottom:1px solid var(--border)}.summary:last-child{border-bottom:0}.panel-header{align-items:flex-start}.count{white-space:normal;text-align:right}}
   </style>
 </head>
 <body>
   <div class="main-wrapper">
     <header class="topbar">
       <div class="topbar-brand"><span>Cancelled Orders</span></div>
-      <span class="live-state">LIVE BOOKING DATA</span>
+      <div class="topbar-actions">
+        <button class="export-button" id="exportReport" type="button" disabled aria-label="Export cancellation report as CSV"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14a2 2 0 0 0 2-2v-3"></path><path d="M3 16v3a2 2 0 0 0 2 2"></path></svg><span>Export CSV</span></button>
+        <span class="live-state">LIVE BOOKING DATA</span>
+      </div>
     </header>
     <main class="page">
       <section class="filters" aria-label="Cancellation date filters">
@@ -69,7 +73,9 @@
       </section>
 
       <section class="summary-strip" aria-label="Cancellation overview">
-        <div class="summary"><div class="summary-label">Cancelled orders</div><div class="summary-value red" id="cancelledTotal">—</div><div class="summary-detail" id="periodLabel">Selected period</div></div>
+        <div class="summary"><div class="summary-label">Orders received</div><div class="summary-value blue" id="receivedTotal">—</div><div class="summary-detail" id="periodLabel">Selected period</div></div>
+        <div class="summary"><div class="summary-label">Cancelled orders</div><div class="summary-value red" id="cancelledTotal">—</div><div class="summary-detail" id="cancelledRatioDetail">Of received orders</div></div>
+        <div class="summary"><div class="summary-label">Cancellation rate</div><div class="summary-value red" id="cancellationRate">—</div><div class="summary-detail">Cancelled ÷ received</div></div>
         <div class="summary"><div class="summary-label">Most common reason</div><div class="summary-value" id="topReason">—</div><div class="summary-detail" id="topReasonDetail">No cancellation data</div></div>
         <div class="summary"><div class="summary-label">Highest-cancel location</div><div class="summary-value" id="topLocation">—</div><div class="summary-detail" id="topLocationDetail">No cancellation data</div></div>
       </section>
@@ -85,8 +91,8 @@
         </div>
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th id="dimensionHeading">Reason</th><th>Cancellations</th><th>Share</th></tr></thead>
-            <tbody id="breakdownBody"><tr><td colspan="3"><div class="state"><div class="spinner"></div><h3>Loading cancellation data</h3><p>Reading cancelled bookings from Supabase.</p></div></td></tr></tbody>
+            <thead><tr><th id="dimensionHeading">Reason</th><th>Orders received</th><th>Cancellations</th><th>Cancellation rate</th></tr></thead>
+            <tbody id="breakdownBody"><tr><td colspan="4"><div class="state"><div class="spinner"></div><h3>Loading cancellation data</h3><p>Reading cancelled bookings from Supabase.</p></div></td></tr></tbody>
           </table>
         </div>
       </section>
@@ -110,6 +116,9 @@
     const $ = id => document.getElementById(id);
     let cancelledOrders = [];
     let filteredOrders = [];
+    let allProductionOrders = [];
+    let receivedOrders = [];
+    let currentRange = null;
     let activeDimension = 'reason';
 
     function escapeHtml(value) {
@@ -150,6 +159,7 @@
     function toInputDate(date) { const offset = date.getTimezoneOffset(); return new Date(date.getTime() - offset * 60000).toISOString().slice(0,10); }
     function startOfDay(date) { const copy = new Date(date); copy.setHours(0,0,0,0); return copy; }
     function endOfDay(date) { const copy = new Date(date); copy.setHours(23,59,59,999); return copy; }
+    function formatPercent(value) { return `${Number(value || 0).toLocaleString('en-IN',{maximumFractionDigits:1})}%`; }
 
     async function fetchAllBookings() {
       const rows = [];
@@ -179,32 +189,42 @@
       renderReport(range.from, range.to);
     }
 
-    function aggregate(dimension) {
+    function dimensionValues(order, dimension) {
+      if (dimension === 'reason') return [cancellationReason(order)];
+      if (dimension === 'location') return [normalizeCity(order.city)];
+      if (dimension === 'service') return serviceValues(order);
+      if (dimension === 'brand') return [brandFromModel(order)];
+      if (dimension === 'mechanic') return [mechanicValue(order)];
+      return [];
+    }
+    function aggregateOrders(orders, dimension) {
       const map = new Map();
-      filteredOrders.forEach(order => {
-        let values;
-        if (dimension === 'reason') values = [cancellationReason(order)];
-        if (dimension === 'location') values = [normalizeCity(order.city)];
-        if (dimension === 'service') values = serviceValues(order);
-        if (dimension === 'brand') values = [brandFromModel(order)];
-        if (dimension === 'mechanic') values = [mechanicValue(order)];
-        values.forEach(value => map.set(value, (map.get(value) || 0) + 1));
+      orders.forEach(order => {
+        dimensionValues(order, dimension).forEach(value => map.set(value, (map.get(value) || 0) + 1));
       });
       return [...map.entries()].map(([label,count]) => ({label,count})).sort((a,b) => b.count - a.count || a.label.localeCompare(b.label));
     }
+    function aggregate(dimension) { return aggregateOrders(filteredOrders, dimension); }
+    function breakdownRows(dimension) {
+      const cancelled = aggregateOrders(filteredOrders, dimension);
+      const receivedMap = new Map(aggregateOrders(receivedOrders, dimension).map(row => [row.label, row.count]));
+      return cancelled.map(row => {
+        const received = dimension === 'reason' ? receivedOrders.length : (receivedMap.get(row.label) || 0);
+        return {...row, received, rate: received ? row.count / received * 100 : 0};
+      });
+    }
     function renderBreakdown() {
-      const rows = aggregate(activeDimension);
-      const total = rows.reduce((sum,row) => sum + row.count, 0);
+      const rows = breakdownRows(activeDimension);
       const names = {reason:'Reason',location:'Location',service:'Service',brand:'Brand',mechanic:'Mechanic'};
       $('dimensionHeading').textContent = names[activeDimension];
       $('breakdownCount').textContent = `${rows.length} ${rows.length === 1 ? 'result' : 'results'}`;
       if (!rows.length) {
-        $('breakdownBody').innerHTML = `<tr><td colspan="3"><div class="state"><h3>No cancellation data</h3><p>Try a wider date range.</p></div></td></tr>`;
+        $('breakdownBody').innerHTML = `<tr><td colspan="4"><div class="state"><h3>No cancellation data</h3><p>Try a wider date range.</p></div></td></tr>`;
         return;
       }
       $('breakdownBody').innerHTML = rows.map(row => {
-        const share = total ? Math.round(row.count / total * 100) : 0;
-        return `<tr><td><span class="category">${escapeHtml(row.label)}</span></td><td><span class="number">${row.count.toLocaleString('en-IN')}</span></td><td><div class="bar-cell"><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width:${share}%"></div></div><span class="share">${share}%</span></div></td></tr>`;
+        const barWidth = Math.min(100, row.rate);
+        return `<tr><td><span class="category">${escapeHtml(row.label)}</span></td><td><span class="share">${row.received.toLocaleString('en-IN')}</span></td><td><span class="number">${row.count.toLocaleString('en-IN')}</span></td><td><div class="bar-cell"><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width:${barWidth}%"></div></div><span class="share">${formatPercent(row.rate)}</span></div></td></tr>`;
       }).join('');
     }
     function renderOrders() {
@@ -228,17 +248,82 @@
     }
     function renderReport(from,to) {
       $('filterError').classList.remove('visible');
-      filteredOrders = cancelledOrders.filter(order => { const date = createdDate(order); return date && date >= from && date <= to; });
+      currentRange = {from:new Date(from),to:new Date(to)};
+      receivedOrders = allProductionOrders.filter(order => { const date = createdDate(order); return date && date >= from && date <= to; });
+      filteredOrders = receivedOrders.filter(order => isCancelled(order));
       const reasons = aggregate('reason');
       const locations = aggregate('location');
+      const rate = receivedOrders.length ? filteredOrders.length / receivedOrders.length * 100 : 0;
+      $('receivedTotal').textContent = receivedOrders.length.toLocaleString('en-IN');
       $('cancelledTotal').textContent = filteredOrders.length.toLocaleString('en-IN');
       $('periodLabel').textContent = `${displayDate(from)} – ${displayDate(to)}`;
+      $('cancelledRatioDetail').textContent = `${filteredOrders.length.toLocaleString('en-IN')} of ${receivedOrders.length.toLocaleString('en-IN')} received`;
+      $('cancellationRate').textContent = formatPercent(rate);
       $('topReason').textContent = reasons[0]?.label || '—';
       $('topReasonDetail').textContent = reasons[0] ? `${reasons[0].count} cancelled ${reasons[0].count === 1 ? 'order' : 'orders'}` : 'No cancellation data';
       $('topLocation').textContent = locations[0]?.label || '—';
       $('topLocationDetail').textContent = locations[0] ? `${locations[0].count} cancelled ${locations[0].count === 1 ? 'order' : 'orders'}` : 'No cancellation data';
       renderBreakdown();
       renderOrders();
+      $('exportReport').disabled = false;
+    }
+    function csvCell(value) {
+      let text = String(value ?? '');
+      if (/^[=+\-@]/.test(text)) text = `'${text}`;
+      return `"${text.replace(/"/g,'""')}"`;
+    }
+    function exportCancellationReport() {
+      if (!currentRange) return;
+      const rows = [
+        ['FixWheel Cancellation Report'],
+        ['Period', `${displayDate(currentRange.from)} - ${displayDate(currentRange.to)}`],
+        ['Orders received', receivedOrders.length],
+        ['Cancelled orders', filteredOrders.length],
+        ['Cancellation rate', formatPercent(receivedOrders.length ? filteredOrders.length / receivedOrders.length * 100 : 0)],
+        []
+      ];
+      const dimensions = [
+        ['Reasons','reason'],
+        ['Locations','location'],
+        ['Services','service'],
+        ['Brands','brand'],
+        ['Mechanics','mechanic']
+      ];
+      dimensions.forEach(([title,dimension]) => {
+        rows.push([`${title} breakdown`], [title.slice(0,-1), 'Orders received', 'Cancellations', 'Cancellation rate']);
+        breakdownRows(dimension).forEach(row => rows.push([row.label, row.received, row.count, formatPercent(row.rate)]));
+        rows.push([]);
+      });
+      rows.push(['Cancelled order details'], ['Order', 'Customer', 'Created', 'Reason', 'Location', 'Service', 'Brand', 'Mechanic', 'Source', 'Status', 'Phone', 'Bike model', 'Quoted amount', 'Final amount']);
+      filteredOrders.slice().sort((a,b) => (createdDate(b)?.getTime() || 0) - (createdDate(a)?.getTime() || 0)).forEach(order => {
+        const date = createdDate(order);
+        rows.push([
+          order.bookingRef || order.id || 'Unknown',
+          order.customerName || 'Unknown customer',
+          date ? date.toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '',
+          cancellationReason(order),
+          normalizeCity(order.city),
+          serviceValues(order).join(', '),
+          brandFromModel(order),
+          mechanicValue(order),
+          order.source || '',
+          order.order_status || order.status || '',
+          order.phone || '',
+          order.bikeModel || '',
+          order.price ?? '',
+          order.Final_Amount ?? ''
+        ]);
+      });
+      const csv = `\uFEFF${rows.map(row => row.map(csvCell).join(',')).join('\r\n')}`;
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.href = url;
+      link.download = `fixwheel-cancelled-orders-${toInputDate(currentRange.from)}-to-${toInputDate(currentRange.to)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
     }
     function applyCustomRange() {
       const fromValue = $('dateFrom').value;
@@ -256,8 +341,9 @@
     async function loadData() {
       try {
         const bookings = await fetchAllBookings();
-        cancelledOrders = bookings.filter(order => isCancelled(order) && isProduction(order));
-        $('syncState').textContent = `${bookings.length.toLocaleString('en-IN')} ORDERS SYNCED · ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}`;
+        allProductionOrders = bookings.filter(order => isProduction(order));
+        cancelledOrders = allProductionOrders.filter(order => isCancelled(order));
+        $('syncState').textContent = `${allProductionOrders.length.toLocaleString('en-IN')} PRODUCTION ORDERS · ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}`;
         setPreset('month');
       } catch (error) {
         console.error('Cancelled orders load failed:', error);
@@ -277,6 +363,7 @@
       }));
       ['dateFrom','dateTo'].forEach(id => $(id).addEventListener('change', () => document.querySelectorAll('.preset').forEach(button => button.classList.remove('active'))));
       $('applyCustom').addEventListener('click', applyCustomRange);
+      $('exportReport').addEventListener('click', exportCancellationReport);
       loadData();
     });
   </script>
