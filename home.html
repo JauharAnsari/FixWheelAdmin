@@ -26,7 +26,7 @@
   <link rel="stylesheet" href="theme.css">
   <link rel="stylesheet" href="sidebar.css">
   <script src="auth_guard.js?v=2026"></script>
-  <script src="sidebar.js"></script>
+  <script src="sidebar.js?v=2033"></script>
 
   <style>
     *,
@@ -434,8 +434,61 @@
     }
 
     .monthly-revenue-pair .big-number {
-      font-size: clamp(26px, 2.6vw, 36px);
+      font-size: clamp(24px, 2.2vw, 34px);
       white-space: nowrap;
+    }
+
+    .monthly-completed-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 18px;
+      padding: 14px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .monthly-completed-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      color: var(--text-1);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .monthly-completed-values {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .monthly-completed-metric {
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+      white-space: nowrap;
+    }
+
+    .monthly-completed-metric span {
+      color: var(--text-3);
+      font-family: var(--mono);
+      font-size: 9.5px;
+    }
+
+    .monthly-completed-metric strong {
+      color: var(--text-1);
+      font-family: var(--mono);
+      font-size: 18px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .monthly-completed-divider {
+      width: 1px;
+      height: 24px;
+      background: var(--border-hi);
     }
 
     .monthly-comparison {
@@ -1078,6 +1131,8 @@
       .monthly-revenue-pair { gap: 12px; }
       .revenue-metric + .revenue-metric { padding-left: 12px; }
       .monthly-revenue-pair .big-number { font-size: clamp(18px, 5.5vw, 22px); }
+      .monthly-completed-row { flex-direction: column; align-items: flex-start; }
+      .monthly-completed-values { width: 100%; justify-content: space-between; }
       .chart-header { align-items: flex-start; gap: 12px; }
       .chart-header-actions { gap: 8px; }
       .chart-range-label { display: none; }
@@ -1187,6 +1242,23 @@
                   <div class="revenue-period-label">Last month</div>
                   <div class="big-number" id="dash-previous-month-revenue">₹0</div>
                   <div class="sub-text" id="previous-month-period">Previous comparable period</div>
+                </div>
+              </div>
+              <div class="monthly-completed-row" aria-label="Completed order comparison">
+                <div class="monthly-completed-title">
+                  <span>Completed orders</span>
+                  <span class="stat-trend neutral" id="monthly-completed-change-badge">—</span>
+                </div>
+                <div class="monthly-completed-values">
+                  <div class="monthly-completed-metric">
+                    <span>This month</span>
+                    <strong id="dash-current-month-completed">0</strong>
+                  </div>
+                  <div class="monthly-completed-divider" aria-hidden="true"></div>
+                  <div class="monthly-completed-metric">
+                    <span>Last month</span>
+                    <strong id="dash-previous-month-completed">0</strong>
+                  </div>
                 </div>
               </div>
               <div class="revenue-card-footer">
@@ -1561,6 +1633,8 @@
       let todayEarnings = 0;
       let monthlyEarnings = 0;
       let previousMonthComparableEarnings = 0;
+      let currentMonthCompletedOrders = 0;
+      let previousMonthComparableCompletedOrders = 0;
       let currentMonthOrders = 0;
       let previousMonthComparableOrders = 0;
       let yearlyEarnings = 0;
@@ -1675,8 +1749,14 @@
           const rawFinishDate = rawFinished || b.createdAt;
           const finishKey = getISTISO(rawFinishDate);
           if (finishKey) {
-            if (finishKey >= currentMonthStartISO && finishKey <= todayISO) monthlyEarnings += amount;
-            if (finishKey >= previousMonthStartISO && finishKey <= previousMonthEndISO) previousMonthComparableEarnings += amount;
+            if (finishKey >= currentMonthStartISO && finishKey <= todayISO) {
+              monthlyEarnings += amount;
+              currentMonthCompletedOrders++;
+            }
+            if (finishKey >= previousMonthStartISO && finishKey <= previousMonthEndISO) {
+              previousMonthComparableEarnings += amount;
+              previousMonthComparableCompletedOrders++;
+            }
 
             const dStr = (typeof rawFinishDate === 'string' && !rawFinishDate.endsWith('Z') && !rawFinishDate.includes('+')) ? rawFinishDate + 'Z' : rawFinishDate;
             const d = new Date(dStr);
@@ -1762,6 +1842,27 @@
       monthlyChangeBadge.className = `stat-trend ${monthlyTrendClass}`;
       monthlyChangeBadge.textContent = monthlyChangeText;
       monthlyComparisonCopy.innerHTML = `Total revenue: <strong>₹${totalEarnings.toLocaleString()}</strong>`;
+
+      document.getElementById('dash-current-month-completed').textContent = currentMonthCompletedOrders.toLocaleString();
+      document.getElementById('dash-previous-month-completed').textContent = previousMonthComparableCompletedOrders.toLocaleString();
+
+      const completedChangeBadge = document.getElementById('monthly-completed-change-badge');
+      const completedDifference = currentMonthCompletedOrders - previousMonthComparableCompletedOrders;
+      let completedChangeText = '0% →';
+      let completedTrendClass = 'neutral';
+
+      if (previousMonthComparableCompletedOrders > 0) {
+        const completedChangePercent = Math.round((completedDifference / previousMonthComparableCompletedOrders) * 100);
+        completedChangeText = `${completedChangePercent > 0 ? '+' : ''}${completedChangePercent}% ${completedChangePercent > 0 ? '↗' : completedChangePercent < 0 ? '↘' : '→'}`;
+        completedTrendClass = completedChangePercent > 0 ? 'up' : completedChangePercent < 0 ? 'down' : 'neutral';
+      } else if (currentMonthCompletedOrders > 0) {
+        completedChangeText = 'New ↗';
+        completedTrendClass = 'up';
+      }
+
+      completedChangeBadge.className = `stat-trend ${completedTrendClass}`;
+      completedChangeBadge.textContent = completedChangeText;
+      completedChangeBadge.title = 'Compared with completed orders in the same date range last month';
 
       document.getElementById('dash-current-month-orders').textContent = currentMonthOrders.toLocaleString();
       document.getElementById('dash-previous-month-orders').textContent = previousMonthComparableOrders.toLocaleString();

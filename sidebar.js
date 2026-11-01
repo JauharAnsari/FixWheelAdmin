@@ -61,6 +61,10 @@ function renderSidebar(activeKey) {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
               All Orders
             </a>
+            <a href="partner_payouts.html?v=2032" class="nav-item ${activeKey === 'settlements' || activeKey === 'payouts' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16v16H4z"></path><path d="M8 9h8M8 13h5M15 16h1"></path></svg>
+              Settlements
+            </a>
             <a href="cancelled_orders.html?v=2031" class="nav-item ${activeKey === 'cancelled_orders' ? 'active' : ''}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"></circle><path d="m9 9 6 6M15 9l-6 6"></path></svg>
               Cancelled Orders
@@ -98,10 +102,6 @@ function renderSidebar(activeKey) {
             <a href="partner_performance.html?v=2029" class="nav-item ${activeKey === 'partner_performance' ? 'active' : ''}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"></path><path d="M7 16v2"></path><path d="M12 11v7"></path><path d="M17 6v12"></path><path d="m6 12 5-5 4 3 5-6"></path></svg>
               Partner Performance
-            </a>
-            <a href="partner_payouts.html?v=2027" class="nav-item ${activeKey === 'payouts' ? 'active' : ''}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-              Payouts
             </a>
           </div>
 
@@ -401,7 +401,7 @@ const SEARCH_DATABASE = [
   { type: 'page', title: 'Pending Approval', sub: 'Partners · Onboarding Approvals', icon: '⏳', url: 'pending_partners.html?v=2027' },
   { type: 'page', title: 'Partner Workload', sub: 'Partners · Workload Distribution', icon: '⚡', url: 'partner_workload.html?v=2027' },
   { type: 'page', title: 'Partner Performance', sub: 'Partners · Completed & Cancelled Jobs by Date', icon: '📈', url: 'partner_performance.html?v=2029' },
-  { type: 'page', title: 'Partner Payouts', sub: 'Partners · Earnings & Commission Payouts', icon: '💰', url: 'partner_payouts.html?v=2027' },
+  { type: 'page', title: 'Settlements', sub: 'Orders · Completed Order Settlements', icon: '💰', url: 'partner_payouts.html?v=2032' },
   { type: 'page', title: 'Customer Directory', sub: 'Customers · User Profiles & Registered Riders', icon: '👤', url: 'customers.html?v=2027' },
   { type: 'page', title: 'Blocked / Flagged Customers', sub: 'Customers · Flagged Accounts', icon: '🚫', url: 'blocked_customers.html?v=2027' },
   { type: 'page', title: 'Cities & Localities Coverage', sub: 'Coverage · Operational Areas', icon: '🗺️', url: 'coverage.html?v=2027' },
