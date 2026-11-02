@@ -16,7 +16,7 @@
       window.location.replace('login.html');
     }
   </script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>FixWheel — Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1258,6 +1258,320 @@
       .reschedule-action { width: 100%; }
     }
 
+    /* Mobile order command center: replace the desktop table with scan-friendly cards. */
+    .mobile-title { display: none; }
+
+    @media (max-width: 700px) {
+      body {
+        min-width: 0;
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+
+      .topbar {
+        padding-top: max(6px, env(safe-area-inset-top)) !important;
+        padding-left: max(10px, env(safe-area-inset-left)) !important;
+        padding-right: max(10px, env(safe-area-inset-right)) !important;
+      }
+
+      .desktop-title { display: none !important; }
+      .mobile-title {
+        display: block;
+        font-size: 15px !important;
+        letter-spacing: -0.01em !important;
+        text-transform: none !important;
+      }
+
+      .main {
+        padding: 14px max(12px, env(safe-area-inset-right)) 28px max(12px, env(safe-area-inset-left)) !important;
+      }
+
+      .tabs-container {
+        position: static !important;
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px !important;
+        padding: 6px !important;
+        margin-bottom: 18px !important;
+        overflow: visible !important;
+      }
+
+      .tab-trigger {
+        width: 100%;
+        min-width: 0;
+        min-height: 46px !important;
+        justify-content: space-between;
+        padding: 9px 11px !important;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        font-size: 12.5px !important;
+        line-height: 1.15;
+        text-align: left;
+      }
+
+      .tab-trigger:last-child { grid-column: 1 / -1; }
+      .tab-trigger .tab-count { flex: 0 0 auto; }
+
+      .section-header {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center !important;
+        gap: 10px 12px !important;
+        margin-bottom: 12px !important;
+      }
+
+      .section-title {
+        min-width: 0;
+        flex-wrap: nowrap;
+        gap: 8px;
+      }
+
+      .section-title h2 {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 17px;
+      }
+
+      .section-title .section-tag,
+      .section-title .fw-badge {
+        flex: 0 0 auto;
+      }
+
+      .mobile-filter-toggle {
+        align-self: center;
+        min-width: 44px;
+        min-height: 44px;
+        padding: 0 12px;
+      }
+
+      .filter-bar[data-mobile-collapsible="true"] {
+        grid-column: 1 / -1;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+      }
+
+      .filter-bar[data-mobile-collapsible="true"].mobile-expanded {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+
+      .filter-bar[data-mobile-collapsible="true"] > :first-child,
+      .filter-bar[data-mobile-collapsible="true"] > .count-badge,
+      .filter-bar[data-mobile-collapsible="true"] > [id$="summary-box"] {
+        grid-column: 1 / -1;
+      }
+
+      .filter-bar .filter-group {
+        display: grid;
+        gap: 5px;
+      }
+
+      .filter-bar .filter-group label {
+        font-size: 9px;
+        letter-spacing: 0.08em;
+      }
+
+      .filter-input,
+      .filter-bar input,
+      .filter-bar select {
+        min-height: 44px !important;
+        padding: 9px 11px !important;
+        border-radius: 8px;
+      }
+
+      .table-wrap {
+        max-height: none !important;
+        overflow: visible !important;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+      }
+
+      .mobile-table-hint { display: none !important; }
+
+      .order-section .mobile-table-scroll {
+        overflow: visible;
+        border-radius: 0;
+      }
+
+      .order-section .mobile-table-scroll table {
+        display: block;
+        width: 100% !important;
+        min-width: 0 !important;
+      }
+
+      .order-section thead { display: none; }
+      .order-section tbody {
+        display: grid;
+        gap: 10px;
+      }
+
+      .order-section tbody tr.order-card-row {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px 16px;
+        width: 100%;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--surface-2);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+        overflow: hidden;
+      }
+
+      .order-section tbody tr.order-card-row:active {
+        background: var(--surface-3);
+      }
+
+      .order-section tbody tr.order-card-row > td {
+        position: static;
+        display: block !important;
+        min-width: 0;
+        padding: 0 !important;
+        border: 0;
+        background: transparent !important;
+        box-shadow: none !important;
+        white-space: normal;
+        overflow: visible;
+      }
+
+      .order-section tbody tr.order-card-row > td::before {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--text-3);
+        font-family: var(--mono);
+        font-size: 8.5px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        line-height: 1.2;
+        text-transform: uppercase;
+      }
+
+      .order-section .order-cell-id {
+        grid-column: 1 / -1;
+        padding-right: 54px !important;
+        padding-bottom: 11px !important;
+        border-bottom: 1px solid var(--border) !important;
+      }
+
+      .order-section .order-cell-customer::before { content: 'Customer'; }
+      .order-section .order-cell-vehicle::before { content: 'Vehicle / service'; }
+      .order-section .order-cell-schedule::before { content: 'Schedule'; }
+      .order-section .order-cell-mechanic::before { content: 'Mechanic'; }
+      .order-section .order-cell-status::before { content: 'Status'; }
+      .order-section .order-cell-payment::before { content: 'Payment'; }
+
+      .order-section .order-cell-open {
+        position: absolute !important;
+        top: 10px !important;
+        right: 10px !important;
+        width: 44px;
+        height: 44px;
+      }
+
+      .order-open-button {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+      }
+
+      .compact-primary {
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .compact-secondary {
+        margin-top: 3px;
+        font-size: 10.5px;
+        line-height: 1.4;
+      }
+
+      .compact-status {
+        min-height: 28px;
+        align-items: center;
+        padding: 5px 8px;
+        font-size: 9.5px;
+      }
+
+      .order-section tbody tr.empty-row {
+        display: block;
+        padding: 24px 16px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--surface-2);
+      }
+
+      .order-section tbody tr.empty-row td {
+        display: block !important;
+        padding: 0 !important;
+      }
+
+      .order-drawer {
+        width: 100vw;
+        border-left: 0;
+      }
+
+      .order-drawer-header {
+        position: sticky;
+        top: 0;
+        z-index: 4;
+        align-items: center;
+        min-height: 66px;
+        padding-top: max(10px, env(safe-area-inset-top));
+        background: var(--surface);
+      }
+
+      .order-drawer-close {
+        width: 44px;
+        height: 44px;
+      }
+
+      .order-drawer-body {
+        padding: 10px 10px max(18px, env(safe-area-inset-bottom));
+      }
+
+      .order-detail-section {
+        padding: 14px;
+        border-radius: 14px;
+      }
+
+      .order-detail-section + .order-detail-section { margin-top: 10px; }
+      .order-detail-section .fw-select,
+      .order-detail-section button,
+      .drawer-edit-form input,
+      .drawer-edit-form textarea { min-height: 44px; }
+
+      footer {
+        padding: 18px max(16px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+      }
+    }
+
+    @media (max-width: 420px) {
+      .topbar-right { gap: 4px !important; }
+      .topbar-right #download-csv,
+      .topbar-right #theme-toggle,
+      .global-search-trigger,
+      .mobile-nav-toggle {
+        width: 44px !important;
+        min-width: 44px !important;
+        height: 44px !important;
+        min-height: 44px !important;
+      }
+
+      .tabs-container { gap: 5px !important; }
+      .tab-trigger { padding: 8px 9px !important; font-size: 11.5px !important; }
+      .section-title .section-tag,
+      .section-title .fw-badge { display: none; }
+      .filter-bar[data-mobile-collapsible="true"].mobile-expanded { grid-template-columns: 1fr !important; }
+      .filter-bar[data-mobile-collapsible="true"] > * { grid-column: 1 !important; }
+      .order-section tbody tr.order-card-row { gap: 13px 12px; padding: 12px; }
+      .order-section .order-cell-vehicle,
+      .order-section .order-cell-mechanic { grid-column: 1 / -1; }
+    }
+
     @keyframes modalSlide {
       from {
         opacity: 0;
@@ -1306,7 +1620,8 @@
     <!-- ─── Topbar ─── -->
     <header class="topbar">
       <div class="topbar-brand">
-        <span>All Orders Management</span>
+        <span class="desktop-title">All Orders Management</span>
+        <span class="mobile-title">Orders</span>
         <em>/ Production Queue</em>
       </div>
       <div class="topbar-right">
@@ -1470,14 +1785,14 @@
     <div id="today-section" class="order-section">
       <div class="section-header">
         <div class="section-title">
-          <span class="fw-badge fw-badge-warning" style="padding: 3px 8px; font-size:10px;">📅 Today</span>
-          <h2>Orders Received Today</h2>
+          <span class="fw-badge fw-badge-warning" style="padding: 3px 8px; font-size:10px;">Today</span>
+          <h2>Today's Orders</h2>
         </div>
-        <div style="display:flex; gap: 10px; align-items:center; flex-wrap: wrap;">
-          <input type="text" id="today-search" placeholder="Search customer or ID..."
+        <div class="filter-bar" style="display:flex; gap: 10px; align-items:center; flex-wrap: wrap;">
+          <input type="text" id="today-search" class="filter-input" placeholder="Search customer or ID..."
             oninput="if(window.allBookings) renderDashboard(window.allBookings)"
             style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 150px;">
-          <select id="today-city-filter" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
+          <select id="today-city-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
             style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 100px;">
             <option value="">All Cities</option>
             <option value="Delhi">Delhi</option>
@@ -1486,10 +1801,10 @@
             <option value="Noida">Noida</option>
             <option value="Ghaziabad">Ghaziabad</option>
           </select>
-          <input type="text" id="today-vehicle-filter" placeholder="Vehicle Name..."
+          <input type="text" id="today-vehicle-filter" class="filter-input" placeholder="Vehicle Name..."
             oninput="if(window.allBookings) renderDashboard(window.allBookings)"
             style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 120px;">
-          <select id="today-status-filter" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
+          <select id="today-status-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
             style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none;">
             <option value="all">All Status</option>
             <option value="Pending">Pending</option>
@@ -2186,8 +2501,23 @@
       return Array.isArray(order?.payments) && order.payments.some(value => String(value || '').trim());
     }
 
+    function hasHistoricalSettlementMarker(order) {
+      const settledValues = ['done', 'settled'];
+      return settledValues.includes(String(order?.settlement || '').trim().toLowerCase()) ||
+             settledValues.includes(String(order?.payment_settled || '').trim().toLowerCase());
+    }
+
+    function isHistoricallySettled(order) {
+      const hasCurrentWorkflowProgress = hasPaymentUuid(order) &&
+        (!!order?.fixwheel_payment_settled || !!order?.partner_payment_settled);
+      return hasHistoricalSettlementMarker(order) && !hasCurrentWorkflowProgress;
+    }
+
     function isOrderSettled(order) {
-      return order?.settlement === 'Done' && hasPaymentUuid(order);
+      if (isHistoricallySettled(order)) return true;
+      return hasPaymentUuid(order) &&
+             !!order?.fixwheel_payment_settled &&
+             !!order?.partner_payment_settled;
     }
 
     // Update topbar email display
@@ -2321,6 +2651,21 @@
       const totalStatusFilter = (document.getElementById('total-status-filter')?.value || 'all');
       const totalCityFilter = (document.getElementById('total-city-filter')?.value || '').toLowerCase();
       const totalSourceFilter = (document.getElementById('total-source-filter')?.value || 'all').toLowerCase();
+
+      const settlementFilters = ['pending', 'completed', 'cancelled', 'test-order', 'total'].reduce((filters, prefix) => {
+        filters[prefix] = {
+          payment: (document.getElementById(`${prefix}-payment-settled-filter`)?.value || 'all').toLowerCase(),
+          settlement: (document.getElementById(`${prefix}-settlement-filter`)?.value || 'all').toLowerCase()
+        };
+        return filters;
+      }, {});
+
+      const matchesSettlementFilters = (order, prefix) => {
+        const state = isOrderSettled(order) ? 'done' : 'pending';
+        const filters = settlementFilters[prefix] || { payment: 'all', settlement: 'all' };
+        return (filters.payment === 'all' || filters.payment === state) &&
+               (filters.settlement === 'all' || filters.settlement === state);
+      };
 
       const pendingDateFrom = document.getElementById('pending-date-from')?.value || '';
       const pendingDateTo = document.getElementById('pending-date-to')?.value || '';
@@ -2456,7 +2801,7 @@
           const matchTestOrderStatus = testOrderStatusFilter === 'all' || (order.order_status || order.status || '').toLowerCase().includes(testOrderStatusFilter.toLowerCase());
           const matchTestOrderDate = isDateInRange(orderDateFormatted, testOrderDateFrom, testOrderDateTo);
 
-          if (matchTestOrderSearch && matchTestOrderCity && matchTestOrderSource && matchTestOrderStatus && matchTestOrderDate) {
+          if (matchTestOrderSearch && matchTestOrderCity && matchTestOrderSource && matchTestOrderStatus && matchTestOrderDate && matchesSettlementFilters(order, 'test-order')) {
             testOrderCount++;
             if (testOrderTable) {
               testOrderHtml += row;
@@ -2481,7 +2826,7 @@
 
         if (!isEmployeeUser || isOrderInLast7Days) {
           totalCount++;
-          if (totalTable && matchTotalDate && matchTotalSource && matchTotalCity && matchTotalSearch && matchTotalStatus) {
+          if (totalTable && matchTotalDate && matchTotalSource && matchTotalCity && matchTotalSearch && matchTotalStatus && matchesSettlementFilters(order, 'total')) {
             totalHtml += row;
             visibleTotalCount++;
             if (totalDateFrom && totalDateTo) {
@@ -2535,7 +2880,7 @@
             const matchCompletedSearch = matchSearchText(order, completedSearchTerm);
             const matchCompletedStatus = completedStatusFilter === 'all' || (order.order_status || order.status || '').toLowerCase().includes(completedStatusFilter.toLowerCase());
 
-            if (matchCompletedDate && matchCompletedSource && matchCompletedCity && matchCompletedSearch && matchCompletedStatus && matchCompletedFinishedDate) {
+            if (matchCompletedDate && matchCompletedSource && matchCompletedCity && matchCompletedSearch && matchCompletedStatus && matchCompletedFinishedDate && matchesSettlementFilters(order, 'completed')) {
               completedHtml += row;
               visibleCompletedCount++;
               if ((completedDateFrom && completedDateTo) || (completedFinishedFrom && completedFinishedTo)) {
@@ -2553,7 +2898,7 @@
           if (cancelledTable) {
             if (!isEmployeeUser || isOrderInLast7Days) {
               cancelledCount++;
-              if (matchCancelledSource && matchCancelledCity && matchCancelledSearch && matchCancelledStatus) {
+              if (matchCancelledSource && matchCancelledCity && matchCancelledSearch && matchCancelledStatus && matchesSettlementFilters(order, 'cancelled')) {
                 cancelledHtml += row;
               }
             }
@@ -2570,7 +2915,7 @@
           const matchPendingDate = isDateInRange(orderDateFormatted, pendingDateFrom, pendingDateTo);
           const matchPendingSource = pendingSourceFilter === 'all' || orderSource === pendingSourceFilter;
 
-          if (matchSearch && matchStatus && matchCity && matchVehicle && matchPendingDate && matchPendingSource) {
+          if (matchSearch && matchStatus && matchCity && matchVehicle && matchPendingDate && matchPendingSource && matchesSettlementFilters(order, 'pending')) {
             pendingHtml += row;
             visiblePendingCount++;
             if (pendingDateFrom && pendingDateTo) {
@@ -2749,33 +3094,33 @@
       const rescheduled = !!getRescheduleOriginal(order) || hasActiveLegacyReschedule(order, localStorage.getItem('fixwheel_rescheduled_' + uniqueIdentifier));
 
       return `
-        <tr data-order-id="${escapeOrderText(encodedId)}" data-order-column="${idColumn}">
-          <td>
+        <tr class="order-card-row" data-order-id="${escapeOrderText(encodedId)}" data-order-column="${idColumn}">
+          <td class="order-cell-id">
             <span class="compact-primary" style="color:#60a5fa; font-family:var(--mono);">#${escapeOrderText(order.bookingRef || String(order.id || '').slice(0, 8))}</span>
             <span class="compact-secondary">${createdDate}</span>
           </td>
-          <td>
+          <td class="order-cell-customer">
             <span class="compact-primary" title="${escapeOrderText(customer)}">${escapeOrderText(customer)}</span>
             <span class="compact-secondary" title="${escapeOrderText(city)}">${escapeOrderText(city)}</span>
           </td>
-          <td>
+          <td class="order-cell-vehicle">
             <span class="compact-primary" title="${escapeOrderText(vehicle)}">${escapeOrderText(vehicle)}</span>
             <span class="compact-secondary" title="${escapeOrderText(service)}">${escapeOrderText(service)}</span>
           </td>
-          <td>
+          <td class="order-cell-schedule">
             <span class="compact-primary">${serviceDateDisplay}</span>
             <span class="compact-secondary" title="${escapeOrderText(serviceSlot)}">${escapeOrderText(serviceSlot)}${rescheduled ? ' · Rescheduled' : ''}</span>
           </td>
-          <td>
+          <td class="order-cell-mechanic">
             <span class="compact-primary" title="${escapeOrderText(mechanic)}">${escapeOrderText(mechanic)}</span>
             <span class="compact-secondary">${escapeOrderText(order.partner_source || 'Assignment')}</span>
           </td>
-          <td><span class="compact-status ${getCompactStatusClass(currentStatus)}" title="Open More to view the full status">${escapeOrderText(outerStatus)}</span></td>
-          <td>
+          <td class="order-cell-status"><span class="compact-status ${getCompactStatusClass(currentStatus)}" title="Open More to view the full status">${escapeOrderText(outerStatus)}</span></td>
+          <td class="order-cell-payment">
             <span class="compact-primary">₹${finalAmount.toLocaleString('en-IN')}</span>
             <span class="compact-secondary">${settlement}</span>
           </td>
-          <td style="text-align:center;">
+          <td class="order-cell-open" style="text-align:center;">
             <button type="button" class="order-open-button" data-order-id="${escapeOrderText(encodedId)}" data-order-column="${idColumn}" onclick="openOrderDetailsFromButton(this)" aria-label="Open details for order ${escapeOrderText(order.bookingRef || order.id)}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
             </button>
@@ -3268,6 +3613,9 @@
       const finishedDate = getOrderDisplayDate(finishedRaw, true);
       const paymentReceiver = order.payment_received_by || (normalizedStatus.includes('fixwheel') ? 'FixWheel' : (normalizedStatus.includes('mechanic') ? 'Mechanic' : 'Pending'));
       const canEditCustomer = !isEmployeeUser || !isCompletedOrder;
+      const settlementHint = isHistoricallySettled(order)
+        ? 'Historical settlement record'
+        : (isOrderSettled(order) ? 'Both payments settled' : 'Payment UUID required');
 
       let warrantyHtml = '<span class="order-detail-muted">Not applicable</span>';
       if (isCompletedOrder) {
@@ -3347,7 +3695,7 @@
             <div class="order-detail-field"><label>Quoted amount</label><div class="order-detail-value">₹${Number(order.price || 0).toLocaleString('en-IN')}</div></div>
             <div class="order-detail-field"><label>Final amount</label><div class="final-price-container" style="display:flex; align-items:center; gap:8px;"><span class="price">₹${finalAmount.toLocaleString('en-IN')}</span><button type="button" class="btn-edit-price" ${dataAttrs} data-amount="${finalAmount}" onclick="handleDrawerFinalAmountEdit(this)" aria-label="Edit final amount"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button></div></div>
             <div class="order-detail-field"><label>Payment received by</label><div class="order-detail-value">${escapeOrderText(paymentReceiver)}</div></div>
-            <div class="order-detail-field"><label for="drawer-settlement-select">Settlement</label><select id="drawer-settlement-select" class="fw-select" ${dataAttrs} onchange="handleDrawerSettlementChange(this)"><option value="Pending" ${!isOrderSettled(order) ? 'selected' : ''}>Pending</option><option value="Done" ${isOrderSettled(order) ? 'selected' : ''}>Mark Settled</option></select><div class="order-detail-muted" style="margin-top:4px;">Payment UUID required</div></div>
+            <div class="order-detail-field"><label for="drawer-settlement-select">Settlement</label><select id="drawer-settlement-select" class="fw-select" ${dataAttrs} onchange="handleDrawerSettlementChange(this)"><option value="Pending" ${!isOrderSettled(order) ? 'selected' : ''}>Pending</option><option value="Done" ${isOrderSettled(order) ? 'selected' : ''}>Mark Settled</option></select><div class="order-detail-muted" style="margin-top:4px;">${settlementHint}</div></div>
             <div class="order-detail-field"><label>Warranty</label>${warrantyHtml}</div>
           </div>
         </section>

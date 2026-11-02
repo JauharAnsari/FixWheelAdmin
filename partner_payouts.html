@@ -30,8 +30,15 @@
     .summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--surface); }
     .metric { min-width: 0; padding: 18px 20px; }
     .metric + .metric { border-left: 1px solid var(--border); }
+    .metric-filter { appearance: none; width: 100%; border: 0; background: transparent; color: inherit; text-align: left; font: inherit; cursor: pointer; transition: background-color .16s ease, box-shadow .16s ease; }
+    .metric-filter:hover { background: rgba(255, 255, 255, .025); }
+    .metric-filter:focus-visible { position: relative; z-index: 1; outline: 2px solid #60a5fa; outline-offset: -3px; }
+    .metric-filter.active { background: rgba(255, 255, 255, .035); box-shadow: inset 0 -2px 0 currentColor; }
+    .metric-filter.review-filter { color: #fbbf24; }
+    .metric-filter.settled-filter { color: #4ade80; }
+    .metric-filter .metric-label { color: var(--text-3); }
     .metric-label { color: var(--text-3); font: 10px var(--mono); letter-spacing: .05em; text-transform: uppercase; }
-    .metric-value { margin-top: 7px; color: var(--text-1); font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .metric-value { display: block; margin-top: 7px; color: var(--text-1); font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
     .metric-value.warn { color: #fbbf24; }
     .metric-value.good { color: #4ade80; }
     .metric-value.loss { color: #f87171; }
@@ -123,8 +130,8 @@
     <main class="page">
       <section class="summary" aria-label="Settlement summary">
         <div class="metric"><div class="metric-label">Completed orders</div><div class="metric-value" id="metric-completed">0</div></div>
-        <div class="metric"><div class="metric-label">Needs review</div><div class="metric-value warn" id="metric-review">0</div></div>
-        <div class="metric"><div class="metric-label">Fully settled</div><div class="metric-value good" id="metric-settled">0</div></div>
+        <button id="review-summary-filter" class="metric metric-filter review-filter" type="button" aria-pressed="true" onclick="setSettlementFilter('review')"><span class="metric-label">Needs review</span><span class="metric-value warn" id="metric-review">0</span></button>
+        <button id="settled-summary-filter" class="metric metric-filter settled-filter" type="button" aria-pressed="false" onclick="setSettlementFilter('settled')"><span class="metric-label">Fully settled</span><span class="metric-value good" id="metric-settled">0</span></button>
         <div class="metric"><div class="metric-label">Recorded loss</div><div class="metric-value loss" id="metric-loss">₹0</div></div>
       </section>
       <section class="filters" aria-label="Settlement filters">
@@ -153,12 +160,22 @@
     const orderColumn = order => order.bookingRef ? 'bookingRef' : 'id';
     const isPaymentReference = value => /^[a-z0-9][a-z0-9._:/-]{5,127}$/i.test(String(value || '').trim());
     const hasPaymentReference = order => Array.isArray(order?.payments) && order.payments.some(value => isPaymentReference(value));
+    const hasLegacySettlement = order => ['done', 'settled'].includes(String(order?.settlement || '').trim().toLowerCase()) || ['done', 'settled'].includes(String(order?.payment_settled || '').trim().toLowerCase());
+    const isLegacySettled = order => hasLegacySettlement(order) && !(hasPaymentReference(order) && (order.fixwheel_payment_settled || order.partner_payment_settled));
+    const isSettlementSideSettled = (order, side) => isLegacySettled(order) || (hasPaymentReference(order) && !!order[`${side}_payment_settled`]);
     const isComplete = order => { const status = String(order.order_status || order.status || '').toLowerCase(); return (status.includes('completed') || status.includes('payment received')) && !status.includes('test order') && !status.includes('sandbox'); };
     const finishedIso = order => order.finished_at || order.order_finished_date || order.bookingDate || order.createdAt;
     const formatDate = value => { if (!value) return '—'; const raw = String(value); const date = new Date(raw.endsWith('Z') || raw.includes('+') ? raw : raw + 'Z'); return isNaN(date.getTime()) ? raw : date.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }); };
     function notify(message, isError = false) { const toast = document.getElementById('toast'); toast.textContent = message; toast.className = `toast show${isError ? ' error' : ''}`; clearTimeout(toastTimer); toastTimer = setTimeout(() => { toast.className = 'toast'; }, 2600); }
-    function settlementState(order) { if (!hasPaymentReference(order)) return 'review'; if (order.fixwheel_payment_settled && order.partner_payment_settled) return 'settled'; if (order.fixwheel_payment_settled || order.partner_payment_settled) return 'partial'; return 'review'; }
+    function settlementState(order) { if (isLegacySettled(order)) return 'settled'; if (!hasPaymentReference(order)) return 'review'; if (order.fixwheel_payment_settled && order.partner_payment_settled) return 'settled'; if (order.fixwheel_payment_settled || order.partner_payment_settled) return 'partial'; return 'review'; }
     function stateLabel(state) { if (state === 'settled') return 'Fully settled'; if (state === 'partial') return 'One side settled'; return 'Needs review'; }
+    function setSettlementFilter(filter) {
+      const select = document.getElementById('status-filter');
+      if (!select) return;
+      select.value = filter;
+      expandedOrderKey = null;
+      renderSettlements();
+    }
     async function fetchSettlements() {
       const { data, error } = await supabaseClient.from('Booking').select('*').order('createdAt', { ascending: false });
       if (error) { document.getElementById('settlement-body').innerHTML = `<tr><td colspan="9" class="empty">Could not load settlements: ${escapeText(error.message)}</td></tr>`; return; }
@@ -178,13 +195,22 @@
       document.getElementById('metric-review').textContent = review.toLocaleString('en-IN');
       document.getElementById('metric-settled').textContent = settled.toLocaleString('en-IN');
       document.getElementById('metric-loss').textContent = money(totalLoss);
+      const reviewFilter = document.getElementById('review-summary-filter');
+      const settledFilter = document.getElementById('settled-summary-filter');
+      const reviewActive = filter === 'review';
+      const settledActive = filter === 'settled';
+      reviewFilter?.classList.toggle('active', reviewActive);
+      settledFilter?.classList.toggle('active', settledActive);
+      reviewFilter?.setAttribute('aria-pressed', String(reviewActive));
+      settledFilter?.setAttribute('aria-pressed', String(settledActive));
       const visible = settlementOrders.filter(order => {
         const state = settlementState(order);
         const paymentText = Array.isArray(order.payments) ? order.payments.join(' ') : '';
         const haystack = [order.bookingRef, order.id, order.customerName, order['Assign Mechanic'], paymentText].join(' ').toLowerCase();
         if (search && !haystack.includes(search)) return false;
         if (filter === 'loss' && Number(order.loss_amount || 0) <= 0) return false;
-        if (!['all', 'loss'].includes(filter) && state !== filter) return false;
+        if (filter === 'review' && state === 'settled') return false;
+        if (!['all', 'loss', 'review'].includes(filter) && state !== filter) return false;
         const dateKey = String(finishedIso(order) || '').slice(0, 10);
         if (from && dateKey < from) return false;
         if (to && dateKey > to) return false;
@@ -196,7 +222,10 @@
       body.innerHTML = visible.map(order => {
         const key = orderKey(order), column = orderColumn(order), encodedKey = encodeURIComponent(key), state = settlementState(order);
         const payments = Array.isArray(order.payments) ? order.payments.filter(isPaymentReference) : [];
-        const canSettle = payments.length > 0;
+        const legacySettled = isLegacySettled(order);
+        const canSettle = payments.length > 0 && !legacySettled;
+        const fixwheelSettled = isSettlementSideSettled(order, 'fixwheel');
+        const partnerSettled = isSettlementSideSettled(order, 'partner');
         const loss = Number(order.loss_amount || 0), open = expandedOrderKey === key, fullStatus = order.order_status || order.status || 'Completed';
         return `<tr class="order-row">
           <td><span class="primary" style="color:#60a5fa;font-family:var(--mono);">#${escapeText(order.bookingRef || String(order.id).slice(0, 8))}</span><span class="secondary">${escapeText(fullStatus)}</span></td>
@@ -204,20 +233,20 @@
           <td><span class="primary">${formatDate(finishedIso(order))}</span><span class="secondary">${escapeText(order.city || 'City not recorded')}</span></td>
           <td><span class="money primary">${money(Number(order.Final_Amount) || Number(order.price) || 0)}</span><span class="secondary">Quoted ${money(order.price || 0)}</span></td>
           <td><span class="money primary ${loss > 0 ? 'loss-value' : ''}">${money(loss)}</span><span class="secondary">${escapeText(order.loss_reason || (loss > 0 ? 'Reason required' : 'No loss recorded'))}</span></td>
-          <td><span class="status ${canSettle && order.fixwheel_payment_settled ? 'settled' : 'review'}">${canSettle && order.fixwheel_payment_settled ? 'Settled' : 'Pending'}</span></td>
-          <td><span class="status ${canSettle && order.partner_payment_settled ? 'settled' : 'review'}">${canSettle && order.partner_payment_settled ? 'Settled' : 'Pending'}</span></td>
+          <td><span class="status ${fixwheelSettled ? 'settled' : 'review'}">${fixwheelSettled ? 'Settled' : 'Pending'}</span></td>
+          <td><span class="status ${partnerSettled ? 'settled' : 'review'}">${partnerSettled ? 'Settled' : 'Pending'}</span></td>
           <td><span class="primary">${payments.length}</span><span class="secondary">${payments.length ? 'Recorded' : 'None recorded'}</span></td>
           <td><button type="button" class="review-button" onclick="toggleReview('${escapeText(encodedKey)}')">${open ? 'Close' : 'Review'}</button></td></tr>
           <tr class="review-row ${open ? 'open' : ''}"><td colspan="9" class="review-cell"><div class="review-panel">
-            <div class="review-meta"><span class="status ${state}">${stateLabel(state)}</span><span>Full status: ${escapeText(fullStatus)}</span><span>Settled: ${escapeText(formatDate(order.settled_at))}</span></div>
+            <div class="review-meta"><span class="status ${state}">${stateLabel(state)}</span><span>Full status: ${escapeText(fullStatus)}</span><span>Settled: ${escapeText(legacySettled ? 'Historical record' : formatDate(order.settled_at))}</span></div>
             <div class="review-grid"><section class="review-section"><h3>Loss and settlement</h3>
               <form data-id="${escapeText(encodedKey)}" data-column="${column}" onsubmit="saveLoss(event, this)"><div class="field-grid">
                 <div class="field"><label>Loss amount</label><input name="loss_amount" type="number" min="0" step="0.01" value="${escapeText(loss)}"></div>
                 <div class="field"><label>Order amount</label><input value="${escapeText(money(Number(order.Final_Amount) || Number(order.price) || 0))}" disabled></div>
                 <div class="field full"><label>Loss reason</label><textarea name="loss_reason" placeholder="Required when a loss is recorded">${escapeText(order.loss_reason || '')}</textarea></div>
               </div><div class="inline-error" role="alert"></div><div class="actions"><button type="submit" class="primary-button">Save loss review</button></div></form>
-              <div class="side-checks" style="margin-top:14px;"><label class="side-check ${canSettle ? '' : 'locked'}" title="${canSettle ? '' : 'Add a payment reference first'}"><input type="checkbox" ${canSettle && order.fixwheel_payment_settled ? 'checked' : ''} ${canSettle ? '' : 'disabled'} onchange="updateSettlementSide('${escapeText(encodedKey)}','${column}','fixwheel',this.checked,this)">FixWheel payment settled</label><label class="side-check ${canSettle ? '' : 'locked'}" title="${canSettle ? '' : 'Add a payment reference first'}"><input type="checkbox" ${canSettle && order.partner_payment_settled ? 'checked' : ''} ${canSettle ? '' : 'disabled'} onchange="updateSettlementSide('${escapeText(encodedKey)}','${column}','partner',this.checked,this)">Partner payment settled</label></div>
-              ${canSettle ? '' : '<span class="settlement-lock">Add a payment reference first.</span>'}
+              <div class="side-checks" style="margin-top:14px;"><label class="side-check ${canSettle ? '' : 'locked'}" title="${legacySettled ? 'Historical settlement' : canSettle ? '' : 'Add a payment reference first'}"><input type="checkbox" ${fixwheelSettled ? 'checked' : ''} ${canSettle ? '' : 'disabled'} onchange="updateSettlementSide('${escapeText(encodedKey)}','${column}','fixwheel',this.checked,this)">FixWheel payment settled</label><label class="side-check ${canSettle ? '' : 'locked'}" title="${legacySettled ? 'Historical settlement' : canSettle ? '' : 'Add a payment reference first'}"><input type="checkbox" ${partnerSettled ? 'checked' : ''} ${canSettle ? '' : 'disabled'} onchange="updateSettlementSide('${escapeText(encodedKey)}','${column}','partner',this.checked,this)">Partner payment settled</label></div>
+              ${canSettle || legacySettled ? '' : '<span class="settlement-lock">Add a payment reference first.</span>'}
             </section><section class="review-section"><h3>Payment references</h3>
               <div class="payment-list">${payments.length ? payments.map(id => `<button type="button" class="payment-id" title="Copy payment reference" onclick="copyPaymentId('${escapeText(id)}')">${escapeText(id)}</button>`).join('') : '<span class="secondary">No payment reference recorded.</span>'}</div>
               <form class="payment-add" data-id="${escapeText(encodedKey)}" data-column="${column}" onsubmit="addPaymentReference(event, this)"><div class="field" style="flex:1;"><label>Payment UUID or transaction ID</label><input name="payment_reference" placeholder="e.g. 006502549067 or provider UUID" autocomplete="off" minlength="6" maxlength="128"></div><button type="submit" class="primary-button" style="align-self:flex-end;">Add payment ID</button></form><div class="inline-error payment-error" role="alert"></div>
