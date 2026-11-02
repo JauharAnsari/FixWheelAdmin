@@ -128,14 +128,14 @@
         <div class="metric"><div class="metric-label">Recorded loss</div><div class="metric-value loss" id="metric-loss">₹0</div></div>
       </section>
       <section class="filters" aria-label="Settlement filters">
-        <input id="search" class="control search" type="search" placeholder="Search order, customer, partner, or payment UUID" oninput="renderSettlements()">
+        <input id="search" class="control search" type="search" placeholder="Search order, customer, partner, or payment reference" oninput="renderSettlements()">
         <select id="status-filter" class="control" onchange="renderSettlements()"><option value="all">All settlement states</option><option value="review" selected>Needs review</option><option value="partial">One side settled</option><option value="settled">Fully settled</option><option value="loss">Orders with loss</option></select>
         <input id="date-from" class="control date" type="date" aria-label="Completed from" onchange="renderSettlements()">
         <input id="date-to" class="control date" type="date" aria-label="Completed to" onchange="renderSettlements()">
         <span class="result-count" id="result-count">0 orders</span>
       </section>
       <section class="table-shell" aria-label="Completed order settlements">
-        <table><thead><tr><th>Order</th><th>Customer / Partner</th><th>Completed</th><th>Final amount</th><th>Loss</th><th>FixWheel</th><th>Partner</th><th>Payment UUIDs</th><th>Review</th></tr></thead><tbody id="settlement-body"><tr><td colspan="9" class="empty">Loading settlements…</td></tr></tbody></table>
+        <table><thead><tr><th>Order</th><th>Customer / Partner</th><th>Completed</th><th>Final amount</th><th>Loss</th><th>FixWheel</th><th>Partner</th><th>Payment IDs</th><th>Review</th></tr></thead><tbody id="settlement-body"><tr><td colspan="9" class="empty">Loading settlements…</td></tr></tbody></table>
       </section>
     </main>
   </div>
@@ -151,13 +151,13 @@
     const money = value => `₹${Number(value || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
     const orderKey = order => String(order.bookingRef || order.id);
     const orderColumn = order => order.bookingRef ? 'bookingRef' : 'id';
-    const isUuid = value => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || '').trim());
-    const hasPaymentUuid = order => Array.isArray(order?.payments) && order.payments.some(value => isUuid(value));
+    const isPaymentReference = value => /^[a-z0-9][a-z0-9._:/-]{5,127}$/i.test(String(value || '').trim());
+    const hasPaymentReference = order => Array.isArray(order?.payments) && order.payments.some(value => isPaymentReference(value));
     const isComplete = order => { const status = String(order.order_status || order.status || '').toLowerCase(); return (status.includes('completed') || status.includes('payment received')) && !status.includes('test order') && !status.includes('sandbox'); };
     const finishedIso = order => order.finished_at || order.order_finished_date || order.bookingDate || order.createdAt;
     const formatDate = value => { if (!value) return '—'; const raw = String(value); const date = new Date(raw.endsWith('Z') || raw.includes('+') ? raw : raw + 'Z'); return isNaN(date.getTime()) ? raw : date.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }); };
     function notify(message, isError = false) { const toast = document.getElementById('toast'); toast.textContent = message; toast.className = `toast show${isError ? ' error' : ''}`; clearTimeout(toastTimer); toastTimer = setTimeout(() => { toast.className = 'toast'; }, 2600); }
-    function settlementState(order) { if (!hasPaymentUuid(order)) return 'review'; if (order.fixwheel_payment_settled && order.partner_payment_settled) return 'settled'; if (order.fixwheel_payment_settled || order.partner_payment_settled) return 'partial'; return 'review'; }
+    function settlementState(order) { if (!hasPaymentReference(order)) return 'review'; if (order.fixwheel_payment_settled && order.partner_payment_settled) return 'settled'; if (order.fixwheel_payment_settled || order.partner_payment_settled) return 'partial'; return 'review'; }
     function stateLabel(state) { if (state === 'settled') return 'Fully settled'; if (state === 'partial') return 'One side settled'; return 'Needs review'; }
     async function fetchSettlements() {
       const { data, error } = await supabaseClient.from('Booking').select('*').order('createdAt', { ascending: false });
@@ -195,7 +195,7 @@
       if (!visible.length) { body.innerHTML = '<tr><td colspan="9" class="empty">No completed orders match these filters.</td></tr>'; return; }
       body.innerHTML = visible.map(order => {
         const key = orderKey(order), column = orderColumn(order), encodedKey = encodeURIComponent(key), state = settlementState(order);
-        const payments = Array.isArray(order.payments) ? order.payments.filter(isUuid) : [];
+        const payments = Array.isArray(order.payments) ? order.payments.filter(isPaymentReference) : [];
         const canSettle = payments.length > 0;
         const loss = Number(order.loss_amount || 0), open = expandedOrderKey === key, fullStatus = order.order_status || order.status || 'Completed';
         return `<tr class="order-row">
@@ -216,11 +216,11 @@
                 <div class="field"><label>Order amount</label><input value="${escapeText(money(Number(order.Final_Amount) || Number(order.price) || 0))}" disabled></div>
                 <div class="field full"><label>Loss reason</label><textarea name="loss_reason" placeholder="Required when a loss is recorded">${escapeText(order.loss_reason || '')}</textarea></div>
               </div><div class="inline-error" role="alert"></div><div class="actions"><button type="submit" class="primary-button">Save loss review</button></div></form>
-              <div class="side-checks" style="margin-top:14px;"><label class="side-check ${canSettle ? '' : 'locked'}" title="${canSettle ? '' : 'Add a payment UUID first'}"><input type="checkbox" ${canSettle && order.fixwheel_payment_settled ? 'checked' : ''} ${canSettle ? '' : 'disabled'} onchange="updateSettlementSide('${escapeText(encodedKey)}','${column}','fixwheel',this.checked,this)">FixWheel payment settled</label><label class="side-check ${canSettle ? '' : 'locked'}" title="${canSettle ? '' : 'Add a payment UUID first'}"><input type="checkbox" ${canSettle && order.partner_payment_settled ? 'checked' : ''} ${canSettle ? '' : 'disabled'} onchange="updateSettlementSide('${escapeText(encodedKey)}','${column}','partner',this.checked,this)">Partner payment settled</label></div>
-              ${canSettle ? '' : '<span class="settlement-lock">Add a payment UUID first.</span>'}
-            </section><section class="review-section"><h3>Payment UUIDs</h3>
-              <div class="payment-list">${payments.length ? payments.map(id => `<button type="button" class="payment-id" title="Copy payment UUID" onclick="copyPaymentId('${escapeText(id)}')">${escapeText(id)}</button>`).join('') : '<span class="secondary">No payment UUID recorded.</span>'}</div>
-              <form class="payment-add" data-id="${escapeText(encodedKey)}" data-column="${column}" onsubmit="addPaymentUuid(event, this)"><div class="field" style="flex:1;"><label>Payment UUID</label><input name="payment_uuid" placeholder="00000000-0000-4000-8000-000000000000" autocomplete="off"></div><button type="submit" class="primary-button" style="align-self:flex-end;">Add UUID</button></form><div class="inline-error payment-error" role="alert"></div>
+              <div class="side-checks" style="margin-top:14px;"><label class="side-check ${canSettle ? '' : 'locked'}" title="${canSettle ? '' : 'Add a payment reference first'}"><input type="checkbox" ${canSettle && order.fixwheel_payment_settled ? 'checked' : ''} ${canSettle ? '' : 'disabled'} onchange="updateSettlementSide('${escapeText(encodedKey)}','${column}','fixwheel',this.checked,this)">FixWheel payment settled</label><label class="side-check ${canSettle ? '' : 'locked'}" title="${canSettle ? '' : 'Add a payment reference first'}"><input type="checkbox" ${canSettle && order.partner_payment_settled ? 'checked' : ''} ${canSettle ? '' : 'disabled'} onchange="updateSettlementSide('${escapeText(encodedKey)}','${column}','partner',this.checked,this)">Partner payment settled</label></div>
+              ${canSettle ? '' : '<span class="settlement-lock">Add a payment reference first.</span>'}
+            </section><section class="review-section"><h3>Payment references</h3>
+              <div class="payment-list">${payments.length ? payments.map(id => `<button type="button" class="payment-id" title="Copy payment reference" onclick="copyPaymentId('${escapeText(id)}')">${escapeText(id)}</button>`).join('') : '<span class="secondary">No payment reference recorded.</span>'}</div>
+              <form class="payment-add" data-id="${escapeText(encodedKey)}" data-column="${column}" onsubmit="addPaymentReference(event, this)"><div class="field" style="flex:1;"><label>Payment UUID or transaction ID</label><input name="payment_reference" placeholder="e.g. 006502549067 or provider UUID" autocomplete="off" minlength="6" maxlength="128"></div><button type="submit" class="primary-button" style="align-self:flex-end;">Add payment ID</button></form><div class="inline-error payment-error" role="alert"></div>
             </section></div></div></td></tr>`;
       }).join('');
     }
@@ -238,7 +238,7 @@
     }
     async function updateSettlementSide(encodedId, column, side, checked, checkbox) {
       const id = decodeURIComponent(encodedId), order = findSettlementOrder(id, column); if (!order) return;
-      if (checked && !hasPaymentUuid(order)) { checkbox.checked = false; notify('Add a payment UUID before marking a payment settled.', true); renderSettlements(); return; }
+      if (checked && !hasPaymentReference(order)) { checkbox.checked = false; notify('Add a payment reference before marking a payment settled.', true); renderSettlements(); return; }
       checkbox.disabled = true;
       const fixwheelSettled = side === 'fixwheel' ? checked : !!order.fixwheel_payment_settled;
       const partnerSettled = side === 'partner' ? checked : !!order.partner_payment_settled;
@@ -247,17 +247,17 @@
       try { await updateBooking(id, column, payload); notify(fullySettled ? 'Order marked fully settled.' : 'Settlement side updated.'); }
       catch (error) { checkbox.checked = !checked; checkbox.disabled = false; notify(`Could not update settlement: ${error.message}`, true); }
     }
-    async function addPaymentUuid(event, form) {
+    async function addPaymentReference(event, form) {
       event.preventDefault(); const id = decodeURIComponent(form.dataset.id || ''), column = form.dataset.column || 'id';
-      const value = String(form.elements.payment_uuid.value || '').trim().toLowerCase(), errorEl = form.parentElement.querySelector('.payment-error');
-      if (!isUuid(value)) { errorEl.textContent = 'Enter a valid payment UUID.'; return; }
+      const value = String(form.elements.payment_reference.value || '').trim(), errorEl = form.parentElement.querySelector('.payment-error');
+      if (!isPaymentReference(value)) { errorEl.textContent = 'Enter a valid payment UUID or transaction ID (at least 6 characters).'; return; }
       const order = findSettlementOrder(id, column), payments = Array.isArray(order?.payments) ? [...order.payments] : [];
-      if (payments.some(payment => String(payment).toLowerCase() === value)) { errorEl.textContent = 'This payment UUID is already recorded.'; return; }
+      if (payments.some(payment => String(payment).toLowerCase() === value.toLowerCase())) { errorEl.textContent = 'This payment reference is already recorded.'; return; }
       errorEl.textContent = ''; const button = form.querySelector('button[type="submit"]'); button.disabled = true; button.textContent = 'Adding…';
-      try { await updateBooking(id, column, { payments: [...payments, value], updated_by: 'Admin' }); notify('Payment UUID added.'); }
-      catch (error) { errorEl.textContent = `Could not add UUID: ${error.message}`; button.disabled = false; button.textContent = 'Add UUID'; }
+      try { await updateBooking(id, column, { payments: [...payments, value], updated_by: 'Admin' }); notify('Payment reference added.'); }
+      catch (error) { errorEl.textContent = `Could not add payment ID: ${error.message}`; button.disabled = false; button.textContent = 'Add payment ID'; }
     }
-    async function copyPaymentId(value) { try { await navigator.clipboard.writeText(value); notify('Payment UUID copied.'); } catch { notify('Could not copy the payment UUID.', true); } }
+    async function copyPaymentId(value) { try { await navigator.clipboard.writeText(value); notify('Payment reference copied.'); } catch { notify('Could not copy the payment reference.', true); } }
     document.getElementById('theme-toggle').addEventListener('click', () => { const isLight = document.documentElement.getAttribute('data-theme') === 'light'; if (isLight) document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', 'light'); localStorage.setItem('theme', isLight ? 'dark' : 'light'); });
     document.addEventListener('DOMContentLoaded', () => { renderSidebar('settlements'); const user = JSON.parse(localStorage.getItem('fixwheel_staff_user') || '{}'); if (user.email) document.getElementById('admin-email').textContent = user.email; fetchSettlements(); });
   </script>
