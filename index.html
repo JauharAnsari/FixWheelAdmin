@@ -1711,6 +1711,7 @@
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
             <option value="Cancel - order taken by competitor">Cancel - order taken by competitor</option>
+            <option value="Customer cancel">Customer cancel</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
             <option value="Completed - Payment received">Completed - Payment received</option>
             <option value="Test Order">Test Order</option>
@@ -1872,6 +1873,7 @@
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
             <option value="Cancel - order taken by competitor">Cancel - order taken by competitor</option>
+            <option value="Customer cancel">Customer cancel</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
             <option value="Completed - Payment received">Completed - Payment received</option>
             <option value="Test Order">Test Order</option>
@@ -1987,6 +1989,7 @@
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
             <option value="Cancel - order taken by competitor">Cancel - order taken by competitor</option>
+            <option value="Customer cancel">Customer cancel</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
             <option value="Completed - Payment received">Completed - Payment received</option>
             <option value="Test Order">Test Order</option>
@@ -2094,6 +2097,7 @@
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
             <option value="Cancel - order taken by competitor">Cancel - order taken by competitor</option>
+            <option value="Customer cancel">Customer cancel</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
             <option value="Completed - Payment received">Completed - Payment received</option>
             <option value="Test Order">Test Order</option>
@@ -2199,6 +2203,7 @@
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
             <option value="Cancel - order taken by competitor">Cancel - order taken by competitor</option>
+            <option value="Customer cancel">Customer cancel</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
             <option value="Completed - Payment received">Completed - Payment received</option>
             <option value="Test Order">Test Order</option>
@@ -2462,6 +2467,11 @@
       const targetSection = document.getElementById(tabId + '-section');
       if (targetSection) targetSection.classList.add('active');
 
+      // Render the newly active table on demand. Keeping hidden tables out of
+      // each filter update prevents the full 700-order dataset from blocking
+      // the controls while preserving the counts for every tab.
+      if (window.allBookings) renderDashboard(window.allBookings);
+
       const tabs = document.querySelector('.tabs-container');
       if (tabs) {
         const topPos = tabs.getBoundingClientRect().top + window.pageYOffset - 100;
@@ -2612,12 +2622,49 @@
       const matchSearchText = (order, term) => {
         if (!term) return true;
         const t = term.toLowerCase().trim();
-        return (order.customerName || '').toLowerCase().includes(t) ||
-               (order.bookingRef || order.id || '').toLowerCase().includes(t) ||
-               (order.phone || '').toLowerCase().includes(t) ||
-               (order.bikeModel || order.vehicleModel || '').toLowerCase().includes(t) ||
-               (order.bikeType || '').toLowerCase().includes(t) ||
-               (order.service || order.servicePackage || '').toLowerCase().includes(t);
+        const normalizedTerm = t.replace(/^#/, '');
+        return [
+          order.customerName,
+          order.bookingRef || order.id,
+          order.phone,
+          order.bikeModel || order.vehicleModel,
+          order.bikeType,
+          order.package || order.servicePackage || order.service
+        ].some(value => {
+          const candidate = String(value || '').toLowerCase();
+          return candidate.includes(t) || candidate.replace(/^#/, '').includes(normalizedTerm);
+        });
+      };
+
+      const matchesVehicleFilter = (order, filterValue) => {
+        if (!filterValue) return true;
+        const vehicleText = [order.bikeModel, order.vehicleModel, order.bikeType]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+        return vehicleText.includes(filterValue.toLowerCase());
+      };
+
+      const matchesStatusFilter = (order, filterValue) => {
+        if (!filterValue || filterValue === 'all') return true;
+        const filter = filterValue.toLowerCase();
+        const effectiveStatus = getEffectiveOrderStatus(order).toLowerCase();
+        const rawStatus = `${order.order_status || ''} ${order.status || ''}`.trim().toLowerCase();
+        if (filter === 'test order') {
+          return order.is_test_order === true || order.is_test_order === 'true' || effectiveStatus.includes('test order') || rawStatus.includes('sandbox');
+        }
+        if (filter === 'completed') return effectiveStatus.includes('completed') || effectiveStatus.includes('payment received');
+        if (filter === 'cancelled') return effectiveStatus.includes('cancel');
+        if (filter === 'completed - payment received') return effectiveStatus.includes(filter) || rawStatus.includes(filter);
+        return effectiveStatus === filter;
+      };
+
+      const getPaymentReceiverState = order => {
+        const receiver = String(order.payment_received_by || '').trim().toLowerCase();
+        const status = `${order.order_status || ''} ${order.status || ''}`.toLowerCase();
+        if (receiver.includes('mechanic') || status.includes('payment received by mechanic')) return 'mechanic';
+        if (receiver.includes('admin') || receiver.includes('fixwheel') || status.includes('payment received by fixwheel')) return 'admin';
+        return 'pending';
       };
 
       const searchTerm = (document.getElementById('pending-search')?.value || '').toLowerCase();
@@ -2654,6 +2701,7 @@
 
       const settlementFilters = ['pending', 'completed', 'cancelled', 'test-order', 'total'].reduce((filters, prefix) => {
         filters[prefix] = {
+          receiver: (document.getElementById(`${prefix}-payment-received-filter`)?.value || 'all').toLowerCase(),
           payment: (document.getElementById(`${prefix}-payment-settled-filter`)?.value || 'all').toLowerCase(),
           settlement: (document.getElementById(`${prefix}-settlement-filter`)?.value || 'all').toLowerCase()
         };
@@ -2662,8 +2710,10 @@
 
       const matchesSettlementFilters = (order, prefix) => {
         const state = isOrderSettled(order) ? 'done' : 'pending';
-        const filters = settlementFilters[prefix] || { payment: 'all', settlement: 'all' };
-        return (filters.payment === 'all' || filters.payment === state) &&
+        const receiver = getPaymentReceiverState(order);
+        const filters = settlementFilters[prefix] || { receiver: 'all', payment: 'all', settlement: 'all' };
+        return (filters.receiver === 'all' || filters.receiver === receiver) &&
+               (filters.payment === 'all' || filters.payment === state) &&
                (filters.settlement === 'all' || filters.settlement === state);
       };
 
@@ -2712,12 +2762,18 @@
       let visiblePendingCount = 0;
       let visibleTodayCount = 0;
       let visibleCompletedCount = 0;
+      let visibleCancelledCount = 0;
+      let visibleTestOrderCount = 0;
       let visibleTotalCount = 0;
 
       let pendingSummaryOrders = 0;
       let pendingSummaryEarnings = 0;
       let completedSummaryOrders = 0;
       let completedSummaryEarnings = 0;
+      let cancelledSummaryOrders = 0;
+      let cancelledSummaryEarnings = 0;
+      let testOrderSummaryOrders = 0;
+      let testOrderSummaryEarnings = 0;
       let totalSummaryOrders = 0;
       let totalSummaryEarnings = 0;
 
@@ -2779,7 +2835,7 @@
       let completedJobTimeCount = 0;
 
       bookings.forEach(order => {
-        const orderDateFormatted = getISTISO(order.createdAt);
+        const orderDateFormatted = getISTISO(order.createdAt || order.created_at);
 
         const statusStr = ((order.order_status || '') + ' ' + (order.status || '')).toLowerCase();
         const isCompleted = statusStr.includes('completed') || statusStr.includes('payment received');
@@ -2795,16 +2851,21 @@
         const finalAmt = order.Final_Amount ? Number(order.Final_Amount) : (order.price ? Number(order.price) : 0);
 
         if (isTestOrder) {
+          testOrderCount++;
           const matchTestOrderSearch = matchSearchText(order, testOrderSearchTerm);
           const matchTestOrderCity = checkCityMatch(order.city, testOrderCityFilter);
           const matchTestOrderSource = testOrderSourceFilter === 'all' || orderSource === testOrderSourceFilter;
-          const matchTestOrderStatus = testOrderStatusFilter === 'all' || (order.order_status || order.status || '').toLowerCase().includes(testOrderStatusFilter.toLowerCase());
+          const matchTestOrderStatus = matchesStatusFilter(order, testOrderStatusFilter);
           const matchTestOrderDate = isDateInRange(orderDateFormatted, testOrderDateFrom, testOrderDateTo);
 
           if (matchTestOrderSearch && matchTestOrderCity && matchTestOrderSource && matchTestOrderStatus && matchTestOrderDate && matchesSettlementFilters(order, 'test-order')) {
-            testOrderCount++;
+            visibleTestOrderCount++;
             if (testOrderTable) {
               testOrderHtml += row;
+            }
+            if (testOrderDateFrom || testOrderDateTo) {
+              testOrderSummaryOrders++;
+              testOrderSummaryEarnings += finalAmt;
             }
           }
           return; // Exclude explicit test orders from production totals & KPIs
@@ -2822,14 +2883,14 @@
         const matchTotalSource = totalSourceFilter === 'all' || orderSource === totalSourceFilter;
         const matchTotalCity = checkCityMatch(order.city, totalCityFilter);
         const matchTotalSearch = matchSearchText(order, totalSearchTerm);
-        const matchTotalStatus = totalStatusFilter === 'all' || (order.order_status || order.status || '').toLowerCase().includes(totalStatusFilter.toLowerCase());
+        const matchTotalStatus = matchesStatusFilter(order, totalStatusFilter);
 
         if (!isEmployeeUser || isOrderInLast7Days) {
           totalCount++;
           if (totalTable && matchTotalDate && matchTotalSource && matchTotalCity && matchTotalSearch && matchTotalStatus && matchesSettlementFilters(order, 'total')) {
             totalHtml += row;
             visibleTotalCount++;
-            if (totalDateFrom && totalDateTo) {
+            if (totalDateFrom || totalDateTo) {
               totalSummaryOrders++;
               totalSummaryEarnings += finalAmt;
             }
@@ -2840,9 +2901,9 @@
         if (isCreatedToday) {
           todayCount++;
           const matchTodaySearch = matchSearchText(order, todaySearchTerm);
-          const matchTodayStatus = todayStatusFilter === 'all' || (order.order_status || order.status || '').toLowerCase().includes(todayStatusFilter.toLowerCase());
+          const matchTodayStatus = matchesStatusFilter(order, todayStatusFilter);
           const matchTodayCity = checkCityMatch(order.city, todayCityFilter);
-          const matchTodayVehicle = !todayVehicleFilter || (order.vehicleModel || '').toLowerCase().includes(todayVehicleFilter);
+          const matchTodayVehicle = matchesVehicleFilter(order, todayVehicleFilter);
           const matchTodaySource = todaySourceFilter === 'all' || orderSource === todaySourceFilter;
 
           if (matchTodaySearch && matchTodayStatus && matchTodayCity && matchTodayVehicle && matchTodaySource) {
@@ -2878,12 +2939,12 @@
             const matchCompletedSource = completedSourceFilter === 'all' || orderSource === completedSourceFilter;
             const matchCompletedCity = checkCityMatch(order.city, completedCityFilter);
             const matchCompletedSearch = matchSearchText(order, completedSearchTerm);
-            const matchCompletedStatus = completedStatusFilter === 'all' || (order.order_status || order.status || '').toLowerCase().includes(completedStatusFilter.toLowerCase());
+            const matchCompletedStatus = matchesStatusFilter(order, completedStatusFilter);
 
             if (matchCompletedDate && matchCompletedSource && matchCompletedCity && matchCompletedSearch && matchCompletedStatus && matchCompletedFinishedDate && matchesSettlementFilters(order, 'completed')) {
               completedHtml += row;
               visibleCompletedCount++;
-              if ((completedDateFrom && completedDateTo) || (completedFinishedFrom && completedFinishedTo)) {
+              if (completedDateFrom || completedDateTo || completedFinishedFrom || completedFinishedTo) {
                 completedSummaryOrders++;
                 completedSummaryEarnings += finalAmt;
               }
@@ -2893,13 +2954,19 @@
           const matchCancelledSource = cancelledSourceFilter === 'all' || orderSource === cancelledSourceFilter;
           const matchCancelledCity = checkCityMatch(order.city, cancelledCityFilter);
           const matchCancelledSearch = matchSearchText(order, cancelledSearchTerm);
-          const matchCancelledStatus = cancelledStatusFilter === 'all' || (order.order_status || order.status || '').toLowerCase().includes(cancelledStatusFilter.toLowerCase());
+          const matchCancelledStatus = matchesStatusFilter(order, cancelledStatusFilter);
+          const matchCancelledDate = isDateInRange(orderDateFormatted, cancelledDateFrom, cancelledDateTo);
 
           if (cancelledTable) {
             if (!isEmployeeUser || isOrderInLast7Days) {
               cancelledCount++;
-              if (matchCancelledSource && matchCancelledCity && matchCancelledSearch && matchCancelledStatus && matchesSettlementFilters(order, 'cancelled')) {
+              if (matchCancelledSource && matchCancelledCity && matchCancelledSearch && matchCancelledStatus && matchCancelledDate && matchesSettlementFilters(order, 'cancelled')) {
                 cancelledHtml += row;
+                visibleCancelledCount++;
+                if (cancelledDateFrom || cancelledDateTo) {
+                  cancelledSummaryOrders++;
+                  cancelledSummaryEarnings += finalAmt;
+                }
               }
             }
           }
@@ -2908,17 +2975,16 @@
           if (!order['Assign Mechanic']) unassignedCount++;
 
           const matchSearch = matchSearchText(order, searchTerm);
-          const currentStatus = getEffectiveOrderStatus(order);
-          const matchStatus = statusFilter === 'all' || currentStatus.toLowerCase() === statusFilter.toLowerCase();
+          const matchStatus = matchesStatusFilter(order, statusFilter);
           const matchCity = checkCityMatch(order.city, cityFilter);
-          const matchVehicle = vehicleFilter === '' || (order.bikeModel || '').toLowerCase().includes(vehicleFilter) || (order.bikeType || '').toLowerCase().includes(vehicleFilter);
+          const matchVehicle = matchesVehicleFilter(order, vehicleFilter);
           const matchPendingDate = isDateInRange(orderDateFormatted, pendingDateFrom, pendingDateTo);
           const matchPendingSource = pendingSourceFilter === 'all' || orderSource === pendingSourceFilter;
 
           if (matchSearch && matchStatus && matchCity && matchVehicle && matchPendingDate && matchPendingSource && matchesSettlementFilters(order, 'pending')) {
             pendingHtml += row;
             visiblePendingCount++;
-            if (pendingDateFrom && pendingDateTo) {
+            if (pendingDateFrom || pendingDateTo) {
               pendingSummaryOrders++;
               pendingSummaryEarnings += finalAmt;
             }
@@ -2926,13 +2992,14 @@
         }
       });
 
-      pendingTable.innerHTML = pendingHtml;
+      const activeSectionId = document.querySelector('.order-section.active')?.id || 'pending-section';
+      if (activeSectionId === 'pending-section') pendingTable.innerHTML = pendingHtml;
       const todayTableEl = document.getElementById('today-table-body');
-      if (todayTableEl) todayTableEl.innerHTML = todayHtml || '<tr class="empty-row"><td colspan="8" style="text-align:center; padding:36px; color:var(--text-3); font-family:var(--mono);">No orders received today.</td></tr>';
-      completedTable.innerHTML = completedHtml;
-      if (cancelledTable) cancelledTable.innerHTML = cancelledHtml;
-      if (totalTable) totalTable.innerHTML = totalHtml;
-      if (testOrderTable) testOrderTable.innerHTML = testOrderHtml;
+      if (todayTableEl && activeSectionId === 'today-section') todayTableEl.innerHTML = todayHtml || '<tr class="empty-row"><td colspan="8" style="text-align:center; padding:36px; color:var(--text-3); font-family:var(--mono);">No orders received today.</td></tr>';
+      if (activeSectionId === 'completed-section') completedTable.innerHTML = completedHtml;
+      if (cancelledTable && activeSectionId === 'cancelled-section') cancelledTable.innerHTML = cancelledHtml;
+      if (totalTable && activeSectionId === 'total-section') totalTable.innerHTML = totalHtml;
+      if (testOrderTable && activeSectionId === 'test_order-section') testOrderTable.innerHTML = testOrderHtml;
       refreshOpenOrderDrawer();
 
       // Update Stats
@@ -2966,7 +3033,7 @@
       if (testOrderTabCount) testOrderTabCount.textContent = testOrderCount;
 
       const testOrderHeaderCount = document.getElementById('test-order-header-count');
-      if (testOrderHeaderCount) testOrderHeaderCount.textContent = `${testOrderCount} test orders`;
+      if (testOrderHeaderCount) testOrderHeaderCount.textContent = `${visibleTestOrderCount} visible`;
 
       const totalTabCount = document.getElementById('total-tab-count');
       if (totalTabCount) totalTabCount.textContent = totalCount;
@@ -2977,7 +3044,7 @@
       document.getElementById('completed-header-count').textContent = `${visibleCompletedCount} visible`;
 
       const cancelledHeaderCount = document.getElementById('cancelled-header-count');
-      if (cancelledHeaderCount) cancelledHeaderCount.textContent = `${cancelledCount} cancelled`;
+      if (cancelledHeaderCount) cancelledHeaderCount.textContent = `${visibleCancelledCount} visible`;
 
       const totalHeaderCount = document.getElementById('total-header-count');
       if (totalHeaderCount) totalHeaderCount.textContent = `${visibleTotalCount} visible`;
@@ -2985,7 +3052,7 @@
       // Update Summary Boxes
       const pendingBox = document.getElementById('pending-summary-box');
       if (pendingBox) {
-        if (pendingDateFrom && pendingDateTo) {
+        if (pendingDateFrom || pendingDateTo) {
           pendingBox.style.display = 'block';
           document.getElementById('pending-summary-orders').textContent = pendingSummaryOrders;
           document.getElementById('pending-summary-earnings').textContent = `₹${pendingSummaryEarnings.toLocaleString()}`;
@@ -2996,7 +3063,7 @@
 
       const completedBox = document.getElementById('completed-summary-box');
       if (completedBox) {
-        if ((completedDateFrom && completedDateTo) || (completedFinishedFrom && completedFinishedTo)) {
+        if (completedDateFrom || completedDateTo || completedFinishedFrom || completedFinishedTo) {
           completedBox.style.display = 'block';
           document.getElementById('completed-summary-orders').textContent = completedSummaryOrders;
           document.getElementById('completed-summary-earnings').textContent = `₹${completedSummaryEarnings.toLocaleString()}`;
@@ -3005,9 +3072,31 @@
         }
       }
 
+      const cancelledBox = document.getElementById('cancelled-summary-box');
+      if (cancelledBox) {
+        if (cancelledDateFrom || cancelledDateTo) {
+          cancelledBox.style.display = 'block';
+          document.getElementById('cancelled-summary-orders').textContent = cancelledSummaryOrders;
+          document.getElementById('cancelled-summary-earnings').textContent = `₹${cancelledSummaryEarnings.toLocaleString()}`;
+        } else {
+          cancelledBox.style.display = 'none';
+        }
+      }
+
+      const testOrderBox = document.getElementById('test-order-summary-box');
+      if (testOrderBox) {
+        if (testOrderDateFrom || testOrderDateTo) {
+          testOrderBox.style.display = 'block';
+          document.getElementById('test-order-summary-orders').textContent = testOrderSummaryOrders;
+          document.getElementById('test-order-summary-earnings').textContent = `₹${testOrderSummaryEarnings.toLocaleString()}`;
+        } else {
+          testOrderBox.style.display = 'none';
+        }
+      }
+
       const totalBox = document.getElementById('total-summary-box');
       if (totalBox) {
-        if (totalDateFrom && totalDateTo) {
+        if (totalDateFrom || totalDateTo) {
           totalBox.style.display = 'block';
           document.getElementById('total-summary-orders').textContent = totalSummaryOrders;
           document.getElementById('total-summary-earnings').textContent = `₹${totalSummaryEarnings.toLocaleString()}`;

@@ -827,6 +827,8 @@
         <button class="date-range-tab" type="button" data-range-tab="compare" onclick="setDateRangeTab('compare')">Compare</button>
       </div>
       <div class="date-range-panel active" data-range-panel="filter">
+        <label class="date-choice"><input type="radio" name="analytics-filter-range" value="lastMonth"><span class="date-choice-copy"><span>Last month</span><small>Show revenue and orders from the previous full calendar month.</small></span></label>
+        <label class="date-choice"><input type="radio" name="analytics-filter-range" value="months3"><span class="date-choice-copy"><span>Last 3 months</span><small>Show revenue and orders from the most recent three months.</small></span></label>
         <label class="date-choice"><input type="radio" name="analytics-filter-range" value="months6" checked><span class="date-choice-copy"><span>Last 6 months</span><small>Show completed and received orders from the most recent six months.</small></span></label>
         <label class="date-choice"><input type="radio" name="analytics-filter-range" value="months9"><span class="date-choice-copy"><span>Last 9 months</span><small>Extend the report to the most recent nine months.</small></span></label>
         <label class="date-choice"><input type="radio" name="analytics-filter-range" value="months12"><span class="date-choice-copy"><span>Last 12 months</span><small>Review one full year of revenue and order activity.</small></span></label>
@@ -941,13 +943,16 @@
       currentWindow = selected.value;
       document.querySelectorAll('#time-pills .time-btn').forEach(button => button.classList.remove('active', 'more-active'));
       const labels = {
-        months6: 'Last 6 months', months9: 'Last 9 months', months12: 'Last 12 months',
+        lastMonth: 'Last month', months3: 'Last 3 months', months6: 'Last 6 months', months9: 'Last 9 months', months12: 'Last 12 months',
         compare24h: 'Compare: 24 hours', compare7d: 'Compare: 7 days', compare1m: 'Compare: 1 month', compare3m: 'Compare: 3 months'
       };
       const moreButton = document.getElementById('more-range-button');
       moreButton.textContent = labels[currentWindow] || 'More';
       moreButton.classList.add('more-active');
       closeDateRangeDialog();
+      if (window.matchMedia('(max-width: 640px)').matches) {
+        requestAnimationFrame(() => moreButton.parentElement?.scrollTo({ left: moreButton.parentElement.scrollWidth, behavior: 'smooth' }));
+      }
       calculateAndRender();
     }
 
@@ -986,11 +991,20 @@
       const dayMs = 24 * 60 * 60 * 1000;
       let start;
       if (windowType === 'today') start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      else if (windowType === 'lastMonth') {
+        start = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
+        return {
+          start,
+          end: new Date(now.getFullYear(), now.getMonth(), 1).getTime() - 1,
+          duration: new Date(now.getFullYear(), now.getMonth(), 1).getTime() - start
+        };
+      }
       else if (windowType === 'week' || windowType === 'compare7d') start = end - 7 * dayMs;
       else if (windowType === 'month' || windowType === 'compare1m') start = end - 30 * dayMs;
       else if (windowType === 'compare24h') start = end - dayMs;
       else if (windowType === 'compare3m') start = end - 90 * dayMs;
       else if (windowType === 'year') start = new Date(now.getFullYear(), 0, 1).getTime();
+      else if (windowType === 'months3') start = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate()).getTime();
       else if (windowType === 'months6') start = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate()).getTime();
       else if (windowType === 'months9') start = new Date(now.getFullYear(), now.getMonth() - 9, now.getDate()).getTime();
       else if (windowType === 'months12') start = new Date(now.getFullYear(), now.getMonth() - 12, now.getDate()).getTime();
@@ -1163,6 +1177,8 @@
         week: 'This Week (7 days)',
         month: 'This Month (30 days)',
         year: 'This Year (YTD)',
+        lastMonth: 'Last month',
+        months3: 'Last 3 months',
         months6: 'Last 6 months',
         months9: 'Last 9 months',
         months12: 'Last 12 months',
@@ -1325,7 +1341,14 @@
         periodLabel = 'Monthly';
         const now = new Date();
         addMonthlyBuckets(new Date(now.getFullYear(), 0, 1), now);
-      } else if (['months6','months9','months12'].includes(currentWindow)) {
+      } else if (currentWindow === 'lastMonth') {
+        trendTitlePrefix = 'Last Month';
+        periodLabel = 'Daily';
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const daysInLastMonth = new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+        addDailyBuckets(start, daysInLastMonth);
+      } else if (['months3','months6','months9','months12'].includes(currentWindow)) {
         const months = Number(currentWindow.replace('months',''));
         trendTitlePrefix = `${months}-Month`;
         periodLabel = 'Monthly';
