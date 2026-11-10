@@ -346,7 +346,7 @@
       padding: 6px;
       border-radius: 12px;
       border: 1px solid var(--border);
-      width: fit-content;
+      width: 100%;
       margin-bottom: 30px;
       position: sticky;
       top: 70px;
@@ -355,7 +355,10 @@
     }
 
     .tab-trigger {
-      padding: 10px 24px;
+      flex: 1 1 0;
+      min-width: 0;
+      justify-content: center;
+      padding: 10px 12px;
       border-radius: 8px;
       font-size: 14px;
       font-weight: 600;
@@ -364,7 +367,7 @@
       color: var(--text-3);
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       border: none;
       background: none;
     }
@@ -395,6 +398,11 @@
       background: var(--red-glow);
       color: var(--red);
       border-color: var(--red-dim);
+    }
+
+    @media (min-width: 701px) and (max-width: 1450px) {
+      .tab-trigger .fw-badge { display: none; }
+      .tab-trigger { padding-inline: 10px; }
     }
 
     .order-section {
@@ -445,6 +453,12 @@
       background: var(--red-glow);
       color: var(--red);
       border: 1px solid var(--red-dim);
+    }
+
+    .section-tag.in-progress {
+      background: rgba(59, 130, 246, 0.12);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.38);
     }
 
     .section-tag.completed {
@@ -1654,6 +1668,11 @@
           Pending Orders
           <span class="tab-count" id="pending-tab-count">0</span>
         </button>
+        <button class="tab-trigger" onclick="switchTab('in-progress')">
+          <span class="fw-badge fw-badge-info" style="padding: 2px 8px; font-size:10px;">In Progress</span>
+          In Progress
+          <span class="tab-count" id="in-progress-tab-count">0</span>
+        </button>
         <button class="tab-trigger" onclick="switchTab('today')">
           <span class="fw-badge fw-badge-warning" style="padding: 2px 8px; font-size:10px;">📅 Today</span>
           Today's Orders
@@ -1710,8 +1729,8 @@
             <option value="Service Started">Service Started</option>
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
-            <option value="Cancel - order taken by competitor">Cancel - order taken by competitor</option>
             <option value="Customer cancel">Customer cancel</option>
+            <option value="Customer cancel - order taken by competitor">Customer cancel - order taken by competitor</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
             <option value="Completed - Payment received">Completed - Payment received</option>
             <option value="Test Order">Test Order</option>
@@ -1781,6 +1800,104 @@
         </table>
       </div>
     </div> <!-- End Pending Section -->
+
+    <!-- IN PROGRESS ORDERS -->
+    <div id="in-progress-section" class="order-section">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="section-tag in-progress">In Progress</span>
+          <h2>In Progress Orders</h2>
+        </div>
+        <div class="filter-bar">
+          <input type="text" id="in-progress-search" class="filter-input" placeholder="Search ID, Name, Phone, Vehicle..."
+            oninput="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 250px;">
+
+          <select id="in-progress-city-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 140px;">
+            <option value="">All Cities</option>
+            <option value="Delhi">Delhi</option>
+            <option value="Gurgaon">Gurgaon</option>
+            <option value="Faridabad">Faridabad</option>
+            <option value="Noida">Noida</option>
+            <option value="Ghaziabad">Ghaziabad</option>
+          </select>
+
+          <select id="in-progress-source-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 130px;">
+            <option value="all">All Sources</option>
+            <option value="website">Website</option>
+            <option value="app">App</option>
+          </select>
+
+          <select id="in-progress-status-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 170px;">
+            <option value="all">All Status</option>
+            <option value="In Progress - Mechanic on the way">Mechanic on the way</option>
+            <option value="Customer Not Response">Customer Not Response</option>
+            <option value="Service Started">Service Started</option>
+          </select>
+
+          <select id="in-progress-payment-received-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">Payment Received By</option>
+            <option value="Pending">Pending</option>
+            <option value="Mechanic">Mechanic</option>
+            <option value="Admin">Admin</option>
+          </select>
+
+          <select id="in-progress-payment-settled-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">Payment Settled</option>
+            <option value="Pending">Pending</option>
+            <option value="Done">Done</option>
+          </select>
+
+          <select id="in-progress-settlement-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="min-width: 150px;">
+            <option value="all">Settlement</option>
+            <option value="Pending">Pending</option>
+            <option value="Done">Done</option>
+          </select>
+
+          <div class="filter-group">
+            <label>From:</label>
+            <input type="date" id="in-progress-date-from" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
+          </div>
+          <div class="filter-group">
+            <label>To:</label>
+            <input type="date" id="in-progress-date-to" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)" style="cursor: pointer;">
+          </div>
+          <span class="count-badge" id="in-progress-header-count">0 visible</span>
+          <div id="in-progress-summary-box" style="display:none; background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.38); padding: 8px 16px; border-radius: 8px; font-family: var(--mono);">
+            <div style="display:flex; align-items:center; gap:15px;">
+              <div style="display:flex; flex-direction:column; align-items:center;">
+                <span style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-2);">Orders</span>
+                <span id="in-progress-summary-orders" style="font-size:20px; font-weight:800; color:var(--text-1);">0</span>
+              </div>
+              <div style="width:1px; height:30px; background:rgba(59, 130, 246, 0.38);"></div>
+              <div style="display:flex; flex-direction:column; align-items:center;">
+                <span style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-2);">Order value</span>
+                <span id="in-progress-summary-earnings" style="font-size:20px; font-weight:800; color:#60a5fa;">₹0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr class="compact-order-head">
+              <th>Order / Date</th>
+              <th>Customer</th>
+              <th>Vehicle / Service</th>
+              <th>Schedule</th>
+              <th>Mechanic</th>
+              <th>Status</th>
+              <th>Payment</th>
+              <th><span class="sr-only">Open</span></th>
+            </tr>
+          </thead>
+          <tbody id="in-progress-table-body">
+            <!-- Assigned active orders will be loaded from Supabase -->
+          </tbody>
+        </table>
+      </div>
+    </div> <!-- End In Progress Section -->
 
     <!-- TODAY'S ORDERS -->
     <div id="today-section" class="order-section">
@@ -1872,8 +1989,8 @@
             <option value="Service Started">Service Started</option>
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
-            <option value="Cancel - order taken by competitor">Cancel - order taken by competitor</option>
             <option value="Customer cancel">Customer cancel</option>
+            <option value="Customer cancel - order taken by competitor">Customer cancel - order taken by competitor</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
             <option value="Completed - Payment received">Completed - Payment received</option>
             <option value="Test Order">Test Order</option>
@@ -1988,8 +2105,8 @@
             <option value="Service Started">Service Started</option>
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
-            <option value="Cancel - order taken by competitor">Cancel - order taken by competitor</option>
             <option value="Customer cancel">Customer cancel</option>
+            <option value="Customer cancel - order taken by competitor">Customer cancel - order taken by competitor</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
             <option value="Completed - Payment received">Completed - Payment received</option>
             <option value="Test Order">Test Order</option>
@@ -2096,8 +2213,8 @@
             <option value="Service Started">Service Started</option>
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
-            <option value="Cancel - order taken by competitor">Cancel - order taken by competitor</option>
             <option value="Customer cancel">Customer cancel</option>
+            <option value="Customer cancel - order taken by competitor">Customer cancel - order taken by competitor</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
             <option value="Completed - Payment received">Completed - Payment received</option>
             <option value="Test Order">Test Order</option>
@@ -2202,8 +2319,8 @@
             <option value="Service Started">Service Started</option>
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
-            <option value="Cancel - order taken by competitor">Cancel - order taken by competitor</option>
             <option value="Customer cancel">Customer cancel</option>
+            <option value="Customer cancel - order taken by competitor">Customer cancel - order taken by competitor</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
             <option value="Completed - Payment received">Completed - Payment received</option>
             <option value="Test Order">Test Order</option>
@@ -2604,6 +2721,7 @@
     }
     function renderDashboard(bookings) {
       const pendingTable = document.getElementById('pending-table-body');
+      const inProgressTable = document.getElementById('in-progress-table-body');
       const todayTable = document.getElementById('today-table-body');
       const completedTable = document.getElementById('completed-table-body');
       const cancelledTable = document.getElementById('cancelled-table-body');
@@ -2672,6 +2790,11 @@
       const cityFilter = (document.getElementById('pending-city-filter')?.value || '').toLowerCase();
       const vehicleFilter = (document.getElementById('pending-vehicle-filter')?.value || '').toLowerCase();
       const pendingSourceFilter = (document.getElementById('pending-source-filter')?.value || 'all').toLowerCase();
+
+      const inProgressSearchTerm = (document.getElementById('in-progress-search')?.value || '').toLowerCase();
+      const inProgressStatusFilter = (document.getElementById('in-progress-status-filter')?.value || 'all');
+      const inProgressCityFilter = (document.getElementById('in-progress-city-filter')?.value || '').toLowerCase();
+      const inProgressSourceFilter = (document.getElementById('in-progress-source-filter')?.value || 'all').toLowerCase();
       
       const todaySearchTerm = (document.getElementById('today-search')?.value || '').toLowerCase();
       const todayStatusFilter = (document.getElementById('today-status-filter')?.value || 'all');
@@ -2699,7 +2822,7 @@
       const totalCityFilter = (document.getElementById('total-city-filter')?.value || '').toLowerCase();
       const totalSourceFilter = (document.getElementById('total-source-filter')?.value || 'all').toLowerCase();
 
-      const settlementFilters = ['pending', 'completed', 'cancelled', 'test-order', 'total'].reduce((filters, prefix) => {
+      const settlementFilters = ['pending', 'in-progress', 'completed', 'cancelled', 'test-order', 'total'].reduce((filters, prefix) => {
         filters[prefix] = {
           receiver: (document.getElementById(`${prefix}-payment-received-filter`)?.value || 'all').toLowerCase(),
           payment: (document.getElementById(`${prefix}-payment-settled-filter`)?.value || 'all').toLowerCase(),
@@ -2719,6 +2842,8 @@
 
       const pendingDateFrom = document.getElementById('pending-date-from')?.value || '';
       const pendingDateTo = document.getElementById('pending-date-to')?.value || '';
+      const inProgressDateFrom = document.getElementById('in-progress-date-from')?.value || '';
+      const inProgressDateTo = document.getElementById('in-progress-date-to')?.value || '';
       
       const completedDateFrom = document.getElementById('completed-date-from')?.value || '';
       const completedDateTo = document.getElementById('completed-date-to')?.value || '';
@@ -2744,6 +2869,7 @@
       };
 
       let pendingHtml = '';
+      let inProgressHtml = '';
       let todayHtml = '';
       let completedHtml = '';
       let cancelledHtml = '';
@@ -2751,6 +2877,7 @@
       let testOrderHtml = '';
 
       let pendingCount = 0;
+      let inProgressCount = 0;
       let todayCount = 0;
       let completedCount = 0;
       let cancelledCount = 0;
@@ -2760,6 +2887,7 @@
       let unassignedCount = 0;
 
       let visiblePendingCount = 0;
+      let visibleInProgressCount = 0;
       let visibleTodayCount = 0;
       let visibleCompletedCount = 0;
       let visibleCancelledCount = 0;
@@ -2768,6 +2896,8 @@
 
       let pendingSummaryOrders = 0;
       let pendingSummaryEarnings = 0;
+      let inProgressSummaryOrders = 0;
+      let inProgressSummaryEarnings = 0;
       let completedSummaryOrders = 0;
       let completedSummaryEarnings = 0;
       let cancelledSummaryOrders = 0;
@@ -2971,29 +3101,51 @@
             }
           }
         } else {
-          pendingCount++;
-          if (!order['Assign Mechanic']) unassignedCount++;
+          const assignedMechanic = String(order['Assign Mechanic'] || order.mechanic || '').trim();
+          const isAssigned = !!assignedMechanic && !/^unassigned$/i.test(assignedMechanic);
 
-          const matchSearch = matchSearchText(order, searchTerm);
-          const matchStatus = matchesStatusFilter(order, statusFilter);
-          const matchCity = checkCityMatch(order.city, cityFilter);
-          const matchVehicle = matchesVehicleFilter(order, vehicleFilter);
-          const matchPendingDate = isDateInRange(orderDateFormatted, pendingDateFrom, pendingDateTo);
-          const matchPendingSource = pendingSourceFilter === 'all' || orderSource === pendingSourceFilter;
+          if (isAssigned) {
+            inProgressCount++;
+            const matchInProgressSearch = matchSearchText(order, inProgressSearchTerm);
+            const matchInProgressStatus = matchesStatusFilter(order, inProgressStatusFilter);
+            const matchInProgressCity = checkCityMatch(order.city, inProgressCityFilter);
+            const matchInProgressDate = isDateInRange(orderDateFormatted, inProgressDateFrom, inProgressDateTo);
+            const matchInProgressSource = inProgressSourceFilter === 'all' || orderSource === inProgressSourceFilter;
 
-          if (matchSearch && matchStatus && matchCity && matchVehicle && matchPendingDate && matchPendingSource && matchesSettlementFilters(order, 'pending')) {
-            pendingHtml += row;
-            visiblePendingCount++;
-            if (pendingDateFrom || pendingDateTo) {
-              pendingSummaryOrders++;
-              pendingSummaryEarnings += finalAmt;
+            if (matchInProgressSearch && matchInProgressStatus && matchInProgressCity && matchInProgressDate && matchInProgressSource && matchesSettlementFilters(order, 'in-progress')) {
+              inProgressHtml += row;
+              visibleInProgressCount++;
+              if (inProgressDateFrom || inProgressDateTo) {
+                inProgressSummaryOrders++;
+                inProgressSummaryEarnings += finalAmt;
+              }
+            }
+          } else {
+            pendingCount++;
+            unassignedCount++;
+
+            const matchSearch = matchSearchText(order, searchTerm);
+            const matchStatus = matchesStatusFilter(order, statusFilter);
+            const matchCity = checkCityMatch(order.city, cityFilter);
+            const matchVehicle = matchesVehicleFilter(order, vehicleFilter);
+            const matchPendingDate = isDateInRange(orderDateFormatted, pendingDateFrom, pendingDateTo);
+            const matchPendingSource = pendingSourceFilter === 'all' || orderSource === pendingSourceFilter;
+
+            if (matchSearch && matchStatus && matchCity && matchVehicle && matchPendingDate && matchPendingSource && matchesSettlementFilters(order, 'pending')) {
+              pendingHtml += row;
+              visiblePendingCount++;
+              if (pendingDateFrom || pendingDateTo) {
+                pendingSummaryOrders++;
+                pendingSummaryEarnings += finalAmt;
+              }
             }
           }
         }
       });
 
       const activeSectionId = document.querySelector('.order-section.active')?.id || 'pending-section';
-      if (activeSectionId === 'pending-section') pendingTable.innerHTML = pendingHtml;
+      if (activeSectionId === 'pending-section') pendingTable.innerHTML = pendingHtml || '<tr class="empty-row"><td colspan="8" style="text-align:center; padding:36px; color:var(--text-3); font-family:var(--mono);">No unassigned orders.</td></tr>';
+      if (inProgressTable && activeSectionId === 'in-progress-section') inProgressTable.innerHTML = inProgressHtml || '<tr class="empty-row"><td colspan="8" style="text-align:center; padding:36px; color:var(--text-3); font-family:var(--mono);">No assigned orders in progress.</td></tr>';
       const todayTableEl = document.getElementById('today-table-body');
       if (todayTableEl && activeSectionId === 'today-section') todayTableEl.innerHTML = todayHtml || '<tr class="empty-row"><td colspan="8" style="text-align:center; padding:36px; color:var(--text-3); font-family:var(--mono);">No orders received today.</td></tr>';
       if (activeSectionId === 'completed-section') completedTable.innerHTML = completedHtml;
@@ -3022,6 +3174,8 @@
       if (avgTimeEl) avgTimeEl.textContent = `avg. ${avgMinutes} min/job`;
 
       document.getElementById('pending-tab-count').textContent = pendingCount;
+      const inProgressTabCountEl = document.getElementById('in-progress-tab-count');
+      if (inProgressTabCountEl) inProgressTabCountEl.textContent = inProgressCount;
       const todayTabCountEl = document.getElementById('today-tab-count');
       if (todayTabCountEl) todayTabCountEl.textContent = todayCount;
       document.getElementById('completed-tab-count').textContent = completedCount;
@@ -3039,6 +3193,8 @@
       if (totalTabCount) totalTabCount.textContent = totalCount;
 
       document.getElementById('pending-header-count').textContent = `${visiblePendingCount} visible`;
+      const inProgressHeaderCountEl = document.getElementById('in-progress-header-count');
+      if (inProgressHeaderCountEl) inProgressHeaderCountEl.textContent = `${visibleInProgressCount} visible`;
       const todayHeaderCountEl = document.getElementById('today-header-count');
       if (todayHeaderCountEl) todayHeaderCountEl.textContent = `${visibleTodayCount} visible`;
       document.getElementById('completed-header-count').textContent = `${visibleCompletedCount} visible`;
@@ -3058,6 +3214,17 @@
           document.getElementById('pending-summary-earnings').textContent = `₹${pendingSummaryEarnings.toLocaleString()}`;
         } else {
           pendingBox.style.display = 'none';
+        }
+      }
+
+      const inProgressBox = document.getElementById('in-progress-summary-box');
+      if (inProgressBox) {
+        if (inProgressDateFrom || inProgressDateTo) {
+          inProgressBox.style.display = 'block';
+          document.getElementById('in-progress-summary-orders').textContent = inProgressSummaryOrders;
+          document.getElementById('in-progress-summary-earnings').textContent = `₹${inProgressSummaryEarnings.toLocaleString()}`;
+        } else {
+          inProgressBox.style.display = 'none';
         }
       }
 
@@ -3137,8 +3304,37 @@
       return parsed.toLocaleDateString('en-IN', options);
     }
 
+    function getEffectiveServiceDate(order) {
+      const storedServiceDate = order?.bookingDate || order?.createdAt;
+      const source = String(order?.source || '').trim().toLowerCase();
+      const bookingDate = String(order?.bookingDate || '').trim();
+
+      // Older app bookings inherited Booking.bookingDate's former 20 May default.
+      // Only those app rows use the real date embedded at the start of preferredSlot.
+      if (source !== 'app' || !/^2026-05-20(?:$|[T\s])/.test(bookingDate)) {
+        return storedServiceDate;
+      }
+
+      const slotMatch = String(order?.preferredSlot || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?=\s*\()/);
+      if (!slotMatch) return storedServiceDate;
+
+      const day = Number(slotMatch[1]);
+      const month = Number(slotMatch[2]);
+      const year = Number(slotMatch[3]);
+      const parsed = new Date(Date.UTC(year, month - 1, day));
+      const isValidDate = parsed.getUTCFullYear() === year &&
+        parsed.getUTCMonth() === month - 1 &&
+        parsed.getUTCDate() === day;
+
+      if (!isValidDate) return storedServiceDate;
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+
     function getEffectiveOrderStatus(order) {
       const storedStatus = String(order?.order_status || order?.status || 'Pending').trim() || 'Pending';
+      if (storedStatus.toLowerCase() === 'cancel - order taken by competitor') {
+        return 'Customer cancel - order taken by competitor';
+      }
       const assignedMechanic = String(order?.['Assign Mechanic'] || order?.mechanic || '').trim();
       if (assignedMechanic && storedStatus.toLowerCase() === 'pending') {
         return 'In Progress - Mechanic on the way';
@@ -3171,7 +3367,7 @@
       const outerStatus = getOuterStatusLabel(currentStatus);
       const finalAmount = Number(order.Final_Amount) || Number(order.price) || 0;
       const mechanic = order['Assign Mechanic'] || order.mechanic || 'Unassigned';
-      const serviceDate = order.bookingDate || order.createdAt;
+      const serviceDate = getEffectiveServiceDate(order);
       const createdDate = getOrderDisplayDate(order.createdAt);
       const serviceDateDisplay = getOrderDisplayDate(serviceDate);
       const serviceSlot = order.preferredSlot || 'Anytime';
@@ -3239,8 +3435,8 @@
         "Service Started",
         "Cancel - spare parts",
         "Cancel - mechanic not available",
-        "Cancel - order taken by competitor",
         "Customer cancel",
+        "Customer cancel - order taken by competitor",
         "Customer cancel - rate high",
         "Completed - Payment received by FixWheel",
         "Completed - Payment received by Mechanic",
@@ -3293,7 +3489,7 @@
       const originalSchedule = getRescheduleOriginal(order);
       const isRescheduled = !!originalSchedule;
       const isLegacyReschedule = !isRescheduled && hasActiveLegacyReschedule(order, storedReschedule);
-      const serviceDateRaw = order.bookingDate || order.createdAt;
+      const serviceDateRaw = getEffectiveServiceDate(order);
       const serviceDateText = serviceDateRaw ? String(serviceDateRaw) : '';
       const serviceDateValue = serviceDateText ? new Date(serviceDateText.endsWith('Z') || serviceDateText.includes('+') ? serviceDateText : serviceDateText + 'Z') : null;
       const serviceDateDisplay = serviceDateValue && !isNaN(serviceDateValue.getTime())
@@ -3672,8 +3868,8 @@
         'Service Started',
         'Cancel - spare parts',
         'Cancel - mechanic not available',
-        'Cancel - order taken by competitor',
         'Customer cancel',
+        'Customer cancel - order taken by competitor',
         'Customer cancel - rate high',
         'Completed - Payment received by FixWheel',
         'Completed - Payment received by Mechanic',
@@ -3697,7 +3893,7 @@
       const service = order.package || order.servicePackage || order.service || 'Service';
       const vehicleCc = formatVehicleCc(getVehicleCc(order));
       const vehicleMeta = [formatBikeTypeLabel(order.bikeType), vehicleCc ? `CC: ${vehicleCc}` : 'CC not recorded'].filter(Boolean).join(' · ');
-      const serviceDate = getOrderDisplayDate(order.bookingDate || order.createdAt);
+      const serviceDate = getOrderDisplayDate(getEffectiveServiceDate(order));
       const finishedRaw = isCompletedOrder ? (order.finished_at || order.order_finished_date) : null;
       const finishedDate = getOrderDisplayDate(finishedRaw, true);
       const paymentReceiver = order.payment_received_by || (normalizedStatus.includes('fixwheel') ? 'FixWheel' : (normalizedStatus.includes('mechanic') ? 'Mechanic' : 'Pending'));

@@ -140,6 +140,7 @@
     }
     function cancellationReason(order) {
       const raw = String(order.order_status || order.status || 'Cancelled').trim();
+      if (/order taken by competitor/i.test(raw)) return 'Customer — order taken by competitor';
       if (/customer cancel/i.test(raw)) return /rate high/i.test(raw) ? 'Customer — rate high' : 'Customer cancelled';
       return raw.replace(/^cancel(?:led)?\s*[-–:]?\s*/i, '').trim() || 'Reason not recorded';
     }
