@@ -16,6 +16,10 @@ function renderSidebar(activeKey) {
           <!-- Orders Group -->
           <div class="nav-group">
             <div class="nav-group-title">Orders</div>
+            <a href="today_orders.html?v=2034" class="nav-item ${activeKey === 'today_orders' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path><path d="M8 14h3M8 17h6"></path></svg>
+              Today Orders
+            </a>
             <a href="index.html?v=2027" class="nav-item ${activeKey === 'all_orders' ? 'active' : ''}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
               All Orders
@@ -57,6 +61,10 @@ function renderSidebar(activeKey) {
           <!-- Orders Group -->
           <div class="nav-group">
             <div class="nav-group-title">Orders</div>
+            <a href="today_orders.html?v=2034" class="nav-item ${activeKey === 'today_orders' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path><path d="M8 14h3M8 17h6"></path></svg>
+              Today Orders
+            </a>
             <a href="index.html?v=2027" class="nav-item ${activeKey === 'all_orders' ? 'active' : ''}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
               All Orders
@@ -391,7 +399,7 @@ const SEARCH_DATABASE = [
   { type: 'page', title: 'Dashboard Overview', sub: 'Overview · Main KPIs & Revenue', icon: '🏠', url: 'home.html?v=2027' },
   { type: 'page', title: 'Live Ops Dispatch', sub: 'Overview · Realtime Dispatch & SLA Queue', icon: '⚡', url: 'live_ops.html?v=2027' },
   { type: 'page', title: 'All Orders Management', sub: 'Orders · Complete Production Orders', icon: '📋', url: 'index.html?v=2027' },
-  { type: 'page', title: "Today's Orders", sub: 'Orders · Orders Received Today', icon: '📅', url: 'index.html?tab=today&v=2027' },
+  { type: 'page', title: 'Today Orders', sub: 'Orders · Pending, In Progress, Completed & Cancelled Today', icon: '📅', url: 'today_orders.html?v=2034' },
   { type: 'page', title: 'Cancelled Orders', sub: 'Orders · Cancellation Intelligence', icon: '✕', url: 'cancelled_orders.html?v=2031' },
   { type: 'page', title: 'Customer Queries', sub: 'Customers · Support Tickets & Inquiries', icon: '💬', url: 'queries.html?v=2027' },
   { type: 'page', title: 'Order Disputes', sub: 'Customers · Customer & Mechanic Complaints', icon: '⚖️', url: 'disputes.html?v=2027' },

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    function isFixWheelAuthenticated() {
+      return sessionStorage.getItem('fixwheel_admin_logged_in') === 'true' ||
+        localStorage.getItem('fixwheel_admin_logged_in') === 'true' ||
+        sessionStorage.getItem('fixwheel_admin_session_v2') === 'true' ||
+        localStorage.getItem('fixwheel_admin_session_v2') === 'true';
+    }
+    if (!isFixWheelAuthenticated()) window.location.replace('login.html');
+    if (localStorage.getItem('theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FixWheel — Today Orders</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="sidebar.css">
+  <script src="auth_guard.js?v=2026"></script>
+  <script src="sidebar.js?v=2034"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0a0a0a;--surface:#141414;--surface-2:#1e1e1e;--surface-3:#262626;--border:#2a2a2a;--border-hi:#3f3f3f;--red:#ef4444;--red-soft:rgba(239,68,68,.12);--green:#22c55e;--green-soft:rgba(34,197,94,.12);--blue:#60a5fa;--blue-soft:rgba(96,165,250,.12);--amber:#f59e0b;--amber-soft:rgba(245,158,11,.12);--text-1:#fff;--text-2:#b4b4bd;--text-3:#777782;--topbar-bg:rgba(10,10,10,.94);--mono:'DM Mono',monospace;--sans:'Syne',sans-serif}
+    [data-theme="light"]{--bg:#f3f4f6;--surface:#fff;--surface-2:#f8fafc;--surface-3:#e5e7eb;--border:#e5e7eb;--border-hi:#cbd5e1;--red-soft:rgba(239,68,68,.08);--green-soft:rgba(34,197,94,.1);--blue-soft:rgba(96,165,250,.1);--amber-soft:rgba(245,158,11,.1);--text-1:#111827;--text-2:#4b5563;--text-3:#6b7280;--topbar-bg:rgba(255,255,255,.94)}
+    html{background:var(--bg)}body{min-height:100vh;background:var(--bg);color:var(--text-1);font-family:var(--sans)}button,input,select{font:inherit}::selection{background:var(--red);color:#fff}:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+    .topbar{position:sticky;top:0;z-index:90;height:60px;padding:0 36px;display:flex;align-items:center;justify-content:space-between;gap:18px;background:var(--topbar-bg);border-bottom:1px solid var(--border);backdrop-filter:blur(14px)}
+    .topbar h1{font-size:15px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}.topbar-meta{display:flex;align-items:center;gap:9px;color:var(--text-3);font:10px var(--mono)}.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+    .page{width:min(1510px,100%);margin:0 auto;padding:30px 36px 46px;display:flex;flex-direction:column;gap:18px}
+    .status-switcher{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--border);border-radius:14px;background:var(--surface);overflow:hidden}
+    .status-tab{min-width:0;min-height:96px;padding:17px 20px;border:0;border-right:1px solid var(--border);background:transparent;color:var(--text-2);text-align:left;cursor:pointer}.status-tab:last-child{border-right:0}.status-tab:hover{background:var(--surface-2)}.status-tab.active{background:var(--surface-2);color:var(--text-1);box-shadow:inset 0 -2px 0 var(--tab-color)}
+    .status-tab-label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700}.status-marker{width:8px;height:8px;border-radius:50%;background:var(--tab-color)}.status-count{display:block;margin-top:10px;color:var(--tab-color);font:700 27px/1 var(--mono)}
+    .workspace{border:1px solid var(--border);border-radius:14px;background:var(--surface);overflow:hidden}.workspace-header{padding:18px 20px;display:flex;align-items:flex-end;justify-content:space-between;gap:18px;border-bottom:1px solid var(--border)}.workspace-title h2{font-size:20px}.workspace-title p{margin-top:5px;color:var(--text-3);font:10px var(--mono)}
+    .filters{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}.control{height:38px;padding:0 11px;border:1px solid var(--border-hi);border-radius:8px;background:var(--surface-2);color:var(--text-1);font-size:12px;outline:none}.control:focus{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-soft)}.search{width:min(290px,34vw)}
+    .list-head,.order-row{display:grid;grid-template-columns:1.05fr 1.15fr 1.45fr 1.1fr 1.25fr .8fr .8fr 42px;gap:16px;align-items:center}.list-head{padding:11px 18px;background:var(--surface-2);color:var(--text-3);font:9px var(--mono);letter-spacing:.08em;text-transform:uppercase}.order-row{min-height:82px;padding:14px 18px;border-top:1px solid var(--border)}.order-row:hover{background:var(--surface-2)}
+    .primary{font-size:12px;font-weight:700;line-height:1.3}.ref{color:var(--blue);font:600 11px var(--mono)}.secondary{display:block;margin-top:4px;overflow:hidden;color:var(--text-3);font:10px/1.35 var(--mono);text-overflow:ellipsis;white-space:nowrap}.amount{font:600 12px var(--mono)}
+    .badge{display:inline-flex;width:max-content;max-width:100%;padding:5px 8px;border:1px solid currentColor;border-radius:6px;font:500 10px var(--mono);white-space:nowrap}.pending{color:var(--red);background:var(--red-soft)}.progress{color:var(--blue);background:var(--blue-soft)}.completed{color:var(--green);background:var(--green-soft)}.cancelled{color:var(--red);background:var(--red-soft)}
+    .open-order{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--border-hi);border-radius:8px;background:var(--surface-2);color:var(--text-2);cursor:pointer}.open-order:hover{border-color:var(--blue);color:var(--blue)}.open-order svg{width:15px;height:15px}
+    .state{padding:64px 20px;text-align:center}.state h3{font-size:15px}.state p{margin-top:7px;color:var(--text-3);font:10px var(--mono)}.spinner{width:24px;height:24px;margin:0 auto 13px;border:2px solid var(--surface-3);border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+    .drawer-shell{position:fixed;inset:0;z-index:220;visibility:hidden;background:rgba(0,0,0,.68);opacity:0;transition:opacity .18s ease-out,visibility .18s}.drawer-shell.open{visibility:visible;opacity:1}.drawer{position:absolute;top:0;right:0;width:min(720px,100%);height:100%;overflow-y:auto;background:var(--surface);border-left:1px solid var(--border);transform:translateX(26px);transition:transform .2s ease-out}.drawer-shell.open .drawer{transform:translateX(0)}.drawer-head{position:sticky;top:0;z-index:2;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--surface);border-bottom:1px solid var(--border)}.drawer-head h2{font-size:20px}.drawer-head p{margin-top:4px;color:var(--text-3);font:10px var(--mono)}.drawer-close{width:38px;height:38px;display:grid;place-items:center;border:1px solid var(--border-hi);border-radius:9px;background:var(--surface-2);color:var(--text-2);cursor:pointer}.drawer-close:hover{color:var(--text-1);border-color:var(--text-3)}.drawer-close svg{width:17px;height:17px}.drawer-body{padding:16px;display:flex;flex-direction:column;gap:12px}.detail-section{padding:17px 18px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2)}.detail-section h3{margin-bottom:14px;font-size:15px}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}.detail-field{min-width:0}.detail-field.full{grid-column:1/-1}.detail-field label{display:block;margin-bottom:5px;color:var(--text-3);font:9px var(--mono);letter-spacing:.08em;text-transform:uppercase}.detail-value{font-size:12px;font-weight:700;overflow-wrap:anywhere}.detail-muted{margin-top:4px;color:var(--text-3);font:10px/1.45 var(--mono);overflow-wrap:anywhere}.drawer-control{width:100%;min-height:40px;padding:8px 10px;border:1px solid var(--border-hi);border-radius:8px;background:var(--surface);color:var(--text-1);font:11px var(--mono);outline:none}.drawer-control:focus{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-soft)}textarea.drawer-control{min-height:72px;resize:vertical}.action-row{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:10px}.save-button{min-height:36px;padding:7px 12px;border:1px solid var(--red);border-radius:8px;background:var(--red);color:#fff;font-size:11px;font-weight:700;cursor:pointer}.save-button:hover{background:#dc2626}.save-button:disabled{cursor:wait;opacity:.55}.inline-state{min-height:16px;margin-top:8px;color:var(--text-3);font:10px var(--mono)}.inline-state.error{color:#f87171}.inline-state.success{color:var(--green)}
+    @media(max-width:1120px){.list-head,.order-row{grid-template-columns:1fr 1.1fr 1.35fr 1fr .9fr 42px}.list-head>*:nth-child(5),.order-row>*:nth-child(5),.list-head>*:nth-child(7),.order-row>*:nth-child(7){display:none}}
+    @media(max-width:800px){.topbar{height:58px;padding:0 14px 0 64px}.topbar-meta span:last-child{display:none}.page{padding:20px 14px 34px}.status-switcher{grid-template-columns:1fr 1fr}.status-tab{min-height:82px;border-bottom:1px solid var(--border)}.status-tab:nth-child(2){border-right:0}.status-tab:nth-child(n+3){border-bottom:0}.workspace-header{align-items:stretch;flex-direction:column}.filters{display:grid;grid-template-columns:1fr 1fr}.search{width:100%;grid-column:1/-1}.list-head{display:none}.order-row{grid-template-columns:1fr auto;gap:12px;min-height:0;padding:16px}.order-row>*{display:block!important}.order-row .vehicle,.order-row .schedule,.order-row .mechanic{grid-column:1/-1}.order-row .status{grid-column:1}.order-row .payment{grid-column:2;grid-row:4;text-align:right}.order-row .open-order{grid-column:2;grid-row:1}.order-row .customer{padding-right:42px}.order-row .secondary{white-space:normal}.order-row .schedule,.order-row .mechanic{display:none!important}.detail-grid{grid-template-columns:1fr}.detail-field.full{grid-column:auto}}
+    @media(max-width:430px){.topbar h1{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.status-tab{padding:14px}.status-count{font-size:22px}.filters{grid-template-columns:1fr}.search{grid-column:auto}}
+  </style>
+</head>
+<body>
+  <div class="main-wrapper">
+    <header class="topbar">
+      <h1>Today Orders</h1>
+      <div class="topbar-meta"><span class="live-dot" aria-hidden="true"></span><span id="syncState">Connecting…</span></div>
+    </header>
+    <main class="page">
+      <nav class="status-switcher" aria-label="Today's order status">
+        <button class="status-tab active" type="button" data-status="pending" style="--tab-color:var(--red)"><span class="status-tab-label"><span class="status-marker"></span>Pending</span><span class="status-count" id="count-pending">0</span></button>
+        <button class="status-tab" type="button" data-status="progress" style="--tab-color:var(--blue)"><span class="status-tab-label"><span class="status-marker"></span>In Progress</span><span class="status-count" id="count-progress">0</span></button>
+        <button class="status-tab" type="button" data-status="completed" style="--tab-color:var(--green)"><span class="status-tab-label"><span class="status-marker"></span>Completed</span><span class="status-count" id="count-completed">0</span></button>
+        <button class="status-tab" type="button" data-status="cancelled" style="--tab-color:var(--red)"><span class="status-tab-label"><span class="status-marker"></span>Cancelled</span><span class="status-count" id="count-cancelled">0</span></button>
+      </nav>
+
+      <section class="workspace">
+        <div class="workspace-header">
+          <div class="workspace-title"><h2 id="viewTitle">Pending today</h2><p id="todayDate">—</p></div>
+          <div class="filters">
+            <input class="control search" id="searchInput" type="search" placeholder="Search order, customer, phone or vehicle">
+            <select class="control" id="cityFilter"><option value="">All cities</option></select>
+            <select class="control" id="sourceFilter"><option value="">All sources</option><option value="website">Website</option><option value="app">App</option></select>
+          </div>
+        </div>
+        <div class="list-head"><span>Order / created</span><span>Customer</span><span>Vehicle / service</span><span>Schedule</span><span>Mechanic</span><span>Status</span><span>Payment</span><span></span></div>
+        <div id="ordersList"><div class="state"><div class="spinner"></div><h3>Loading today's orders</h3></div></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="drawer-shell" id="orderDrawer" aria-hidden="true" onclick="if(event.target===this) closeOrder()">
+    <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+      <header class="drawer-head"><div><p>ORDER DETAILS</p><h2 id="drawerTitle">Order</h2></div><button class="drawer-close" type="button" onclick="closeOrder()" aria-label="Close order details"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"></path></svg></button></header>
+      <div class="drawer-body" id="drawerBody"></div>
+    </aside>
+  </div>
+
+  <script>
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const IST = 'Asia/Kolkata';
+    let todayOrders = [];
+    let activeMechanics = [];
+    let activeStatus = 'pending';
+    let activeOrderKey = '';
+
+    const escapeHtml = value => String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    const normalize = value => String(value || '').trim().toLowerCase();
+    const dateKey = value => {
+      const date = value ? new Date(value) : null;
+      if (!date || Number.isNaN(date.getTime())) return '';
+      return new Intl.DateTimeFormat('en-CA',{timeZone:IST,year:'numeric',month:'2-digit',day:'2-digit'}).format(date);
+    };
+    const todayKey = () => dateKey(new Date());
+    const formatDateTime = value => {
+      const date = value ? new Date(value) : null;
+      if (!date || Number.isNaN(date.getTime())) return 'Not recorded';
+      return new Intl.DateTimeFormat('en-IN',{timeZone:IST,day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(date);
+    };
+    const isTest = order => normalize(`${order.order_status || ''} ${order.status || ''} ${order.customerName || ''} ${order.source || ''}`).includes('test');
+    const hasMechanic = order => {
+      const mechanic = normalize(order['Assign Mechanic'] || order.mechanic || order.partner_name);
+      return Boolean(mechanic && !['unassigned','not assigned','pending'].includes(mechanic));
+    };
+    function orderState(order) {
+      const status = normalize(`${order.order_status || ''} ${order.status || ''}`);
+      if (status.includes('cancel')) return 'cancelled';
+      if (status.includes('complete')) return 'completed';
+      if (hasMechanic(order) || status.includes('in progress') || status.includes('service started')) return 'progress';
+      return 'pending';
+    }
+    function displayStatus(order) {
+      const state = orderState(order);
+      return {pending:'Pending',progress:'In Progress',completed:'Completed',cancelled:'Cancelled'}[state];
+    }
+    function vehicleName(order) { return String(order.bikeModel || order.vehicleModel || order.bikeName || 'Vehicle not recorded').replace(/\s*\([^)]*\bcc\b[^)]*\)\s*/gi,' ').replace(/\s{2,}/g,' ').trim(); }
+    function serviceName(order) { return order.package || order.servicePackage || order.service || 'Service not recorded'; }
+    function scheduleDate(order) { return order.rescheduled_date || order.rescheduledDate || order.bookingDate || order.preferredDate || null; }
+    function orderRef(order) { return order.bookingRef || order.id || '—'; }
+    const statusOptions = [
+      'Pending','In Progress - Mechanic on the way','Customer Not Response','Service Started',
+      'Cancel - spare parts','Cancel - mechanic not available','Cancel - Duplicate order','Cancel - Non serviceable area',
+      'Customer cancel','Customer cancel - order taken by competitor','Customer cancel - rate high',
+      'Completed - Payment received by FixWheel','Completed - Payment received by Mechanic','Test Order','Reschedule Order'
+    ];
+    function idContext(order) { return order.bookingRef ? {column:'bookingRef',value:order.bookingRef} : {column:'id',value:order.id}; }
+    function currentOrder() { return todayOrders.find(order => String(orderRef(order)) === String(activeOrderKey)); }
+    function ccValue(order) {
+      const stored = String(order.cc || '').trim();
+      if (stored) return /cc/i.test(stored) ? stored : `${stored} CC`;
+      const model = String(order.bikeModel || '');
+      const match = model.match(/\b\d+\s*(?:to|[-–])\s*\d+\s*cc\b/i) || model.match(/\b\d+\s*cc\b/i);
+      return match ? match[0] : 'Not recorded';
+    }
+    function compactStatus(value) {
+      const status = normalize(value);
+      if (status.includes('cancel')) return 'Cancelled';
+      if (status.includes('complete')) return 'Completed';
+      if (status.includes('progress') || status.includes('service started')) return 'In Progress';
+      if (status.includes('test')) return 'Test Order';
+      return 'Pending';
+    }
+    function isoDate(value) {
+      const date = value ? new Date(value) : null;
+      if (!date || Number.isNaN(date.getTime())) return '';
+      return new Intl.DateTimeFormat('en-CA',{timeZone:IST,year:'numeric',month:'2-digit',day:'2-digit'}).format(date);
+    }
+    function renderDrawer(order) {
+      if (!order) return;
+      const ref = orderRef(order);
+      const currentStatus = order.order_status || order.status || 'Pending';
+      const mechanic = order['Assign Mechanic'] || '';
+      const scheduleValue = isoDate(scheduleDate(order));
+      const statusHtml = (!statusOptions.includes(currentStatus) ? `<option selected value="${escapeHtml(currentStatus)}">${escapeHtml(currentStatus)}</option>` : '') + statusOptions.map(item => `<option value="${escapeHtml(item)}" ${item===currentStatus?'selected':''}>${escapeHtml(item)}</option>`).join('');
+      const mechanicHtml = `<option value="">Unassigned</option>` + activeMechanics.map(item => { const name=item.garageName||item.ownerName||'Unknown'; return `<option value="${escapeHtml(name)}" ${name===mechanic?'selected':''}>${escapeHtml(name)}</option>`; }).join('');
+      document.getElementById('drawerTitle').textContent = `#${ref}`;
+      document.getElementById('drawerBody').innerHTML = `
+        <section class="detail-section"><h3>Customer &amp; service</h3><div class="detail-grid">
+          <div class="detail-field"><label>Customer</label><div class="detail-value">${escapeHtml(order.customerName||'Unknown customer')}</div><div class="detail-muted">${escapeHtml(order.phone||'No phone')}</div></div>
+          <div class="detail-field"><label>City &amp; address</label><div class="detail-value">${escapeHtml(order.city||'Not recorded')}</div><div class="detail-muted">${escapeHtml(order.address||'No address')}</div></div>
+          <div class="detail-field"><label>Vehicle</label><div class="detail-value">${escapeHtml(vehicleName(order))}</div><div class="detail-muted">${escapeHtml(order.bikeType||'Type not recorded')} · CC: ${escapeHtml(ccValue(order))}</div></div>
+          <div class="detail-field"><label>Service</label><div class="detail-value">${escapeHtml(serviceName(order))}</div></div>
+          <div class="detail-field full"><label>Issues</label><div class="detail-muted">${escapeHtml(order.issueDescription||'No issue description')}</div></div>
+        </div></section>
+        <section class="detail-section"><h3>Schedule &amp; assignment</h3><div class="detail-grid">
+          <div class="detail-field"><label for="today-schedule-date">Service date</label><input class="drawer-control" id="today-schedule-date" type="date" value="${escapeHtml(scheduleValue)}" onchange="handleScheduleChange(this)"></div>
+          <div class="detail-field"><label for="today-schedule-slot">Slot</label><input class="drawer-control" id="today-schedule-slot" value="${escapeHtml(order.preferredSlot||'')}" onchange="handleScheduleChange(this)"></div>
+          <div class="detail-field full"><label for="today-mechanic">Assigned mechanic</label><select class="drawer-control" id="today-mechanic" onchange="handleMechanicChange(this)">${mechanicHtml}</select></div>
+        </div><div class="inline-state" id="assignmentState" role="status" aria-live="polite"></div></section>
+        <section class="detail-section"><h3>Status &amp; operations</h3><div class="detail-grid">
+          <div class="detail-field full"><label for="today-order-status">Order status</label><select class="drawer-control" id="today-order-status" onchange="handleOrderStatusChange(this)">${statusHtml}</select></div>
+          <div class="detail-field"><label for="today-pickup">Pickup</label><select class="drawer-control" id="today-pickup" onchange="handlePickupChange(this)"><option value="No" ${String(order.pickup||'No')==='No'?'selected':''}>No</option><option value="Yes" ${String(order.pickup)==='Yes'?'selected':''}>Yes</option></select></div>
+          <div class="detail-field"><label>Final amount</label><div class="detail-value">₹${Number(order.final_amount||order.finalAmount||order.price||0).toLocaleString('en-IN')}</div><div class="detail-muted">${escapeHtml(order.settlement||order.payment_settled||'Pending settlement')}</div></div>
+        </div><div class="inline-state" id="operationsState" role="status" aria-live="polite"></div></section>
+        <section class="detail-section"><h3>Notes</h3><div class="detail-field full"><label for="today-remarks">Remark</label><textarea class="drawer-control" id="today-remarks" onchange="handleRemarkChange(this)">${escapeHtml(order.Remarks||'')}</textarea></div><div class="inline-state" id="remarkState" role="status" aria-live="polite"></div></section>`;
+    }
+    function openOrder(refValue) {
+      activeOrderKey = String(refValue || '');
+      const order = currentOrder();
+      if (!order) return;
+      renderDrawer(order);
+      const shell = document.getElementById('orderDrawer');
+      shell.classList.add('open'); shell.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden';
+      shell.querySelector('.drawer-close')?.focus();
+    }
+    function closeOrder() {
+      const shell = document.getElementById('orderDrawer');
+      shell.classList.remove('open'); shell.setAttribute('aria-hidden','true'); document.body.style.overflow=''; activeOrderKey='';
+    }
+    function setControlBusy(control, busy) {
+      const section = control?.closest('.detail-section');
+      (section?.querySelectorAll('.drawer-control') || []).forEach(item => item.disabled = busy);
+    }
+    async function updateOrder(payload, control, stateId) {
+      const order = currentOrder(); if (!order) return false;
+      const context = idContext(order); const state = document.getElementById(stateId);
+      setControlBusy(control, true); if(state){state.className='inline-state';state.textContent='Saving…';}
+      const {data,error}=await db.from('Booking').update({...payload,updated_by:'Admin Website'}).eq(context.column,context.value).select(context.column).maybeSingle();
+      if(error||!data){if(state){state.className='inline-state error';state.textContent=`Could not save: ${error?.message||'Order was not updated.'}`;}setControlBusy(control, false);return false;}
+      Object.assign(order,payload); setControlBusy(control, false); render();
+      if(state){state.className='inline-state success';state.textContent='Saved';window.setTimeout(()=>{if(state.isConnected){state.textContent='';state.className='inline-state';}},1400);}
+      return true;
+    }
+    async function handleScheduleChange(control) {
+      const order=currentOrder(); if(!order)return;
+      const date=document.getElementById('today-schedule-date').value;
+      const slot=document.getElementById('today-schedule-slot').value.trim();
+      await updateOrder({bookingDate:date?`${date}T00:00:00`:order.bookingDate,preferredSlot:slot||null},control,'assignmentState');
+    }
+    async function handleMechanicChange(control) {
+      const order=currentOrder(); if(!order)return;
+      const mechanic=control.value;
+      const payload={'Assign Mechanic':mechanic||null,partner_source:mechanic?'Mechanic assign by Admin Website':null};
+      if(mechanic && orderState(order)==='pending'){payload.order_status='In Progress - Mechanic on the way';payload.status='In Progress';}
+      if(!mechanic && orderState(order)==='progress'){payload.order_status='Pending';payload.status='Pending';}
+      const saved=await updateOrder(payload,control,'assignmentState');
+      if(saved && payload.order_status){const status=document.getElementById('today-order-status');if(status)status.value=payload.order_status;}
+    }
+    async function handleOrderStatusChange(control) {
+      const fullStatus=control.value;
+      await updateOrder({order_status:fullStatus,status:compactStatus(fullStatus)},control,'operationsState');
+    }
+    async function handlePickupChange(control) { await updateOrder({pickup:control.value,pickup_status:control.value},control,'operationsState'); }
+    async function handleRemarkChange(control) { await updateOrder({Remarks:control.value.trim()||null},control,'remarkState'); }
+    function render() {
+      const term = normalize(document.getElementById('searchInput').value);
+      const city = normalize(document.getElementById('cityFilter').value);
+      const source = normalize(document.getElementById('sourceFilter').value);
+      const buckets = {pending:[],progress:[],completed:[],cancelled:[]};
+      todayOrders.forEach(order => buckets[orderState(order)].push(order));
+      Object.keys(buckets).forEach(key => document.getElementById(`count-${key}`).textContent = buckets[key].length);
+
+      const visible = buckets[activeStatus].filter(order => {
+        const haystack = normalize([orderRef(order),order.customerName,order.phone,vehicleName(order),serviceName(order)].join(' '));
+        const orderCity = normalize(order.city);
+        const orderSource = normalize(order.source);
+        return (!term || haystack.includes(term)) && (!city || orderCity === city || (city === 'gurgaon' && orderCity === 'gurugram')) && (!source || orderSource.includes(source));
+      });
+      const titles = {pending:'Pending today',progress:'In progress today',completed:'Completed today',cancelled:'Cancelled today'};
+      document.getElementById('viewTitle').textContent = titles[activeStatus];
+      if (!visible.length) {
+        document.getElementById('ordersList').innerHTML = `<div class="state"><h3>No ${titles[activeStatus].toLowerCase()}</h3><p>Try another status or clear the filters.</p></div>`;
+        return;
+      }
+      document.getElementById('ordersList').innerHTML = visible.map(order => {
+        const mechanic = order['Assign Mechanic'] || order.mechanic || 'Unassigned';
+        const state = orderState(order);
+        const ref = orderRef(order);
+        const amount = Number(order.final_amount || order.finalAmount || order.price || 0);
+        return `<article class="order-row">
+          <div><button class="ref" type="button" style="border:0;background:none;padding:0;cursor:pointer" data-order-ref="${escapeHtml(ref)}" onclick="openOrder(this.dataset.orderRef)">#${escapeHtml(ref)}</button><span class="secondary">${escapeHtml(formatDateTime(order.createdAt))}</span></div>
+          <div class="customer"><span class="primary">${escapeHtml(order.customerName || 'Unknown customer')}</span><span class="secondary">${escapeHtml(order.city || 'City not recorded')}</span></div>
+          <div class="vehicle"><span class="primary">${escapeHtml(vehicleName(order))}</span><span class="secondary">${escapeHtml(serviceName(order))}</span></div>
+          <div class="schedule"><span class="primary">${escapeHtml(formatDateTime(scheduleDate(order)))}</span><span class="secondary">${escapeHtml(order.preferredSlot || 'Slot not recorded')}</span></div>
+          <div class="mechanic"><span class="primary">${escapeHtml(mechanic)}</span><span class="secondary">${hasMechanic(order) ? 'Assigned' : 'Unassigned'}</span></div>
+          <div class="status"><span class="badge ${state}">${displayStatus(order)}</span></div>
+          <div class="payment"><span class="amount">₹${amount.toLocaleString('en-IN')}</span><span class="secondary">${escapeHtml(order.payment_settled || order.settlement || 'Pending')}</span></div>
+          <button class="open-order" type="button" data-order-ref="${escapeHtml(ref)}" onclick="openOrder(this.dataset.orderRef)" aria-label="Open order ${escapeHtml(ref)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg></button>
+        </article>`;
+      }).join('');
+    }
+    function populateCities() {
+      const select = document.getElementById('cityFilter');
+      const cities = [...new Set(todayOrders.map(order => String(order.city || '').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+      select.innerHTML = '<option value="">All cities</option>' + cities.map(city => `<option value="${escapeHtml(city)}">${escapeHtml(city)}</option>`).join('');
+    }
+    async function fetchTodayOrders() {
+      try {
+        const rows = [];
+        for (let from = 0; ; from += 1000) {
+          const {data,error} = await db.from('Booking').select('*').order('createdAt',{ascending:false}).range(from,from+999);
+          if (error) throw error;
+          rows.push(...(data || []));
+          if (!data || data.length < 1000) break;
+        }
+        const {data:partners,error:partnerError}=await db.from('Partner').select('*');
+        if(partnerError) throw partnerError;
+        activeMechanics=(partners||[]).filter(item => item.partner_status==='Active - Working with FixWheel' || item.status==='Active - Working with FixWheel');
+        todayOrders = rows.filter(order => !isTest(order) && dateKey(order.createdAt) === todayKey());
+        populateCities();
+        render();
+        document.getElementById('syncState').textContent = `${todayOrders.length} orders received today`;
+      } catch (error) {
+        document.getElementById('syncState').textContent = 'Data unavailable';
+        document.getElementById('ordersList').innerHTML = `<div class="state"><h3>Could not load today's orders</h3><p>${escapeHtml(error.message || 'Refresh and try again.')}</p></div>`;
+      }
+    }
+    document.querySelectorAll('.status-tab').forEach(button => button.addEventListener('click', () => {
+      activeStatus = button.dataset.status;
+      document.querySelectorAll('.status-tab').forEach(item => item.classList.toggle('active', item === button));
+      render();
+    }));
+    ['searchInput','cityFilter','sourceFilter'].forEach(id => document.getElementById(id).addEventListener(id === 'searchInput' ? 'input' : 'change', render));
+    document.getElementById('todayDate').textContent = new Intl.DateTimeFormat('en-IN',{timeZone:IST,weekday:'long',day:'2-digit',month:'long',year:'numeric'}).format(new Date());
+    document.addEventListener('DOMContentLoaded', () => renderSidebar('today_orders'));
+    document.addEventListener('keydown', event => { if(event.key==='Escape' && document.getElementById('orderDrawer').classList.contains('open')) closeOrder(); });
+    fetchTodayOrders();
+    db.channel('today-orders').on('postgres_changes',{event:'*',schema:'public',table:'Booking'},fetchTodayOrders).subscribe();
+  </script>
+</body>
+</html>

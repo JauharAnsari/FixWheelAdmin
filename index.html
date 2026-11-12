@@ -736,7 +736,7 @@
     .order-detail-section .remark-input { width: 100% !important; min-height: 60px !important; padding: 7px 9px !important; }
     .drawer-actions { display: flex; flex-wrap: wrap; gap: 6px; }
     .drawer-edit-form[hidden], .drawer-customer-view[hidden] { display: none; }
-    .drawer-edit-form input, .drawer-edit-form textarea {
+    .drawer-edit-form input, .drawer-edit-form select, .drawer-edit-form textarea {
       width: 100%;
       min-height: 34px;
       border: 1px solid var(--border-hi);
@@ -748,7 +748,7 @@
       outline: none;
     }
     .drawer-edit-form textarea { min-height: 58px; resize: vertical; }
-    .drawer-edit-form input:focus, .drawer-edit-form textarea:focus { border-color: var(--red); box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.12); }
+    .drawer-edit-form input:focus, .drawer-edit-form select:focus, .drawer-edit-form textarea:focus { border-color: var(--red); box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.12); }
     .drawer-edit-form .form-error { min-height: 14px; margin-top: 4px; color: #f87171; font: 10.5px var(--mono); }
 
     @media (max-width: 1100px) {
@@ -1673,11 +1673,6 @@
           In Progress
           <span class="tab-count" id="in-progress-tab-count">0</span>
         </button>
-        <button class="tab-trigger" onclick="switchTab('today')">
-          <span class="fw-badge fw-badge-warning" style="padding: 2px 8px; font-size:10px;">📅 Today</span>
-          Today's Orders
-          <span class="tab-count" id="today-tab-count">0</span>
-        </button>
         <button class="tab-trigger" onclick="switchTab('completed')">
           <span class="fw-badge fw-badge-success" style="padding: 2px 8px; font-size:10px;">✓ Done</span>
           Completed Orders
@@ -1729,6 +1724,8 @@
             <option value="Service Started">Service Started</option>
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+            <option value="Cancel - Duplicate order">Cancel - Duplicate order</option>
+            <option value="Cancel - Non serviceable area">Cancel - Non serviceable area</option>
             <option value="Customer cancel">Customer cancel</option>
             <option value="Customer cancel - order taken by competitor">Customer cancel - order taken by competitor</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
@@ -1899,62 +1896,6 @@
       </div>
     </div> <!-- End In Progress Section -->
 
-    <!-- TODAY'S ORDERS -->
-    <div id="today-section" class="order-section">
-      <div class="section-header">
-        <div class="section-title">
-          <span class="fw-badge fw-badge-warning" style="padding: 3px 8px; font-size:10px;">Today</span>
-          <h2>Today's Orders</h2>
-        </div>
-        <div class="filter-bar" style="display:flex; gap: 10px; align-items:center; flex-wrap: wrap;">
-          <input type="text" id="today-search" class="filter-input" placeholder="Search customer or ID..."
-            oninput="if(window.allBookings) renderDashboard(window.allBookings)"
-            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 150px;">
-          <select id="today-city-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 100px;">
-            <option value="">All Cities</option>
-            <option value="Delhi">Delhi</option>
-            <option value="Gurgaon">Gurgaon</option>
-            <option value="Faridabad">Faridabad</option>
-            <option value="Noida">Noida</option>
-            <option value="Ghaziabad">Ghaziabad</option>
-          </select>
-          <input type="text" id="today-vehicle-filter" class="filter-input" placeholder="Vehicle Name..."
-            oninput="if(window.allBookings) renderDashboard(window.allBookings)"
-            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none; min-width: 120px;">
-          <select id="today-status-filter" class="filter-input" onchange="if(window.allBookings) renderDashboard(window.allBookings)"
-            style="background: var(--surface-2); border: 1px solid var(--border); color: var(--text-1); padding: 6px 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px; outline: none;">
-            <option value="all">All Status</option>
-            <option value="Pending">Pending</option>
-            <option value="In Progress - Mechanic on the way">In Progress - Mechanic on the way</option>
-            <option value="Completed">Completed</option>
-            <option value="Cancelled">Cancelled</option>
-          </select>
-          <span class="count-badge" id="today-header-count">0 visible</span>
-        </div>
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr class="compact-order-head">
-              <th>Order / Date</th>
-              <th>Customer</th>
-              <th>Vehicle / Service</th>
-              <th>Schedule</th>
-              <th>Mechanic</th>
-              <th>Status</th>
-              <th>Payment</th>
-              <th><span class="sr-only">Open</span></th>
-            </tr>
-          </thead>
-          <tbody id="today-table-body">
-            <!-- Data loaded dynamically -->
-          </tbody>
-        </table>
-      </div>
-    </div> <!-- End Today Section -->
-
     <!-- COMPLETED ORDERS -->
     <div id="completed-section" class="order-section">
       <div class="section-header">
@@ -1989,6 +1930,8 @@
             <option value="Service Started">Service Started</option>
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+            <option value="Cancel - Duplicate order">Cancel - Duplicate order</option>
+            <option value="Cancel - Non serviceable area">Cancel - Non serviceable area</option>
             <option value="Customer cancel">Customer cancel</option>
             <option value="Customer cancel - order taken by competitor">Customer cancel - order taken by competitor</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
@@ -2105,6 +2048,8 @@
             <option value="Service Started">Service Started</option>
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+            <option value="Cancel - Duplicate order">Cancel - Duplicate order</option>
+            <option value="Cancel - Non serviceable area">Cancel - Non serviceable area</option>
             <option value="Customer cancel">Customer cancel</option>
             <option value="Customer cancel - order taken by competitor">Customer cancel - order taken by competitor</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
@@ -2213,6 +2158,8 @@
             <option value="Service Started">Service Started</option>
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+            <option value="Cancel - Duplicate order">Cancel - Duplicate order</option>
+            <option value="Cancel - Non serviceable area">Cancel - Non serviceable area</option>
             <option value="Customer cancel">Customer cancel</option>
             <option value="Customer cancel - order taken by competitor">Customer cancel - order taken by competitor</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
@@ -2319,6 +2266,8 @@
             <option value="Service Started">Service Started</option>
             <option value="Cancel - spare parts">Cancel - spare parts</option>
             <option value="Cancel - mechanic not available">Cancel - mechanic not available</option>
+            <option value="Cancel - Duplicate order">Cancel - Duplicate order</option>
+            <option value="Cancel - Non serviceable area">Cancel - Non serviceable area</option>
             <option value="Customer cancel">Customer cancel</option>
             <option value="Customer cancel - order taken by competitor">Customer cancel - order taken by competitor</option>
             <option value="Customer cancel - rate high">Customer cancel - rate high</option>
@@ -2607,7 +2556,17 @@
 
       const model = String(order?.bikeModel || order?.vehicleModel || '');
       const embeddedCc = model.match(/\b\d+\s*(?:to|[-–])\s*\d+\s*cc\b/i) || model.match(/\b\d+\s*cc\b/i);
-      return embeddedCc ? embeddedCc[0] : '';
+      if (embeddedCc) return embeddedCc[0];
+
+      // Older website deployments omitted Booking.cc. Recover only a plausible
+      // engine displacement embedded in the model name (for example RayZR 125).
+      if (String(order?.source || '').toLowerCase() === 'website' && !/electric|\bev\b/i.test(`${order?.bikeType || ''} ${model}`)) {
+        const capacities = [...model.matchAll(/\b(5\d|[1-9]\d{2}|1[0-4]\d{2})\b/g)]
+          .map(match => Number(match[1]))
+          .filter(value => value >= 50 && value <= 1499);
+        if (capacities.length) return String(Math.max(...capacities));
+      }
+      return '';
     }
 
     function getVehicleDisplayName(order) {
@@ -3435,6 +3394,8 @@
         "Service Started",
         "Cancel - spare parts",
         "Cancel - mechanic not available",
+        "Cancel - Duplicate order",
+        "Cancel - Non serviceable area",
         "Customer cancel",
         "Customer cancel - order taken by competitor",
         "Customer cancel - rate high",
@@ -3814,6 +3775,7 @@
         city: String(data.get('city') || '').trim(),
         bikeType: String(data.get('bikeType') || '').trim(),
         bikeModel: String(data.get('bikeModel') || '').trim(),
+        cc: String(data.get('cc') || '').trim() || null,
         issueDescription: String(data.get('issueDescription') || '').trim() || null,
         updated_by: getCurrentUpdatedBy()
       };
@@ -3868,6 +3830,8 @@
         'Service Started',
         'Cancel - spare parts',
         'Cancel - mechanic not available',
+        'Cancel - Duplicate order',
+        'Cancel - Non serviceable area',
         'Customer cancel',
         'Customer cancel - order taken by competitor',
         'Customer cancel - rate high',
@@ -3954,6 +3918,7 @@
               <div class="order-detail-field"><label for="drawer-edit-address">Address</label><input id="drawer-edit-address" name="address" value="${escapeOrderText(order.address || '')}" autocomplete="street-address" required></div>
               <div class="order-detail-field"><label for="drawer-edit-bike-type">Vehicle type</label><input id="drawer-edit-bike-type" name="bikeType" value="${escapeOrderText(formatBikeTypeLabel(order.bikeType) || '')}"></div>
               <div class="order-detail-field"><label for="drawer-edit-bike-model">Vehicle</label><input id="drawer-edit-bike-model" name="bikeModel" value="${escapeOrderText(order.bikeModel || order.vehicleModel || '')}" required></div>
+              <div class="order-detail-field"><label for="drawer-edit-cc">CC range</label><select id="drawer-edit-cc" name="cc"><option value="">Not recorded</option><option value="0-249" ${String(order.cc || '') === '0-249' ? 'selected' : ''}>0–249 CC</option><option value="250-399" ${String(order.cc || '') === '250-399' ? 'selected' : ''}>250–399 CC</option><option value="400-599" ${String(order.cc || '') === '400-599' ? 'selected' : ''}>400–599 CC</option><option value="600+" ${String(order.cc || '') === '600+' ? 'selected' : ''}>600 CC and above</option></select></div>
               <div class="order-detail-field full"><label for="drawer-edit-issues">Issues</label><textarea id="drawer-edit-issues" name="issueDescription">${escapeOrderText(order.issueDescription || '')}</textarea></div>
             </div>
             <div class="form-error" role="alert"></div>
@@ -4503,12 +4468,10 @@
       }
     }
 
-    // Initial fetch & URL tab switch
+    // Initial fetch. A Today Orders row can deep-link directly into this drawer.
     fetchBookings().then(() => {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('tab') === 'today') {
-        switchTab('today');
-      }
+      const requestedOrder = new URLSearchParams(window.location.search).get('order');
+      if (requestedOrder) openOrderDetails(requestedOrder, 'bookingRef');
     });
 
     // Subscribe to changes for real-time updates (debounced to prevent flicker loops)
