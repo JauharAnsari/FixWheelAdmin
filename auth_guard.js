@@ -15,7 +15,7 @@
   }
 
   function getStaffRole() {
-    return localStorage.getItem('fixwheel_staff_role') || 'admin';
+    return (localStorage.getItem('fixwheel_staff_role') || 'admin').trim().toLowerCase();
   }
   window.getStaffRole = getStaffRole;
 
@@ -62,7 +62,14 @@
 
   // Role Restriction: Employee is restricted to orders and partner operations pages.
   if (role === 'employee') {
-    const allowedPages = ['index.html', 'partners.html', 'active_partners.html', 'partner_performance.html'];
+    const allowedPages = [
+      'index.html',
+      'today_orders.html',
+      'cancelled_orders.html',
+      'partners.html',
+      'active_partners.html',
+      'partner_performance.html'
+    ];
     const isAllowed = allowedPages.includes(currentPath);
 
     if (!isAllowed) {

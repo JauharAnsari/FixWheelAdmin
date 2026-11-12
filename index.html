@@ -341,7 +341,8 @@
 
     /* ─── Tabs ─── */
     .tabs-container {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       background: var(--surface);
       padding: 6px;
       border-radius: 12px;
@@ -355,7 +356,6 @@
     }
 
     .tab-trigger {
-      flex: 1 1 0;
       min-width: 0;
       justify-content: center;
       padding: 10px 12px;
@@ -370,6 +370,8 @@
       gap: 8px;
       border: none;
       background: none;
+      white-space: normal;
+      line-height: 1.2;
     }
 
     .tab-trigger.active {

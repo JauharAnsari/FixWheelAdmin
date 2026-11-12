@@ -16,7 +16,7 @@ function renderSidebar(activeKey) {
           <!-- Orders Group -->
           <div class="nav-group">
             <div class="nav-group-title">Orders</div>
-            <a href="today_orders.html?v=2034" class="nav-item ${activeKey === 'today_orders' ? 'active' : ''}">
+            <a href="today_orders.html?v=2035" class="nav-item ${activeKey === 'today_orders' ? 'active' : ''}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path><path d="M8 14h3M8 17h6"></path></svg>
               Today Orders
             </a>
@@ -61,7 +61,7 @@ function renderSidebar(activeKey) {
           <!-- Orders Group -->
           <div class="nav-group">
             <div class="nav-group-title">Orders</div>
-            <a href="today_orders.html?v=2034" class="nav-item ${activeKey === 'today_orders' ? 'active' : ''}">
+            <a href="today_orders.html?v=2035" class="nav-item ${activeKey === 'today_orders' ? 'active' : ''}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path><path d="M8 14h3M8 17h6"></path></svg>
               Today Orders
             </a>
@@ -399,7 +399,7 @@ const SEARCH_DATABASE = [
   { type: 'page', title: 'Dashboard Overview', sub: 'Overview · Main KPIs & Revenue', icon: '🏠', url: 'home.html?v=2027' },
   { type: 'page', title: 'Live Ops Dispatch', sub: 'Overview · Realtime Dispatch & SLA Queue', icon: '⚡', url: 'live_ops.html?v=2027' },
   { type: 'page', title: 'All Orders Management', sub: 'Orders · Complete Production Orders', icon: '📋', url: 'index.html?v=2027' },
-  { type: 'page', title: 'Today Orders', sub: 'Orders · Pending, In Progress, Completed & Cancelled Today', icon: '📅', url: 'today_orders.html?v=2034' },
+  { type: 'page', title: 'Today Orders', sub: 'Orders · Pending, In Progress, Completed & Cancelled Today', icon: '📅', url: 'today_orders.html?v=2035' },
   { type: 'page', title: 'Cancelled Orders', sub: 'Orders · Cancellation Intelligence', icon: '✕', url: 'cancelled_orders.html?v=2031' },
   { type: 'page', title: 'Customer Queries', sub: 'Customers · Support Tickets & Inquiries', icon: '💬', url: 'queries.html?v=2027' },
   { type: 'page', title: 'Order Disputes', sub: 'Customers · Customer & Mechanic Complaints', icon: '⚖️', url: 'disputes.html?v=2027' },
@@ -502,7 +502,13 @@ function filterGlobalSearch(query) {
 
   const matched = SEARCH_DATABASE.filter(item => {
     if (isEmployee) {
-      if (item.url && !item.url.includes('index.html') && !item.url.includes('partners.html') && !item.url.includes('active_partners.html')) {
+      if (item.url &&
+          !item.url.includes('index.html') &&
+          !item.url.includes('today_orders.html') &&
+          !item.url.includes('cancelled_orders.html') &&
+          !item.url.includes('partners.html') &&
+          !item.url.includes('active_partners.html') &&
+          !item.url.includes('partner_performance.html')) {
         return false;
       }
       if (item.type === 'setting') return false;
