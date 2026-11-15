@@ -2425,6 +2425,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
+  <script src="cancellation_dialog.js?v=2036"></script>
   <script>
     // Initialize Supabase
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -3394,13 +3395,8 @@
         "In Progress - Mechanic on the way",
         "Customer Not Response",
         "Service Started",
-        "Cancel - spare parts",
-        "Cancel - mechanic not available",
-        "Cancel - Duplicate order",
-        "Cancel - Non serviceable area",
-        "Customer cancel",
-        "Customer cancel - order taken by competitor",
-        "Customer cancel - rate high",
+        window.FIXWHEEL_CANCEL_STATUS,
+        window.FIXWHEEL_CUSTOMER_CANCEL_STATUS,
         "Completed - Payment received by FixWheel",
         "Completed - Payment received by Mechanic",
         "Test Order",
@@ -3415,11 +3411,12 @@
       const isSelectDisabledAttr = (isEmployeeUser && isCompletedOrder) ? 'disabled title="Employees cannot modify completed orders"' : '';
 
       let statusDropdownHtml = `<select class="fw-select" ${isSelectDisabledAttr} style="font-size:11px; padding:4px 20px 4px 8px; max-width:165px; width:165px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;" onchange="onStatusDropdownChange(this, '${uniqueIdentifier}', this.value, '${idColumn}')">`;
-      if (!statusOptions.includes(currentStatus)) {
-        statusDropdownHtml += `<option value="${currentStatus}" hidden selected>${currentStatus}</option>`;
+      const currentStatusControl = window.getStatusControlValue(currentStatus);
+      if (!statusOptions.includes(currentStatusControl)) {
+        statusDropdownHtml += `<option value="${currentStatusControl}" hidden selected>${currentStatusControl}</option>`;
       }
       statusOptions.forEach(opt => {
-        statusDropdownHtml += `<option value="${opt}" ${opt === currentStatus ? 'selected' : ''}>${opt}</option>`;
+        statusDropdownHtml += `<option value="${opt}" ${opt === currentStatusControl ? 'selected' : ''}>${window.getStatusControlLabel(opt)}</option>`;
       });
       statusDropdownHtml += `</select>`;
 
@@ -3830,13 +3827,8 @@
         'In Progress - Mechanic on the way',
         'Customer Not Response',
         'Service Started',
-        'Cancel - spare parts',
-        'Cancel - mechanic not available',
-        'Cancel - Duplicate order',
-        'Cancel - Non serviceable area',
-        'Customer cancel',
-        'Customer cancel - order taken by competitor',
-        'Customer cancel - rate high',
+        window.FIXWHEEL_CANCEL_STATUS,
+        window.FIXWHEEL_CUSTOMER_CANCEL_STATUS,
         'Completed - Payment received by FixWheel',
         'Completed - Payment received by Mechanic',
         'Test Order',
@@ -3880,8 +3872,9 @@
       }
 
       let statusOptionsHtml = '';
-      if (!statusOptions.includes(currentStatus)) statusOptionsHtml += `<option value="${escapeOrderText(currentStatus)}" selected hidden>${escapeOrderText(currentStatus)}</option>`;
-      statusOptionsHtml += statusOptions.map(option => `<option value="${escapeOrderText(option)}" ${option === currentStatus ? 'selected' : ''}>${escapeOrderText(option)}</option>`).join('');
+      const currentStatusControl = window.getStatusControlValue(currentStatus);
+      if (!statusOptions.includes(currentStatusControl)) statusOptionsHtml += `<option value="${escapeOrderText(currentStatusControl)}" selected hidden>${escapeOrderText(currentStatusControl)}</option>`;
+      statusOptionsHtml += statusOptions.map(option => `<option value="${escapeOrderText(option)}" ${option === currentStatusControl ? 'selected' : ''}>${escapeOrderText(window.getStatusControlLabel(option))}</option>`).join('');
 
       let mechanicOptionsHtml = `<option value="" ${!order['Assign Mechanic'] ? 'selected' : ''}>Unassigned</option>`;
       mechanicOptionsHtml += (window.activeMechanics || []).map(item => {
@@ -4226,9 +4219,22 @@
       }
 
       if (updateSuccess) fetchBookings();
+      return updateSuccess;
     }
 
     function onStatusDropdownChange(selectEl, id, newStatus, column) {
+      if (newStatus === window.FIXWHEEL_CANCEL_STATUS || newStatus === window.FIXWHEEL_CUSTOMER_CANCEL_STATUS) {
+        const order = (window.allBookings || []).find(b => String(b[column]) === String(id) || String(b.id) === String(id) || String(b.bookingRef) === String(id));
+        const currentStatus = order ? getEffectiveOrderStatus(order) : 'Pending';
+        window.openCancellationReasonDialog({
+          category: newStatus === window.FIXWHEEL_CUSTOMER_CANCEL_STATUS ? 'customer' : 'business',
+          currentStatus,
+          trigger: selectEl,
+          onConfirm: reason => updateOrderStatus(id, reason, column),
+          onCancel: () => { if (selectEl && selectEl.isConnected) selectEl.value = window.getStatusControlValue(currentStatus); }
+        });
+        return;
+      }
       updateOrderStatus(id, newStatus, column);
     }
 

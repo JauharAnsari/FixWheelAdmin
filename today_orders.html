@@ -22,6 +22,7 @@
   <script src="sidebar.js?v=2035"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
+  <script src="cancellation_dialog.js?v=2036"></script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{--bg:#0a0a0a;--surface:#141414;--surface-2:#1e1e1e;--surface-3:#262626;--border:#2a2a2a;--border-hi:#3f3f3f;--red:#ef4444;--red-soft:rgba(239,68,68,.12);--green:#22c55e;--green-soft:rgba(34,197,94,.12);--blue:#60a5fa;--blue-soft:rgba(96,165,250,.12);--amber:#f59e0b;--amber-soft:rgba(245,158,11,.12);--text-1:#fff;--text-2:#b4b4bd;--text-3:#777782;--topbar-bg:rgba(10,10,10,.94);--mono:'DM Mono',monospace;--sans:'Syne',sans-serif}
@@ -126,8 +127,7 @@
     function orderRef(order) { return order.bookingRef || order.id || '—'; }
     const statusOptions = [
       'Pending','In Progress - Mechanic on the way','Customer Not Response','Service Started',
-      'Cancel - spare parts','Cancel - mechanic not available','Cancel - Duplicate order','Cancel - Non serviceable area',
-      'Customer cancel','Customer cancel - order taken by competitor','Customer cancel - rate high',
+      window.FIXWHEEL_CANCEL_STATUS, window.FIXWHEEL_CUSTOMER_CANCEL_STATUS,
       'Completed - Payment received by FixWheel','Completed - Payment received by Mechanic','Test Order','Reschedule Order'
     ];
     function idContext(order) { return order.bookingRef ? {column:'bookingRef',value:order.bookingRef} : {column:'id',value:order.id}; }
@@ -189,7 +189,8 @@
       const finishedRaw = order.finished_at || order.order_finished_date;
       const start = finishedRaw ? new Date(finishedRaw) : null;
       const daysLeft = start && !Number.isNaN(start.getTime()) ? 15 - Math.max(0,Math.floor((Date.now()-start.getTime())/86400000)) : 0;
-      const statusHtml = (!statusOptions.includes(currentStatus) ? `<option selected value="${escapeHtml(currentStatus)}">${escapeHtml(currentStatus)}</option>` : '') + statusOptions.map(item => `<option value="${escapeHtml(item)}" ${item===currentStatus?'selected':''}>${escapeHtml(item)}</option>`).join('');
+      const statusControlValue = window.getStatusControlValue(currentStatus);
+      const statusHtml = (!statusOptions.includes(statusControlValue) ? `<option selected value="${escapeHtml(statusControlValue)}">${escapeHtml(statusControlValue)}</option>` : '') + statusOptions.map(item => `<option value="${escapeHtml(item)}" ${item===statusControlValue?'selected':''}>${escapeHtml(window.getStatusControlLabel(item))}</option>`).join('');
       let mechanicHtml = `<option value="" ${!mechanic?'selected':''}>Unassigned</option>` + activeMechanics.map(item => { const name=item.garageName||item.ownerName||'Unknown'; return `<option value="${escapeHtml(name)}" ${name===mechanic?'selected':''}>${escapeHtml(name)}</option>`; }).join('');
       if (mechanic && !activeMechanics.some(item => (item.garageName||item.ownerName||'Unknown')===mechanic)) mechanicHtml += `<option value="${escapeHtml(mechanic)}" selected>${escapeHtml(mechanic)}</option>`;
       document.getElementById('drawerTitle').textContent = `#${ref}`;
@@ -331,8 +332,7 @@
       const saved=await updateOrder(payload,control,'assignmentState');
       if(saved && payload.order_status){const status=document.getElementById('today-order-status');if(status)status.value=payload.order_status;}
     }
-    async function handleOrderStatusChange(control) {
-      const fullStatus=control.value;
+    async function saveOrderStatus(control, fullStatus) {
       const compact=compactStatus(fullStatus);
       const payload={order_status:fullStatus,status:compact};
       if(compact==='Completed'){
@@ -341,6 +341,23 @@
       }
       const saved=await updateOrder(payload,control,'operationsState');
       if(saved)renderDrawer(currentOrder());
+      return saved;
+    }
+    async function handleOrderStatusChange(control) {
+      const selectedStatus=control.value;
+      if(selectedStatus===window.FIXWHEEL_CANCEL_STATUS || selectedStatus===window.FIXWHEEL_CUSTOMER_CANCEL_STATUS){
+        const order=currentOrder();
+        const currentStatus=order?.order_status||order?.status||'Pending';
+        window.openCancellationReasonDialog({
+          category:selectedStatus===window.FIXWHEEL_CUSTOMER_CANCEL_STATUS?'customer':'business',
+          currentStatus,
+          trigger:control,
+          onConfirm:reason=>saveOrderStatus(control,reason),
+          onCancel:()=>{if(control.isConnected)control.value=window.getStatusControlValue(currentStatus);}
+        });
+        return;
+      }
+      await saveOrderStatus(control,selectedStatus);
     }
     async function handlePickupChange(control) { await updateOrder({pickup:control.value,pickup_status:control.value},control,'operationsState'); }
     async function handleRemarkChange(control) { await updateOrder({Remarks:control.value.trim()||null},control,'remarkState'); }
