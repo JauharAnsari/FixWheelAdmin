@@ -1599,10 +1599,31 @@
       document.getElementById('fill-canceled').style.width = `${cancPct}%`;
     }
 
+    async function fetchAllBookings() {
+      const bookings = [];
+      const pageSize = 1000;
+
+      for (let from = 0; ; from += pageSize) {
+        const { data, error } = await supabaseClient
+          .from('Booking')
+          .select('*')
+          .order('createdAt', { ascending: false })
+          .range(from, from + pageSize - 1);
+
+        if (error) return { data: null, error };
+
+        const page = data || [];
+        bookings.push(...page);
+        if (page.length < pageSize) break;
+      }
+
+      return { data: bookings, error: null };
+    }
+
     async function fetchDashboardData() {
       const [{ data: partners, error: partnersError }, { data: bookings, error: bookingsError }] = await Promise.all([
         supabaseClient.from('Partner').select('*'),
-        supabaseClient.from('Booking').select('*')
+        fetchAllBookings()
       ]);
 
       if (partnersError || bookingsError) {
