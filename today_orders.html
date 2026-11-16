@@ -22,7 +22,7 @@
   <script src="sidebar.js?v=2035"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <script src="cancellation_dialog.js?v=2036"></script>
+  <script src="cancellation_dialog.js?v=2038"></script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{--bg:#0a0a0a;--surface:#141414;--surface-2:#1e1e1e;--surface-3:#262626;--border:#2a2a2a;--border-hi:#3f3f3f;--red:#ef4444;--red-soft:rgba(239,68,68,.12);--green:#22c55e;--green-soft:rgba(34,197,94,.12);--blue:#60a5fa;--blue-soft:rgba(96,165,250,.12);--amber:#f59e0b;--amber-soft:rgba(245,158,11,.12);--text-1:#fff;--text-2:#b4b4bd;--text-3:#777782;--topbar-bg:rgba(10,10,10,.94);--mono:'DM Mono',monospace;--sans:'Syne',sans-serif}
@@ -140,7 +140,7 @@
     function orderRef(order) { return order.bookingRef || order.id || '—'; }
     const statusOptions = [
       'Pending','In Progress - Mechanic on the way','Customer Not Response','Service Started',
-      window.FIXWHEEL_CANCEL_STATUS, window.FIXWHEEL_CUSTOMER_CANCEL_STATUS,
+      window.FIXWHEEL_CANCEL_STATUS,
       'Completed - Payment received by FixWheel','Completed - Payment received by Mechanic','Test Order','Reschedule Order'
     ];
     function idContext(order) { return order.bookingRef ? {column:'bookingRef',value:order.bookingRef} : {column:'id',value:order.id}; }
@@ -358,11 +358,10 @@
     }
     async function handleOrderStatusChange(control) {
       const selectedStatus=control.value;
-      if(selectedStatus===window.FIXWHEEL_CANCEL_STATUS || selectedStatus===window.FIXWHEEL_CUSTOMER_CANCEL_STATUS){
+      if(selectedStatus===window.FIXWHEEL_CANCEL_STATUS){
         const order=currentOrder();
         const currentStatus=order?.order_status||order?.status||'Pending';
         window.openCancellationReasonDialog({
-          category:selectedStatus===window.FIXWHEEL_CUSTOMER_CANCEL_STATUS?'customer':'business',
           currentStatus,
           trigger:control,
           onConfirm:reason=>saveOrderStatus(control,reason),

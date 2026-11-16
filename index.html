@@ -2425,7 +2425,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <script src="cancellation_dialog.js?v=2036"></script>
+  <script src="cancellation_dialog.js?v=2038"></script>
   <script>
     // Initialize Supabase
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -3396,7 +3396,6 @@
         "Customer Not Response",
         "Service Started",
         window.FIXWHEEL_CANCEL_STATUS,
-        window.FIXWHEEL_CUSTOMER_CANCEL_STATUS,
         "Completed - Payment received by FixWheel",
         "Completed - Payment received by Mechanic",
         "Test Order",
@@ -3828,7 +3827,6 @@
         'Customer Not Response',
         'Service Started',
         window.FIXWHEEL_CANCEL_STATUS,
-        window.FIXWHEEL_CUSTOMER_CANCEL_STATUS,
         'Completed - Payment received by FixWheel',
         'Completed - Payment received by Mechanic',
         'Test Order',
@@ -4223,11 +4221,10 @@
     }
 
     function onStatusDropdownChange(selectEl, id, newStatus, column) {
-      if (newStatus === window.FIXWHEEL_CANCEL_STATUS || newStatus === window.FIXWHEEL_CUSTOMER_CANCEL_STATUS) {
+      if (newStatus === window.FIXWHEEL_CANCEL_STATUS) {
         const order = (window.allBookings || []).find(b => String(b[column]) === String(id) || String(b.id) === String(id) || String(b.bookingRef) === String(id));
         const currentStatus = order ? getEffectiveOrderStatus(order) : 'Pending';
         window.openCancellationReasonDialog({
-          category: newStatus === window.FIXWHEEL_CUSTOMER_CANCEL_STATUS ? 'customer' : 'business',
           currentStatus,
           trigger: selectEl,
           onConfirm: reason => updateOrderStatus(id, reason, column),
