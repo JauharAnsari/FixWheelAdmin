@@ -884,8 +884,40 @@
     const selectedTrendMetrics = new Set(['revenue', 'completed']);
     let trendChartInstance = null;
 
+    async function fetchAllBookings() {
+      const bookings = [];
+      const pageSize = 1000;
+      let expectedTotal = null;
+
+      for (let from = 0; ; from += pageSize) {
+        const { data, error, count } = await supabaseClient
+          .from('Booking')
+          .select('*', { count: from === 0 ? 'exact' : undefined })
+          // Oldest-first keeps page boundaries stable while new bookings arrive.
+          .order('createdAt', { ascending: true, nullsFirst: false })
+          .order('id', { ascending: true })
+          .range(from, from + pageSize - 1);
+
+        if (error) return { data: null, error };
+        if (from === 0 && Number.isFinite(count)) expectedTotal = count;
+
+        const page = data || [];
+        bookings.push(...page);
+        if (page.length < pageSize) break;
+      }
+
+      if (expectedTotal !== null && bookings.length < expectedTotal) {
+        return {
+          data: null,
+          error: new Error(`Booking pagination incomplete: loaded ${bookings.length} of ${expectedTotal} rows.`)
+        };
+      }
+
+      return { data: bookings, error: null };
+    }
+
     async function fetchRevenueData() {
-      const { data: bookings, error } = await supabaseClient.from('Booking').select('*');
+      const { data: bookings, error } = await fetchAllBookings();
 
       if (error) {
         console.error("Revenue query error:", error);
