@@ -235,6 +235,40 @@
       gap: 20px;
     }
 
+    .date-filter-panel {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+    }
+
+    .date-preset-group, .date-range-fields { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 8px; }
+    .date-field { display: flex; flex-direction: column; gap: 5px; }
+    .date-field label { color: var(--text-3); font: 10px var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+    .date-input {
+      height: 35px;
+      padding: 0 10px;
+      border: 1px solid var(--border-hi);
+      border-radius: 7px;
+      background: var(--surface-2);
+      color: var(--text-1);
+      font: 11px var(--mono);
+    }
+    .date-filter-status { color: var(--text-3); font: 10px/1.5 var(--mono); }
+
+    @media (max-width: 900px) {
+      .city-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .date-filter-panel { align-items: stretch; flex-direction: column; }
+      .date-range-fields { align-items: stretch; }
+      .date-field { flex: 1 1 145px; }
+      .date-input { width: 100%; }
+      .main { padding: 20px 16px; }
+    }
+
     /* ─── Classified Tabs & Filters ─── */
     .tabs-bar {
       display: flex;
@@ -417,6 +451,23 @@
     <!-- ─── Main Content ─── -->
     <main class="main">
 
+      <section class="date-filter-panel" aria-label="Coverage date filter">
+        <div>
+          <div class="date-preset-group" aria-label="Date presets">
+            <button class="tab-btn" type="button" data-date-preset="today" onclick="setCoveragePreset('today')">Today</button>
+            <button class="tab-btn" type="button" data-date-preset="last7" onclick="setCoveragePreset('last7')">Last 7 days</button>
+            <button class="tab-btn active" type="button" data-date-preset="month" onclick="setCoveragePreset('month')">This month</button>
+            <button class="tab-btn" type="button" data-date-preset="all" onclick="setCoveragePreset('all')">All time</button>
+          </div>
+          <p class="date-filter-status" id="coverage-range-label" aria-live="polite">Loading coverage data…</p>
+        </div>
+        <div class="date-range-fields">
+          <div class="date-field"><label for="coverage-from">From</label><input class="date-input" id="coverage-from" type="date"></div>
+          <div class="date-field"><label for="coverage-to">To</label><input class="date-input" id="coverage-to" type="date"></div>
+          <button class="btn-action" type="button" onclick="applyCoverageRange()">Apply</button>
+        </div>
+      </section>
+
       <!-- ─── Classification Tabs & Filters ─── -->
       <div style="display:flex; flex-direction:column; gap:12px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
@@ -552,23 +603,112 @@
     let rawBookings = [];
     let selectedCity = 'all';
     let selectedStatus = 'all';
+    let activeDatePreset = 'month';
+
+    const COVERAGE_DATE_FORMATTER = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' });
+
+    function parseBookingDate(value) {
+      if (!value) return null;
+      const text = String(value).trim();
+      const normalized = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(text) ? text : text + 'Z';
+      const date = new Date(normalized);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function coverageDateKey(value) {
+      const date = value instanceof Date ? value : parseBookingDate(value);
+      return date && !Number.isNaN(date.getTime()) ? COVERAGE_DATE_FORMATTER.format(date) : '';
+    }
+
+    function isProductionBooking(booking) {
+      const status = String((booking.order_status || '') + ' ' + (booking.status || '')).toLowerCase();
+      return !status.includes('test order') && !status.includes('sandbox');
+    }
+
+    function shiftCoverageDate(dateKey, days) {
+      const [year, month, day] = dateKey.split('-').map(Number);
+      return coverageDateKey(new Date(Date.UTC(year, month - 1, day + days, 12)));
+    }
+
+    async function fetchAllBookings() {
+      const rows = [];
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await supabaseClient.from('Booking').select('*').order('createdAt', { ascending: true, nullsFirst: false }).range(from, from + 999);
+        if (error) throw error;
+        rows.push(...(data || []));
+        if (!data || data.length < 1000) break;
+      }
+      return rows;
+    }
 
     async function fetchCoverageData() {
-      const [{ data: partners, error: pErr }, { data: bookings, error: bErr }] = await Promise.all([
+      const [{ data: partners, error: pErr }, bookingResult] = await Promise.all([
         supabaseClient.from('Partner').select('*'),
-        supabaseClient.from('Booking').select('*')
+        fetchAllBookings().then(data => ({ data, error: null })).catch(error => ({ data: [], error }))
       ]);
 
       if (pErr) console.error("Partner query error:", pErr);
-      if (bErr) console.error("Booking query error:", bErr);
+      if (bookingResult.error) console.error("Booking query error:", bookingResult.error);
 
       rawPartners = partners || [];
-      rawBookings = bookings || [];
+      rawBookings = (bookingResult.data || []).filter(isProductionBooking);
 
-      const activePartners = rawPartners.filter(p => {
+      setCoveragePreset('month');
+    }
+
+    function getActivePartners() {
+      return rawPartners.filter(p => {
         const s = (p.partner_status || p.status || '').toLowerCase();
         return s.includes('active') && !s.includes('deactivate');
       });
+    }
+
+    function getFilteredBookings() {
+      const from = document.getElementById('coverage-from').value;
+      const to = document.getElementById('coverage-to').value;
+      if (!from || !to) return rawBookings;
+      return rawBookings.filter(booking => {
+        const key = coverageDateKey(booking.createdAt);
+        return key && key >= from && key <= to;
+      });
+    }
+
+    function setCoveragePreset(preset) {
+      activeDatePreset = preset;
+      const today = coverageDateKey(new Date());
+      const fromInput = document.getElementById('coverage-from');
+      const toInput = document.getElementById('coverage-to');
+      if (preset === 'today') {
+        fromInput.value = today;
+        toInput.value = today;
+      } else if (preset === 'last7') {
+        fromInput.value = shiftCoverageDate(today, -6);
+        toInput.value = today;
+      } else if (preset === 'month') {
+        fromInput.value = today.slice(0, 8) + '01';
+        toInput.value = today;
+      } else {
+        fromInput.value = '';
+        toInput.value = '';
+      }
+      document.querySelectorAll('[data-date-preset]').forEach(button => button.classList.toggle('active', button.dataset.datePreset === preset));
+      applyCoverageRange();
+    }
+
+    function applyCoverageRange() {
+      const from = document.getElementById('coverage-from').value;
+      const to = document.getElementById('coverage-to').value;
+      if ((from && !to) || (!from && to) || (from && to && from > to)) {
+        document.getElementById('coverage-range-label').textContent = 'Choose a valid start and end date.';
+        return;
+      }
+      if (activeDatePreset !== 'all' && !document.querySelector(`[data-date-preset="${activeDatePreset}"]`)?.classList.contains('active')) activeDatePreset = 'custom';
+      recomputeCoverageData();
+    }
+
+    function recomputeCoverageData() {
+      const activePartners = getActivePartners();
+      const bookings = getFilteredBookings();
 
       computedLocalityData = PUBLIC_LOCALITIES.map(loc => {
         const cityLower = loc.city.toLowerCase();
@@ -584,7 +724,7 @@
 
         const partnerCount = matchingPartners.length > 0 ? matchingPartners.length : (cityPartnerCount > 0 ? 1 : 0);
 
-        const matchingBookings = rawBookings.filter(b => {
+        const matchingBookings = bookings.filter(b => {
           const bCity = (b.city || '').toLowerCase();
           const bAddress = (b.address || '').toLowerCase();
           if (!bCity.includes(cityLower) && !bAddress.includes(cityLower)) return false;
@@ -631,8 +771,12 @@
       });
 
       updateCountsAndBadges();
-      renderCityCards(activePartners, rawBookings);
+      renderCityCards(activePartners, bookings);
       renderClassifiedViews();
+      const from = document.getElementById('coverage-from').value;
+      const to = document.getElementById('coverage-to').value;
+      const label = from && to ? `${from} to ${to}` : 'All available dates';
+      document.getElementById('coverage-range-label').textContent = `${label} · ${bookings.length.toLocaleString('en-IN')} orders received`;
     }
 
     function updateCountsAndBadges() {
@@ -814,6 +958,10 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       renderSidebar('coverage');
+      ['coverage-from', 'coverage-to'].forEach(id => document.getElementById(id).addEventListener('change', () => {
+        activeDatePreset = 'custom';
+        document.querySelectorAll('[data-date-preset]').forEach(button => button.classList.remove('active'));
+      }));
       fetchCoverageData();
     });
   </script>

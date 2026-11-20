@@ -537,6 +537,7 @@
       gap: 8px;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+      text-decoration: none;
     }
 
     .btn-primary:hover {
@@ -744,6 +745,15 @@
       display: flex;
       flex-direction: column;
       gap: 4px;
+      color: inherit;
+      text-decoration: none;
+      transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.16s ease;
+    }
+
+    .today-pill-card:hover {
+      border-color: var(--border-hi);
+      background: var(--surface-3);
+      transform: translateY(-1px);
     }
 
     .today-pill-label {
@@ -1266,13 +1276,13 @@
                   <span class="stat-trend neutral" id="monthly-change-badge">—</span>
                   <span class="monthly-comparison-copy" id="monthly-comparison-copy">Total revenue: <strong>₹0</strong></span>
                 </div>
-                <button class="btn-primary" onclick="window.location.href='index.html'">
-                  <span>View All Orders</span>
+                <a class="btn-primary" href="revenue.html?v=2030">
+                  <span>View more</span>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                     <polyline points="12 5 19 12 12 19"></polyline>
                   </svg>
-                </button>
+                </a>
               </div>
             </div>
           </div>
@@ -1347,26 +1357,26 @@
         </div>
 
         <div class="today-grid">
-          <div class="today-pill-card" onclick="window.location.href='index.html?tab=today&v=2027'" style="cursor:pointer; border-color:var(--yellow-dim); background: linear-gradient(135deg, rgba(234, 179, 8, 0.08) 0%, var(--surface-2) 100%);">
-            <span class="today-pill-label">Today's Orders (Click to view)</span>
+          <a class="today-pill-card" href="today_orders.html?v=2035&status=total" style="border-color:var(--yellow-dim); background: linear-gradient(135deg, rgba(234, 179, 8, 0.08) 0%, var(--surface-2) 100%);">
+            <span class="today-pill-label">Today's Orders</span>
             <span class="today-pill-val" style="color:#facc15;" id="today-val-orders">0</span>
-          </div>
-          <div class="today-pill-card">
+          </a>
+          <a class="today-pill-card" href="today_orders.html?v=2035&status=completed">
             <span class="today-pill-label">Today's Completed</span>
             <span class="today-pill-val" style="color: #4ade80;" id="today-val-completed">0</span>
-          </div>
-          <div class="today-pill-card">
+          </a>
+          <a class="today-pill-card" href="today_orders.html?v=2035&status=cancelled">
             <span class="today-pill-label">Today's Canceled</span>
             <span class="today-pill-val" style="color: var(--red);" id="today-val-canceled">0</span>
-          </div>
-          <div class="today-pill-card">
+          </a>
+          <a class="today-pill-card" href="customers.html?v=2027">
             <span class="today-pill-label">New Customers</span>
             <span class="today-pill-val" style="color: #60a5fa;" id="today-val-new-customers">0</span>
-          </div>
-          <div class="today-pill-card">
+          </a>
+          <a class="today-pill-card" href="revenue.html?v=2030&range=today">
             <span class="today-pill-label">Today's Revenue</span>
             <span class="today-pill-val" style="color: var(--green);" id="today-val-revenue">₹0</span>
-          </div>
+          </a>
         </div>
       </section>
 
@@ -1514,7 +1524,7 @@
             <div class="insight-title">
               <span>🛠️ Service Package Demand</span>
             </div>
-            <span style="font-family: var(--mono); font-size: 11px; color: var(--text-3);">Most Booked</span>
+            <a class="insight-link" href="service_analytics.html?v=2028">View more →</a>
           </div>
 
           <div class="service-breakdown-list" id="service-breakdown-list">
@@ -2232,6 +2242,15 @@
       new ApexCharts(document.querySelector("#radial-yearly"), optionsRadial2).render();
     }
 
+    function getDashboardISTISO(value) {
+      if (!value) return '';
+      if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value.trim())) return value.trim();
+      const normalized = typeof value === 'string' && !/(?:Z|[+-]\d{2}:?\d{2})$/i.test(value) ? value + 'Z' : value;
+      const date = value instanceof Date ? value : new Date(normalized);
+      if (Number.isNaN(date.getTime())) return '';
+      return date.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    }
+
     async function syncDailyRevenueToSupabase(bookings) {
       if (!supabaseClient || !bookings || !Array.isArray(bookings)) return;
       try {
@@ -2246,7 +2265,7 @@
 
           const amt = Number(b.Final_Amount) || Number(b.price) || 0;
           const rawFinished = b.finished_at || b.order_finished_date || b.createdAt;
-          const dateISO = getISTISO(rawFinished);
+          const dateISO = getDashboardISTISO(rawFinished);
           if (!dateISO) return;
 
           if (!dailyMap[dateISO]) dailyMap[dateISO] = { revenue: 0, count: 0 };

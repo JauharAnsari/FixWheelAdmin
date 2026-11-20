@@ -174,7 +174,7 @@
 
     .filter-grid {
       display: grid;
-      grid-template-columns: minmax(210px, 1.3fr) repeat(2, minmax(150px, 0.8fr)) auto auto;
+      grid-template-columns: minmax(190px, 1.15fr) minmax(170px, 1fr) repeat(2, minmax(145px, 0.8fr)) auto auto;
       align-items: end;
       gap: 10px;
     }
@@ -214,7 +214,7 @@
 
     .summary-band {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       border: 1px solid var(--border);
       border-radius: 12px;
       overflow: hidden;
@@ -228,8 +228,17 @@
     .summary-value.accent { color: var(--red); }
     .summary-value.summary-value-text { font-size: clamp(16px, 1.6vw, 22px); line-height: 1.2; overflow-wrap: anywhere; text-overflow: clip; white-space: normal; }
     .summary-sub { margin-top: 5px; overflow: hidden; color: var(--text-3); font-family: var(--mono); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .comparison-pair { margin-top: 9px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .comparison-value { min-width: 0; }
+    .comparison-value span { display: block; color: var(--text-3); font: 9px var(--mono); text-transform: uppercase; }
+    .comparison-value strong { display: block; margin-top: 3px; overflow: hidden; color: var(--text-1); font-size: clamp(18px, 1.7vw, 23px); text-overflow: ellipsis; white-space: nowrap; }
+    .comparison-value strong.summary-value-text { overflow: visible; font-size: 15px; line-height: 1.25; text-overflow: clip; white-space: normal; }
+    .comparison-value.current strong { color: var(--red); }
+    .comparison-delta { margin-top: 7px; color: var(--text-3); font: 10px var(--mono); }
+    .comparison-delta.up { color: var(--green); }
+    .comparison-delta.down { color: var(--red); }
 
-    .report-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(320px, 0.75fr); gap: 18px; align-items: start; }
+    .report-grid { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
     .report-panel { min-width: 0; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden; }
     .panel-header { padding: 18px 20px 15px; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--border); }
     .panel-header h2 { font-size: 16px; letter-spacing: -0.01em; }
@@ -238,7 +247,7 @@
 
     .service-list-head, .service-row {
       display: grid;
-      grid-template-columns: minmax(220px, 1.7fr) minmax(110px, 0.6fr) minmax(110px, 0.6fr) minmax(74px, 0.4fr);
+      grid-template-columns: minmax(220px, 1.7fr) repeat(2, minmax(110px, 0.6fr)) minmax(90px, 0.45fr) minmax(74px, 0.4fr);
       align-items: center;
       gap: 14px;
     }
@@ -266,7 +275,7 @@
     .metric-cell strong { color: var(--text-1); font-family: var(--mono); font-size: 15px; font-variant-numeric: tabular-nums; }
     .metric-cell span { color: var(--text-3); font-family: var(--mono); font-size: 9px; }
     .share-value { color: var(--text-2); font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; }
-    .daily-list-head, .daily-row { display: grid; grid-template-columns: minmax(118px, 1fr) 74px 88px; gap: 10px; align-items: center; }
+    .daily-list-head, .daily-row { min-width: 860px; display: grid; grid-template-columns: minmax(138px, 1fr) minmax(138px, 1fr) repeat(2, 90px) repeat(2, minmax(115px, .8fr)); gap: 12px; align-items: center; }
     .daily-list-head { padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface-2); color: var(--text-3); font-family: var(--mono); font-size: 9px; letter-spacing: 0.05em; text-transform: uppercase; }
     .daily-row { padding: 13px 16px; border-bottom: 1px solid var(--border); }
     .daily-row:last-child { border-bottom: 0; }
@@ -274,7 +283,7 @@
     .daily-date span { display: block; margin-top: 3px; color: var(--text-3); font-family: var(--mono); font-size: 9px; font-weight: 400; }
     .daily-number { color: var(--text-1); font-family: var(--mono); font-size: 13px; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
     .daily-number.muted { color: var(--text-2); }
-    .daily-list { max-height: 720px; overflow-y: auto; }
+    .daily-list { max-height: 720px; overflow: auto; }
 
     .state-message { padding: 44px 24px; color: var(--text-3); font-family: var(--mono); font-size: 11px; line-height: 1.7; text-align: center; }
     .state-message strong { display: block; margin-bottom: 5px; color: var(--text-2); font-family: var(--sans); font-size: 14px; }
@@ -285,9 +294,9 @@
     .page-footer { padding-top: 2px; display: flex; justify-content: space-between; gap: 14px; color: var(--text-3); font-family: var(--mono); font-size: 9px; }
 
     @media (max-width: 1100px) {
-      .report-grid { grid-template-columns: 1fr; }
       .daily-list { max-height: 390px; overflow-y: auto; }
-      .filter-grid { grid-template-columns: 1fr 1fr 1fr auto auto; }
+      .filter-grid { grid-template-columns: 1fr 1fr 1fr; }
+      .action-button { width: 100%; }
     }
 
     @media (max-width: 860px) {
@@ -299,8 +308,9 @@
       .field:first-child { grid-column: 1 / -1; }
       .action-button { width: 100%; }
       .summary-band { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .summary-item:nth-child(2) { border-right: 0; }
-      .summary-item:nth-child(-n+2) { border-bottom: 1px solid var(--border); }
+      .summary-item { border-bottom: 1px solid var(--border); }
+      .summary-item:nth-child(even) { border-right: 0; }
+      .summary-item:last-child { grid-column: 1 / -1; border-bottom: 0; }
       .summary-value { font-size: 24px; }
       .service-list-head { display: none; }
       .service-row { grid-template-columns: 1fr 1fr; gap: 12px 16px; padding: 16px; }
@@ -322,7 +332,7 @@
       .panel-header { padding: 16px; }
       .panel-header { display: block; }
       .panel-count { display: inline-block; margin-top: 9px; }
-      .daily-list-head, .daily-row { grid-template-columns: minmax(102px, 1fr) 60px 70px; padding-left: 12px; padding-right: 12px; }
+      .daily-list-head, .daily-row { padding-left: 12px; padding-right: 12px; }
       .page-footer { display: block; line-height: 1.8; }
     }
 
@@ -366,6 +376,14 @@
             </select>
           </div>
           <div class="field">
+            <label for="compare-mode">Compare with</label>
+            <select id="compare-mode" class="field-control">
+              <option value="previous_period">Previous period</option>
+              <option value="previous_month">Previous month</option>
+              <option value="previous_year">Previous year</option>
+            </select>
+          </div>
+          <div class="field">
             <label for="date-from">From date</label>
             <input id="date-from" class="field-control" type="date">
           </div>
@@ -382,23 +400,28 @@
       <section class="summary-band" aria-label="Selected period summary">
         <article class="summary-item">
           <div class="summary-label">Orders in period</div>
-          <div class="summary-value accent" id="summary-orders">—</div>
-          <div class="summary-sub" id="summary-orders-sub">Loading</div>
+          <div class="comparison-pair"><div class="comparison-value current"><span>Current</span><strong id="summary-orders">—</strong></div><div class="comparison-value"><span>Previous</span><strong id="summary-orders-previous">—</strong></div></div>
+          <div class="comparison-delta" id="summary-orders-delta">Loading</div>
+        </article>
+        <article class="summary-item">
+          <div class="summary-label">Completed revenue</div>
+          <div class="comparison-pair"><div class="comparison-value current"><span>Current</span><strong id="summary-revenue">—</strong></div><div class="comparison-value"><span>Previous</span><strong id="summary-revenue-previous">—</strong></div></div>
+          <div class="comparison-delta" id="summary-revenue-delta">Loading</div>
         </article>
         <article class="summary-item">
           <div class="summary-label">Service bookings</div>
-          <div class="summary-value" id="summary-selections">—</div>
-          <div class="summary-sub">Combined packages count each service</div>
+          <div class="comparison-pair"><div class="comparison-value current"><span>Current</span><strong id="summary-selections">—</strong></div><div class="comparison-value"><span>Previous</span><strong id="summary-selections-previous">—</strong></div></div>
+          <div class="comparison-delta" id="summary-selections-delta">Combined packages count each service</div>
         </article>
         <article class="summary-item">
           <div class="summary-label">Services booked</div>
-          <div class="summary-value" id="summary-services">—</div>
-          <div class="summary-sub">Distinct services in period</div>
+          <div class="comparison-pair"><div class="comparison-value current"><span>Current</span><strong id="summary-services">—</strong></div><div class="comparison-value"><span>Previous</span><strong id="summary-services-previous">—</strong></div></div>
+          <div class="comparison-delta" id="summary-services-delta">Distinct services</div>
         </article>
         <article class="summary-item">
           <div class="summary-label">Most booked service</div>
-          <div class="summary-value summary-value-text" id="summary-top-service">—</div>
-          <div class="summary-sub" id="summary-top-service-sub">Waiting for data</div>
+          <div class="comparison-pair"><div class="comparison-value current"><span>Current</span><strong class="summary-value-text" id="summary-top-service">—</strong></div><div class="comparison-value"><span>Previous</span><strong class="summary-value-text" id="summary-top-service-previous">—</strong></div></div>
+          <div class="comparison-delta" id="summary-top-service-sub">Waiting for data</div>
         </article>
       </section>
 
@@ -413,8 +436,9 @@
           </header>
           <div class="service-list-head" aria-hidden="true">
             <span>Service</span>
-            <span>In period</span>
-            <span>All-time orders</span>
+            <span>Current</span>
+            <span>Previous</span>
+            <span>Change</span>
             <span>Share</span>
           </div>
           <div id="service-list" aria-live="polite">
@@ -425,15 +449,18 @@
         <section class="report-panel" aria-labelledby="daily-report-title">
           <header class="panel-header">
             <div>
-              <h2 id="daily-report-title">Bookings by date</h2>
-              <p id="daily-range-label">Dates with booking activity</p>
+              <h2 id="daily-report-title">Daily comparison</h2>
+              <p id="daily-range-label">Current and comparison dates aligned side by side</p>
             </div>
             <span class="panel-count" id="daily-count-badge">0 dates</span>
           </header>
           <div class="daily-list-head" aria-hidden="true">
-            <span>Date</span>
-            <span style="text-align:right;">Orders</span>
-            <span style="text-align:right;">Services</span>
+            <span>Current date</span>
+            <span>Comparison date</span>
+            <span style="text-align:right;">Current orders</span>
+            <span style="text-align:right;">Previous orders</span>
+            <span style="text-align:right;">Current revenue</span>
+            <span style="text-align:right;">Previous revenue</span>
           </div>
           <div id="daily-list" class="daily-list" aria-live="polite">
             <div class="state-message"><span class="loading-line"></span></div>
@@ -505,6 +532,10 @@
       return Number(value || 0).toLocaleString('en-IN');
     }
 
+    function formatCurrency(value) {
+      return '₹' + formatNumber(Math.round(Number(value || 0)));
+    }
+
     function getISTDateKey(date) {
       return IST_DATE_FORMATTER.format(date);
     }
@@ -539,10 +570,16 @@
     }
 
     function normalizeBooking(booking) {
-      const date = parseBookingDate(booking.createdAt);
+      const createdDate = parseBookingDate(booking.createdAt);
+      const status = String((booking.order_status || '') + ' ' + (booking.status || '')).toLowerCase();
+      const completed = status.includes('completed') || status.includes('payment received');
+      const finishedDate = completed ? parseBookingDate(booking.finished_at || booking.order_finished_date || booking.createdAt) : null;
       return {
-        date: date,
-        dateKey: date ? getISTDateKey(date) : '',
+        date: createdDate,
+        dateKey: createdDate ? getISTDateKey(createdDate) : '',
+        revenueDateKey: finishedDate ? getISTDateKey(finishedDate) : '',
+        completed: completed,
+        revenue: completed ? (Number(booking.Final_Amount) || Number(booking.price) || 0) : 0,
         services: getServices(booking.package)
       };
     }
@@ -559,6 +596,43 @@
 
     function monthStartKey() {
       return todayKey().slice(0, 8) + '01';
+    }
+
+    function daysInRange(from, to) {
+      const start = new Date(from + 'T12:00:00Z');
+      const end = new Date(to + 'T12:00:00Z');
+      return Math.max(1, Math.round((end - start) / 86400000) + 1);
+    }
+
+    function shiftCalendar(dateKey, months, years) {
+      const [year, month, day] = dateKey.split('-').map(Number);
+      const targetYear = year + (years || 0);
+      const monthIndex = month - 1 + (months || 0);
+      const targetMonthStart = new Date(Date.UTC(targetYear, monthIndex, 1, 12));
+      const targetYearValue = targetMonthStart.getUTCFullYear();
+      const targetMonthValue = targetMonthStart.getUTCMonth();
+      const maxDay = new Date(Date.UTC(targetYearValue, targetMonthValue + 1, 0, 12)).getUTCDate();
+      return getISTDateKey(new Date(Date.UTC(targetYearValue, targetMonthValue, Math.min(day, maxDay), 12)));
+    }
+
+    function getComparisonRange(from, to, mode) {
+      if (mode === 'previous_month') return { from: shiftCalendar(from, -1, 0), to: shiftCalendar(to, -1, 0), label: 'Previous month' };
+      if (mode === 'previous_year') return { from: shiftCalendar(from, 0, -1), to: shiftCalendar(to, 0, -1), label: 'Previous year' };
+      const length = daysInRange(from, to);
+      const previousTo = shiftDateKey(from, -1);
+      return { from: shiftDateKey(previousTo, -(length - 1)), to: previousTo, label: 'Previous period' };
+    }
+
+    function percentChange(current, previous) {
+      if (!previous) return current ? 100 : 0;
+      return Math.round(((current - previous) / previous) * 100);
+    }
+
+    function setDelta(id, current, previous, suffix) {
+      const element = document.getElementById(id);
+      const change = percentChange(current, previous);
+      element.className = 'comparison-delta' + (change > 0 ? ' up' : change < 0 ? ' down' : '');
+      element.textContent = (change > 0 ? '+' : '') + change + '% vs comparison' + (suffix ? ' · ' + suffix : '');
     }
 
     function setPreset(preset) {
@@ -602,7 +676,7 @@
       while (true) {
         const response = await supabaseClient
           .from('Booking')
-          .select('bookingRef,createdAt,package,order_status,status')
+          .select('bookingRef,createdAt,package,order_status,status,Final_Amount,price,finished_at,order_finished_date')
           .order('createdAt', { ascending: false })
           .range(from, from + PAGE_SIZE - 1);
 
@@ -633,76 +707,83 @@
       }).join('');
     }
 
-    function renderServiceRows(periodRows, selectedService) {
-      const periodStats = buildServiceStats(periodRows);
-      const allTimeStats = buildServiceStats(normalizedBookings);
-      const totalSelections = Array.from(periodStats.values()).reduce(function(sum, value) { return sum + value; }, 0);
-      let services;
+    function sumValues(map) {
+      return Array.from(map.values()).reduce(function(sum, value) { return sum + value; }, 0);
+    }
 
-      if (selectedService === 'all') {
-        services = Array.from(periodStats.keys());
-      } else {
-        services = allTimeStats.has(selectedService) ? [selectedService] : [];
-      }
+    function renderServiceRows(currentRows, previousRows, selectedService) {
+      const currentStats = buildServiceStats(currentRows);
+      const previousStats = buildServiceStats(previousRows);
+      const totalSelections = sumValues(currentStats);
+      let services = selectedService === 'all'
+        ? Array.from(new Set([...currentStats.keys(), ...previousStats.keys()]))
+        : (currentStats.has(selectedService) || previousStats.has(selectedService) ? [selectedService] : []);
 
       services.sort(function(a, b) {
-        return (periodStats.get(b) || 0) - (periodStats.get(a) || 0) || (allTimeStats.get(b) || 0) - (allTimeStats.get(a) || 0) || a.localeCompare(b);
+        return (currentStats.get(b) || 0) - (currentStats.get(a) || 0) || (previousStats.get(b) || 0) - (previousStats.get(a) || 0) || a.localeCompare(b);
       });
 
-      const maxCount = Math.max(1, ...services.map(function(service) { return periodStats.get(service) || 0; }));
+      const maxCount = Math.max(1, ...services.map(function(service) { return currentStats.get(service) || 0; }));
       document.getElementById('service-count-badge').textContent = services.length + (services.length === 1 ? ' service' : ' services');
-
       if (!services.length) {
         document.getElementById('service-list').innerHTML = '<div class="state-message"><strong>No service bookings found</strong>Try a wider date range or choose another service.</div>';
-        return { periodStats: periodStats, totalSelections: totalSelections, services: services };
+        return { currentStats, previousStats, currentSelections: 0, previousSelections: 0 };
       }
 
       document.getElementById('service-list').innerHTML = services.map(function(service, index) {
-        const periodCount = periodStats.get(service) || 0;
-        const allTimeCount = allTimeStats.get(service) || 0;
-        const share = totalSelections ? Math.round((periodCount / totalSelections) * 100) : 0;
-        const barWidth = Math.max(periodCount ? 5 : 0, Math.round((periodCount / maxCount) * 100));
-        const isSelected = selectedService === service;
-        return '<div class="service-row' + (isSelected ? ' active' : '') + '" data-service="' + escapeHtml(service) + '">' +
+        const currentCount = currentStats.get(service) || 0;
+        const previousCount = previousStats.get(service) || 0;
+        const change = percentChange(currentCount, previousCount);
+        const share = totalSelections ? Math.round((currentCount / totalSelections) * 100) : 0;
+        const barWidth = Math.max(currentCount ? 5 : 0, Math.round((currentCount / maxCount) * 100));
+        return '<div class="service-row' + (selectedService === service ? ' active' : '') + '">' +
           '<span class="service-identity"><span class="service-rank">' + String(index + 1).padStart(2, '0') + '</span><span><span class="service-name">' + escapeHtml(service) + '</span><span class="service-bar" aria-hidden="true"><span style="width:' + barWidth + '%"></span></span></span></span>' +
-          '<span class="metric-cell"><strong>' + formatNumber(periodCount) + '</strong><span>orders</span></span>' +
-          '<span class="metric-cell"><strong>' + formatNumber(allTimeCount) + '</strong><span>orders</span></span>' +
+          '<span class="metric-cell"><strong>' + formatNumber(currentCount) + '</strong><span>orders</span></span>' +
+          '<span class="metric-cell"><strong>' + formatNumber(previousCount) + '</strong><span>orders</span></span>' +
+          '<span class="share-value" style="color:' + (change > 0 ? 'var(--green)' : change < 0 ? 'var(--red)' : 'var(--text-2)') + '">' + (change > 0 ? '+' : '') + change + '%</span>' +
           '<span class="share-value">' + share + '%</span>' +
         '</div>';
       }).join('');
-
-      return { periodStats: periodStats, totalSelections: totalSelections, services: services };
+      return { currentStats, previousStats, currentSelections: sumValues(currentStats), previousSelections: sumValues(previousStats) };
     }
 
-    function renderDailyRows(periodRows, selectedService) {
-      const dailyMap = new Map();
-      periodRows.forEach(function(booking) {
-        const matchingServices = selectedService === 'all' ? booking.services : booking.services.filter(function(service) { return service === selectedService; });
-        if (!matchingServices.length) return;
-        if (!dailyMap.has(booking.dateKey)) dailyMap.set(booking.dateKey, { orders: 0, services: 0 });
-        const item = dailyMap.get(booking.dateKey);
-        item.orders += 1;
-        item.services += matchingServices.length;
+    function buildDailyActivity(from, to, selectedService) {
+      const map = new Map();
+      for (let key = from; key <= to; key = shiftDateKey(key, 1)) map.set(key, { orders: 0, revenue: 0 });
+      normalizedBookings.forEach(function(booking) {
+        const serviceMatch = selectedService === 'all' || booking.services.includes(selectedService);
+        if (serviceMatch && booking.dateKey >= from && booking.dateKey <= to) map.get(booking.dateKey).orders += 1;
+        if (serviceMatch && booking.revenueDateKey >= from && booking.revenueDateKey <= to) map.get(booking.revenueDateKey).revenue += booking.revenue;
       });
+      return map;
+    }
 
-      const dates = Array.from(dailyMap.keys()).sort().reverse();
-      document.getElementById('daily-count-badge').textContent = dates.length + (dates.length === 1 ? ' date' : ' dates');
-      document.getElementById('daily-range-label').textContent = selectedService === 'all' ? 'All services · dates with booking activity' : selectedService + ' · dates with booking activity';
-
-      if (!dates.length) {
-        document.getElementById('daily-list').innerHTML = '<div class="state-message"><strong>No daily activity</strong>No matching bookings were found in this date range.</div>';
-        return;
+    function renderDailyRows(from, to, comparison, selectedService) {
+      const currentMap = buildDailyActivity(from, to, selectedService);
+      const previousMap = buildDailyActivity(comparison.from, comparison.to, selectedService);
+      const currentDates = Array.from(currentMap.keys());
+      const previousDates = Array.from(previousMap.keys());
+      const rowCount = Math.max(currentDates.length, previousDates.length);
+      document.getElementById('daily-count-badge').textContent = rowCount + (rowCount === 1 ? ' day' : ' days');
+      document.getElementById('daily-range-label').textContent = formatRangeLabel(from, to) + ' vs ' + formatRangeLabel(comparison.from, comparison.to);
+      const rows = [];
+      for (let index = rowCount - 1; index >= 0; index -= 1) {
+        const currentKey = currentDates[index] || '';
+        const previousKey = previousDates[index] || '';
+        const current = currentMap.get(currentKey) || { orders: 0, revenue: 0 };
+        const previous = previousMap.get(previousKey) || { orders: 0, revenue: 0 };
+        const formatDateCell = function(key) {
+          if (!key) return '<div class="daily-date">—</div>';
+          const date = new Date(key + 'T12:00:00+05:30');
+          return '<div class="daily-date">' + escapeHtml(DISPLAY_DATE_FORMATTER.format(date)) + '<span>' + escapeHtml(WEEKDAY_FORMATTER.format(date)) + '</span></div>';
+        };
+        rows.push('<div class="daily-row">' + formatDateCell(currentKey) + formatDateCell(previousKey) +
+          '<div class="daily-number">' + formatNumber(current.orders) + '</div>' +
+          '<div class="daily-number muted">' + formatNumber(previous.orders) + '</div>' +
+          '<div class="daily-number">' + formatCurrency(current.revenue) + '</div>' +
+          '<div class="daily-number muted">' + formatCurrency(previous.revenue) + '</div></div>');
       }
-
-      document.getElementById('daily-list').innerHTML = dates.map(function(dateKey) {
-        const item = dailyMap.get(dateKey);
-        const date = new Date(dateKey + 'T12:00:00+05:30');
-        return '<div class="daily-row">' +
-          '<div class="daily-date">' + escapeHtml(DISPLAY_DATE_FORMATTER.format(date)) + '<span>' + escapeHtml(WEEKDAY_FORMATTER.format(date)) + '</span></div>' +
-          '<div class="daily-number">' + formatNumber(item.orders) + '</div>' +
-          '<div class="daily-number muted">' + formatNumber(item.services) + '</div>' +
-        '</div>';
-      }).join('');
+      document.getElementById('daily-list').innerHTML = rows.join('');
     }
 
     function renderAnalytics() {
@@ -711,34 +792,41 @@
       const to = document.getElementById('date-to').value;
       const selectedService = document.getElementById('service-filter').value;
       const error = document.getElementById('filter-error');
-
-      if (!from || !to || from > to) {
-        error.classList.add('visible');
-        return;
-      }
+      if (!from || !to || from > to) { error.classList.add('visible'); return; }
       error.classList.remove('visible');
+      const comparison = getComparisonRange(from, to, document.getElementById('compare-mode').value);
 
-      const periodRows = normalizedBookings.filter(function(booking) {
-        return booking.dateKey && booking.dateKey >= from && booking.dateKey <= to;
-      });
-      const matchingRows = selectedService === 'all' ? periodRows : periodRows.filter(function(booking) { return booking.services.includes(selectedService); });
-      const result = renderServiceRows(periodRows, selectedService);
-      renderDailyRows(periodRows, selectedService);
+      const inRange = function(booking, start, end) { return booking.dateKey && booking.dateKey >= start && booking.dateKey <= end; };
+      const serviceMatch = function(booking) { return selectedService === 'all' || booking.services.includes(selectedService); };
+      const currentRows = normalizedBookings.filter(function(booking) { return inRange(booking, from, to) && serviceMatch(booking); });
+      const previousRows = normalizedBookings.filter(function(booking) { return inRange(booking, comparison.from, comparison.to) && serviceMatch(booking); });
+      const result = renderServiceRows(currentRows, previousRows, selectedService);
+      renderDailyRows(from, to, comparison, selectedService);
 
-      const currentStats = result.periodStats;
-      const sortedCurrent = Array.from(currentStats.entries()).sort(function(a, b) { return b[1] - a[1] || a[0].localeCompare(b[0]); });
-      const topEntry = selectedService === 'all' ? sortedCurrent[0] : [selectedService, currentStats.get(selectedService) || 0];
-      const serviceSelections = selectedService === 'all' ? result.totalSelections : (currentStats.get(selectedService) || 0);
-      const distinctServices = selectedService === 'all' ? currentStats.size : (currentStats.has(selectedService) ? 1 : 0);
-      const rangeLabel = formatRangeLabel(from, to);
+      const revenueForRange = function(start, end) {
+        return normalizedBookings.filter(function(booking) { return serviceMatch(booking) && booking.revenueDateKey >= start && booking.revenueDateKey <= end; }).reduce(function(sum, booking) { return sum + booking.revenue; }, 0);
+      };
+      const currentRevenue = revenueForRange(from, to);
+      const previousRevenue = revenueForRange(comparison.from, comparison.to);
+      const currentTop = Array.from(result.currentStats.entries()).sort(function(a, b) { return b[1] - a[1] || a[0].localeCompare(b[0]); })[0];
+      const previousTop = Array.from(result.previousStats.entries()).sort(function(a, b) { return b[1] - a[1] || a[0].localeCompare(b[0]); })[0];
 
-      document.getElementById('summary-orders').textContent = formatNumber(matchingRows.length);
-      document.getElementById('summary-orders-sub').textContent = selectedService === 'all' ? rangeLabel : selectedService;
-      document.getElementById('summary-selections').textContent = formatNumber(serviceSelections);
-      document.getElementById('summary-services').textContent = formatNumber(distinctServices);
-      document.getElementById('summary-top-service').textContent = topEntry ? topEntry[0] : 'None';
-      document.getElementById('summary-top-service-sub').textContent = topEntry ? formatNumber(topEntry[1]) + ' bookings in period' : 'No bookings in period';
-      document.getElementById('service-range-label').textContent = rangeLabel + (selectedService === 'all' ? ' · all services' : ' · ' + selectedService);
+      document.getElementById('summary-orders').textContent = formatNumber(currentRows.length);
+      document.getElementById('summary-orders-previous').textContent = formatNumber(previousRows.length);
+      setDelta('summary-orders-delta', currentRows.length, previousRows.length, formatRangeLabel(from, to));
+      document.getElementById('summary-revenue').textContent = formatCurrency(currentRevenue);
+      document.getElementById('summary-revenue-previous').textContent = formatCurrency(previousRevenue);
+      setDelta('summary-revenue-delta', currentRevenue, previousRevenue, comparison.label);
+      document.getElementById('summary-selections').textContent = formatNumber(result.currentSelections);
+      document.getElementById('summary-selections-previous').textContent = formatNumber(result.previousSelections);
+      setDelta('summary-selections-delta', result.currentSelections, result.previousSelections, 'service selections');
+      document.getElementById('summary-services').textContent = formatNumber(result.currentStats.size);
+      document.getElementById('summary-services-previous').textContent = formatNumber(result.previousStats.size);
+      setDelta('summary-services-delta', result.currentStats.size, result.previousStats.size, 'distinct services');
+      document.getElementById('summary-top-service').textContent = currentTop ? currentTop[0] : 'None';
+      document.getElementById('summary-top-service-previous').textContent = previousTop ? previousTop[0] : 'None';
+      document.getElementById('summary-top-service-sub').textContent = (currentTop ? formatNumber(currentTop[1]) : '0') + ' vs ' + (previousTop ? formatNumber(previousTop[1]) : '0') + ' bookings';
+      document.getElementById('service-range-label').textContent = formatRangeLabel(from, to) + ' vs ' + formatRangeLabel(comparison.from, comparison.to) + (selectedService === 'all' ? ' · all services' : ' · ' + selectedService);
     }
 
     function renderError(error) {
@@ -790,6 +878,7 @@
       document.getElementById('date-from').addEventListener('change', markCustomRange);
       document.getElementById('date-to').addEventListener('change', markCustomRange);
       document.getElementById('service-filter').addEventListener('change', renderAnalytics);
+      document.getElementById('compare-mode').addEventListener('change', renderAnalytics);
       document.getElementById('apply-filters').addEventListener('click', renderAnalytics);
       document.getElementById('reset-filters').addEventListener('click', function() {
         document.getElementById('service-filter').value = 'all';

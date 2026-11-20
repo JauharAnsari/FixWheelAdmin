@@ -511,6 +511,46 @@
 
     .trend-metric-toggle.active .trend-metric-value { color: var(--metric-color); }
 
+    .metric-values { margin-top: 8px; display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .metric-period { min-width: 0; }
+    .metric-period-label { display: none; margin-bottom: 3px; color: var(--text-3); font-family: var(--mono); font-size: 9px; letter-spacing: .06em; text-transform: uppercase; }
+    .metric-period.previous { display: none; padding-left: 10px; border-left: 1px solid var(--border); }
+    .metric-delta { display: none; margin-top: 7px; color: var(--text-3); font: 10px var(--mono); }
+    .metric-delta.up { color: var(--green); }
+    .metric-delta.down { color: var(--red); }
+    .trend-metric-selector.comparison-active { width: min(1080px, 100%); }
+    .trend-metric-selector.comparison-active .metric-values { grid-template-columns: 1fr; gap: 8px; }
+    .trend-metric-selector.comparison-active .metric-period-label,
+    .trend-metric-selector.comparison-active .metric-period.previous,
+    .trend-metric-selector.comparison-active .metric-delta { display: block; }
+    .trend-metric-selector.comparison-active .trend-metric-value {
+      font-size: clamp(15px, 1vw, 18px);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.03em;
+      white-space: nowrap;
+    }
+    .trend-metric-selector.comparison-active .metric-period.previous {
+      padding-top: 8px;
+      padding-left: 0;
+      border-top: 1px solid var(--border);
+      border-left: 0;
+    }
+
+    .comparison-context {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 16px 0 4px;
+      padding: 11px 13px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--surface-2);
+      color: var(--text-2);
+      font: 10px/1.5 var(--mono);
+    }
+    .comparison-context[hidden] { display: none; }
+    .comparison-context strong { display: block; color: var(--text-1); font-family: var(--sans); font-size: 12px; }
+
     /* ─── Dimension Breakdown ─── */
     .breakdown-section {
       background: var(--surface);
@@ -654,8 +694,26 @@
       font-weight: 600;
     }
 
+    .breakdown-table.comparison-table { min-width: 1080px; }
+    .breakdown-table.comparison-table th:first-child { width: 23%; }
+    .breakdown-table.comparison-table th:not(:first-child) { width: 11%; }
+    .breakdown-change { font-family: var(--mono); font-size: 12px; font-weight: 600; }
+    .breakdown-change.up { color: var(--green); }
+    .breakdown-change.down { color: var(--red); }
+    .breakdown-change.neutral { color: var(--text-3); }
+
     @media (max-width: 980px) {
       .charts-row { grid-template-columns: 1fr; }
+    }
+
+    @media (min-width: 641px) and (max-width: 1180px) {
+      .trend-metric-selector.comparison-active {
+        width: 100%;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .trend-metric-selector.comparison-active .trend-metric-value {
+        font-size: 16px;
+      }
     }
 
     @media (max-width: 640px) {
@@ -756,20 +814,28 @@
           <div class="trend-metric-selector" role="group" aria-label="Select graph metrics">
             <button class="trend-metric-toggle active" type="button" data-metric="revenue" aria-pressed="true" onclick="toggleTrendMetric('revenue', this)" style="--metric-color:#facc15;">
               <span class="trend-metric-label"><span class="trend-metric-check" aria-hidden="true"></span><span id="metric-label-revenue">Today's Revenue</span></span>
-              <strong class="trend-metric-value" id="metric-value-revenue">₹0</strong>
+              <span class="metric-values"><span class="metric-period"><span class="metric-period-label">Current</span><strong class="trend-metric-value" id="metric-value-revenue">₹0</strong></span><span class="metric-period previous"><span class="metric-period-label">Past</span><strong class="trend-metric-value" id="metric-value-revenue-previous">₹0</strong></span></span>
+              <span class="metric-delta" id="metric-delta-revenue">—</span>
             </button>
             <button class="trend-metric-toggle active" type="button" data-metric="completed" aria-pressed="true" onclick="toggleTrendMetric('completed', this)" style="--metric-color:#3b82f6;">
               <span class="trend-metric-label"><span class="trend-metric-check" aria-hidden="true"></span><span id="metric-label-completed">Completed Orders</span></span>
-              <strong class="trend-metric-value" id="metric-value-completed">0</strong>
+              <span class="metric-values"><span class="metric-period"><span class="metric-period-label">Current</span><strong class="trend-metric-value" id="metric-value-completed">0</strong></span><span class="metric-period previous"><span class="metric-period-label">Past</span><strong class="trend-metric-value" id="metric-value-completed-previous">0</strong></span></span>
+              <span class="metric-delta" id="metric-delta-completed">—</span>
             </button>
             <button class="trend-metric-toggle" type="button" data-metric="received" aria-pressed="false" onclick="toggleTrendMetric('received', this)" style="--metric-color:#ef4444;">
               <span class="trend-metric-label"><span class="trend-metric-check" aria-hidden="true"></span><span id="metric-label-received">Orders Received</span></span>
-              <strong class="trend-metric-value" id="metric-value-received">0</strong>
+              <span class="metric-values"><span class="metric-period"><span class="metric-period-label">Current</span><strong class="trend-metric-value" id="metric-value-received">0</strong></span><span class="metric-period previous"><span class="metric-period-label">Past</span><strong class="trend-metric-value" id="metric-value-received-previous">0</strong></span></span>
+              <span class="metric-delta" id="metric-delta-received">—</span>
             </button>
             <button class="trend-metric-toggle" type="button" data-metric="average" aria-pressed="false" onclick="toggleTrendMetric('average', this)" style="--metric-color:#a855f7;">
               <span class="trend-metric-label"><span class="trend-metric-check" aria-hidden="true"></span><span>Average Order Value</span></span>
-              <strong class="trend-metric-value" id="metric-value-average">₹0</strong>
+              <span class="metric-values"><span class="metric-period"><span class="metric-period-label">Current</span><strong class="trend-metric-value" id="metric-value-average">₹0</strong></span><span class="metric-period previous"><span class="metric-period-label">Past</span><strong class="trend-metric-value" id="metric-value-average-previous">₹0</strong></span></span>
+              <span class="metric-delta" id="metric-delta-average">—</span>
             </button>
+          </div>
+          <div class="comparison-context" id="comparison-context" hidden aria-live="polite">
+            <span><strong>Current period</strong><span id="comparison-current-label">—</span></span>
+            <span><strong>Past period</strong><span id="comparison-previous-label">—</span></span>
           </div>
           <div class="chart-card-header">
             <div>
@@ -802,7 +868,7 @@
         <div class="breakdown-table-wrap">
           <table class="breakdown-table">
             <thead>
-              <tr>
+              <tr id="breakdown-table-head">
                 <th id="breakdown-dimension-heading">Service</th>
                 <th>Orders</th>
                 <th>Revenue</th>
@@ -877,6 +943,8 @@
     let currentBreakdownDimension = 'service';
     let currentActiveCompletedBookings = [];
     let currentActiveReceivedBookings = [];
+    let currentPreviousCompletedBookings = [];
+    let currentPreviousReceivedBookings = [];
     let currentTrendExportRows = [];
     let currentBreakdownRows = [];
     let currentBreakdownMeta = { heading: 'Service', title: 'Service performance' };
@@ -1051,6 +1119,40 @@
       return windowType.startsWith('compare');
     }
 
+    function getPreviousWindowBounds(windowType = currentWindow) {
+      const current = getWindowBounds(windowType);
+      return {
+        start: current.start - current.duration,
+        end: current.start - 1,
+        duration: current.duration
+      };
+    }
+
+    function filterByBounds(list, bounds, dateGetter) {
+      return list.filter(booking => {
+        const timestamp = dateGetter(booking);
+        return timestamp >= bounds.start && timestamp <= bounds.end;
+      });
+    }
+
+    function formatComparisonPeriod(bounds) {
+      const format = value => new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }).format(new Date(value));
+      return `${format(bounds.start)} – ${format(bounds.end)}`;
+    }
+
+    function percentChange(current, previous) {
+      if (!previous) return current ? 100 : 0;
+      return Math.round(((current - previous) / previous) * 100);
+    }
+
+    function updateMetricComparison(id, current, previous) {
+      const element = document.getElementById(`metric-delta-${id}`);
+      if (!element) return;
+      const change = percentChange(current, previous);
+      element.className = `metric-delta ${change > 0 ? 'up' : change < 0 ? 'down' : ''}`.trim();
+      element.textContent = `${change > 0 ? '+' : ''}${change}% vs past`;
+    }
+
     function filterByWindow(list, windowType) {
       const { start, end } = getWindowBounds(windowType);
       return list.filter(booking => {
@@ -1070,21 +1172,46 @@
     function calculateAndRender() {
       const activeList = filterByWindow(rawCompletedBookings, currentWindow);
       const receivedList = filterReceivedByWindow(rawBookings, currentWindow);
+      const comparisonMode = isComparisonWindow();
+      const currentBounds = getWindowBounds(currentWindow);
+      const previousBounds = comparisonMode ? getPreviousWindowBounds(currentWindow) : null;
+      const previousCompletedList = comparisonMode ? filterByBounds(rawCompletedBookings, previousBounds, getBookingDate) : [];
+      const previousReceivedList = comparisonMode ? filterByBounds(rawBookings, previousBounds, getCreatedDate) : [];
       currentActiveCompletedBookings = activeList;
       currentActiveReceivedBookings = receivedList;
+      currentPreviousCompletedBookings = previousCompletedList;
+      currentPreviousReceivedBookings = previousReceivedList;
 
       const totalGmv = activeList.reduce((sum, b) => sum + (Number(b.Final_Amount) || Number(b.price) || 0), 0);
+      const previousGmv = previousCompletedList.reduce((sum, b) => sum + (Number(b.Final_Amount) || Number(b.price) || 0), 0);
 
       const completedCount = activeList.length;
       const averageOrderValue = completedCount ? totalGmv / completedCount : 0;
+      const previousCompletedCount = previousCompletedList.length;
+      const previousAverageOrderValue = previousCompletedCount ? previousGmv / previousCompletedCount : 0;
       document.getElementById('metric-label-revenue').textContent = currentWindow === 'today' ? "Today's Revenue" : 'Revenue';
       document.getElementById('metric-value-revenue').textContent = `₹${totalGmv.toLocaleString('en-IN')}`;
       document.getElementById('metric-value-completed').textContent = completedCount.toLocaleString('en-IN');
       document.getElementById('metric-value-received').textContent = receivedList.length.toLocaleString('en-IN');
       document.getElementById('metric-value-average').textContent = `₹${Math.round(averageOrderValue).toLocaleString('en-IN')}`;
+      document.getElementById('metric-value-revenue-previous').textContent = `₹${previousGmv.toLocaleString('en-IN')}`;
+      document.getElementById('metric-value-completed-previous').textContent = previousCompletedCount.toLocaleString('en-IN');
+      document.getElementById('metric-value-received-previous').textContent = previousReceivedList.length.toLocaleString('en-IN');
+      document.getElementById('metric-value-average-previous').textContent = `₹${Math.round(previousAverageOrderValue).toLocaleString('en-IN')}`;
+      updateMetricComparison('revenue', totalGmv, previousGmv);
+      updateMetricComparison('completed', completedCount, previousCompletedCount);
+      updateMetricComparison('received', receivedList.length, previousReceivedList.length);
+      updateMetricComparison('average', averageOrderValue, previousAverageOrderValue);
+      document.querySelector('.trend-metric-selector').classList.toggle('comparison-active', comparisonMode);
+      const comparisonContext = document.getElementById('comparison-context');
+      comparisonContext.hidden = !comparisonMode;
+      if (comparisonMode) {
+        document.getElementById('comparison-current-label').textContent = formatComparisonPeriod(currentBounds);
+        document.getElementById('comparison-previous-label').textContent = formatComparisonPeriod(previousBounds);
+      }
       document.getElementById('export-report-btn').disabled = false;
 
-      renderBreakdown(activeList);
+      renderBreakdown(activeList, previousCompletedList);
       renderCharts(activeList, receivedList);
     }
 
@@ -1095,7 +1222,7 @@
         tab.classList.toggle('active', isActive);
         tab.setAttribute('aria-selected', String(isActive));
       });
-      renderBreakdown(currentActiveCompletedBookings);
+      renderBreakdown(currentActiveCompletedBookings, currentPreviousCompletedBookings);
     }
 
     function escapeHtml(value) {
@@ -1182,28 +1309,61 @@
       return { config, matchingBookings, rows };
     }
 
-    function renderBreakdown(list) {
+    function renderBreakdown(list, previousList = []) {
       const { config, matchingBookings, rows } = buildBreakdownData(list, currentBreakdownDimension);
-      currentBreakdownRows = rows;
+      const previousData = buildBreakdownData(previousList, currentBreakdownDimension);
+      const comparisonMode = isComparisonWindow();
+      const currentMap = new Map(rows.map(row => [row.label.toLocaleLowerCase('en-IN'), row]));
+      const previousMap = new Map(previousData.rows.map(row => [row.label.toLocaleLowerCase('en-IN'), row]));
+      const comparisonRows = [...new Set([...currentMap.keys(), ...previousMap.keys()])].map(key => ({
+        label: currentMap.get(key)?.label || previousMap.get(key)?.label || key,
+        current: currentMap.get(key) || { orders: 0, revenue: 0, average: 0 },
+        previous: previousMap.get(key) || { orders: 0, revenue: 0, average: 0 }
+      })).sort((a, b) => b.current.orders - a.current.orders || b.previous.orders - a.previous.orders || b.current.revenue - a.current.revenue || a.label.localeCompare(b.label));
+      currentBreakdownRows = comparisonMode ? comparisonRows : rows;
       currentBreakdownMeta = { heading: config.heading, title: config.title };
       document.getElementById('breakdown-title').textContent = config.title;
-      document.getElementById('breakdown-dimension-heading').textContent = config.heading;
-      document.getElementById('breakdown-count').textContent = `${rows.length} ${config.groupLabel} · ${matchingBookings.length.toLocaleString('en-IN')} completed orders`;
+      document.getElementById('breakdown-count').textContent = comparisonMode
+        ? `${comparisonRows.length} ${config.groupLabel} · ${matchingBookings.length.toLocaleString('en-IN')} current / ${previousData.matchingBookings.length.toLocaleString('en-IN')} past orders`
+        : `${rows.length} ${config.groupLabel} · ${matchingBookings.length.toLocaleString('en-IN')} completed orders`;
 
       const tbody = document.getElementById('breakdown-table-body');
-      if (rows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="padding:28px 16px; text-align:center; color:var(--text-3); font-family:var(--mono);">No completed orders in the selected period.</td></tr>`;
+      const table = document.querySelector('.breakdown-table');
+      const head = document.getElementById('breakdown-table-head');
+      table.classList.toggle('comparison-table', comparisonMode);
+      head.innerHTML = comparisonMode
+        ? `<th>${escapeHtml(config.heading)}</th><th>Current orders</th><th>Past orders</th><th>Current revenue</th><th>Past revenue</th><th>Current avg.</th><th>Past avg.</th><th>Revenue change</th>`
+        : `<th>${escapeHtml(config.heading)}</th><th>Orders</th><th>Revenue</th><th>Avg. order</th>`;
+
+      const visibleRows = comparisonMode ? comparisonRows : rows;
+      if (visibleRows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${comparisonMode ? 8 : 4}" style="padding:28px 16px; text-align:center; color:var(--text-3); font-family:var(--mono);">No completed orders in the selected period.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = rows.map(row => `
-        <tr>
-          <td><span class="breakdown-dimension-value">${escapeHtml(row.label)}</span></td>
-          <td><span class="breakdown-orders">${row.orders.toLocaleString('en-IN')}</span></td>
-          <td><span class="breakdown-revenue">₹${row.revenue.toLocaleString('en-IN')}</span></td>
-          <td><span class="breakdown-average">₹${Math.round(row.average).toLocaleString('en-IN')}</span></td>
-        </tr>
-      `).join('');
+      if (comparisonMode) {
+        tbody.innerHTML = comparisonRows.map(row => {
+          const change = percentChange(row.current.revenue, row.previous.revenue);
+          return `<tr>
+            <td><span class="breakdown-dimension-value">${escapeHtml(row.label)}</span></td>
+            <td><span class="breakdown-orders">${row.current.orders.toLocaleString('en-IN')}</span></td>
+            <td><span class="breakdown-orders">${row.previous.orders.toLocaleString('en-IN')}</span></td>
+            <td><span class="breakdown-revenue">₹${row.current.revenue.toLocaleString('en-IN')}</span></td>
+            <td><span class="breakdown-revenue">₹${row.previous.revenue.toLocaleString('en-IN')}</span></td>
+            <td><span class="breakdown-average">₹${Math.round(row.current.average).toLocaleString('en-IN')}</span></td>
+            <td><span class="breakdown-average">₹${Math.round(row.previous.average).toLocaleString('en-IN')}</span></td>
+            <td><span class="breakdown-change ${change > 0 ? 'up' : change < 0 ? 'down' : 'neutral'}">${change > 0 ? '+' : ''}${change}%</span></td>
+          </tr>`;
+        }).join('');
+        return;
+      }
+
+      tbody.innerHTML = rows.map(row => `<tr>
+        <td><span class="breakdown-dimension-value">${escapeHtml(row.label)}</span></td>
+        <td><span class="breakdown-orders">${row.orders.toLocaleString('en-IN')}</span></td>
+        <td><span class="breakdown-revenue">₹${row.revenue.toLocaleString('en-IN')}</span></td>
+        <td><span class="breakdown-average">₹${Math.round(row.average).toLocaleString('en-IN')}</span></td>
+      </tr>`).join('');
     }
 
     function getReportPeriodLabel() {
@@ -1232,33 +1392,69 @@
     }
 
     function exportRevenueReport() {
+      const comparisonMode = isComparisonWindow();
       const totalRevenue = currentActiveCompletedBookings.reduce((sum, booking) => sum + (Number(booking.Final_Amount) || Number(booking.price) || 0), 0);
       const completedOrders = currentActiveCompletedBookings.length;
       const averageOrderValue = completedOrders ? totalRevenue / completedOrders : 0;
+      const previousTotalRevenue = currentPreviousCompletedBookings.reduce((sum, booking) => sum + (Number(booking.Final_Amount) || Number(booking.price) || 0), 0);
+      const previousCompletedOrders = currentPreviousCompletedBookings.length;
+      const previousAverageOrderValue = previousCompletedOrders ? previousTotalRevenue / previousCompletedOrders : 0;
       const generatedAt = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' });
-      const graphHeaders = isComparisonWindow()
+      const graphHeaders = comparisonMode
         ? ['Period', 'Revenue', 'Completed orders', 'Orders received', 'Average order value', 'Previous revenue', 'Previous completed', 'Previous received', 'Previous average']
         : ['Period', 'Revenue', 'Completed orders', 'Orders received', 'Average order value'];
-      const graphRows = currentTrendExportRows.map(row => isComparisonWindow()
+      const graphRows = currentTrendExportRows.map(row => comparisonMode
         ? [row.period, Math.round(row.revenue), row.completed, row.received, Math.round(row.average), Math.round(row.previousRevenue), row.previousCompleted, row.previousReceived, Math.round(row.previousAverage)]
         : [row.period, Math.round(row.revenue), row.completed, row.received, Math.round(row.average)]);
       const breakdownSections = ['service', 'package', 'city', 'partner', 'source'].flatMap(dimension => {
-        const { config, rows } = buildBreakdownData(currentActiveCompletedBookings, dimension);
+        const { config, rows: currentRows } = buildBreakdownData(currentActiveCompletedBookings, dimension);
+        if (comparisonMode) {
+          const { rows: previousRows } = buildBreakdownData(currentPreviousCompletedBookings, dimension);
+          const currentByLabel = new Map(currentRows.map(row => [row.label, row]));
+          const previousByLabel = new Map(previousRows.map(row => [row.label, row]));
+          const labels = [...new Set([...currentByLabel.keys(), ...previousByLabel.keys()])];
+          const rows = labels.map(label => ({
+            label,
+            current: currentByLabel.get(label) || { orders: 0, revenue: 0, average: 0 },
+            previous: previousByLabel.get(label) || { orders: 0, revenue: 0, average: 0 }
+          })).sort((a, b) => b.current.orders - a.current.orders || b.previous.orders - a.previous.orders || a.label.localeCompare(b.label));
+          return [
+            [],
+            [`${config.title} — current vs past`],
+            [config.heading, 'Current orders', 'Past orders', 'Current revenue', 'Past revenue', 'Current average', 'Past average', 'Revenue change %'],
+            ...rows.map(row => [
+              row.label,
+              row.current.orders,
+              row.previous.orders,
+              Math.round(row.current.revenue),
+              Math.round(row.previous.revenue),
+              Math.round(row.current.average),
+              Math.round(row.previous.average),
+              row.previous.revenue ? Math.round(((row.current.revenue - row.previous.revenue) / row.previous.revenue) * 1000) / 10 : row.current.revenue ? 100 : 0
+            ])
+          ];
+        }
         return [
           [],
           [`${config.title} — full table`],
           [config.heading, 'Orders', 'Revenue', 'Average order value'],
-          ...rows.map(row => [row.label, row.orders, Math.round(row.revenue), Math.round(row.average)])
+          ...currentRows.map(row => [row.label, row.orders, Math.round(row.revenue), Math.round(row.average)])
         ];
       });
+      const overviewHeaders = comparisonMode
+        ? ['Current revenue', 'Past revenue', 'Current completed orders', 'Past completed orders', 'Current orders received', 'Past orders received', 'Current average order value', 'Past average order value']
+        : ['Revenue', 'Completed orders', 'Orders received', 'Average order value'];
+      const overviewValues = comparisonMode
+        ? [Math.round(totalRevenue), Math.round(previousTotalRevenue), completedOrders, previousCompletedOrders, currentActiveReceivedBookings.length, currentPreviousReceivedBookings.length, Math.round(averageOrderValue), Math.round(previousAverageOrderValue)]
+        : [Math.round(totalRevenue), completedOrders, currentActiveReceivedBookings.length, Math.round(averageOrderValue)];
       const rows = [
         ['FixWheel Revenue Analytics'],
         ['Period', getReportPeriodLabel()],
         ['Generated at', `${generatedAt} IST`],
         [],
         ['Overview'],
-        ['Revenue', 'Completed orders', 'Orders received', 'Average order value'],
-        [Math.round(totalRevenue), completedOrders, currentActiveReceivedBookings.length, Math.round(averageOrderValue)],
+        overviewHeaders,
+        overviewValues,
         [],
         ['Graph overview'],
         graphHeaders,
@@ -1577,6 +1773,10 @@
       const overlay = document.getElementById('date-range-overlay');
       overlay.addEventListener('click', event => { if (event.target === overlay) closeDateRangeDialog(); });
       document.addEventListener('keydown', event => { if (event.key === 'Escape' && overlay.classList.contains('open')) closeDateRangeDialog(); });
+      const requestedRange = new URLSearchParams(window.location.search).get('range');
+      if (['today', 'week', 'month', 'year', 'last30', 'lastMonth', 'months3', 'months6', 'months9', 'months12', 'compare24h', 'compare7d', 'compare1m', 'compare3m'].includes(requestedRange)) {
+        setWindow(requestedRange);
+      }
       fetchRevenueData();
     });
   </script>

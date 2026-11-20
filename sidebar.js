@@ -90,6 +90,10 @@ function renderSidebar(activeKey) {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"></path><path d="m7 16 4-5 4 3 5-7"></path></svg>
               Revenue Analytics
             </a>
+            <a href="coverage.html?v=2027" class="nav-item ${activeKey === 'coverage' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              Cities & Localities
+            </a>
           </div>
 
           <!-- Partners Group -->
@@ -131,15 +135,6 @@ function renderSidebar(activeKey) {
             <a href="blocked_customers.html?v=2027" class="nav-item ${activeKey === 'blocked_customers' ? 'active' : ''}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
               Blocked / Flagged
-            </a>
-          </div>
-
-          <!-- Coverage Group -->
-          <div class="nav-group">
-            <div class="nav-group-title">Coverage</div>
-            <a href="coverage.html?v=2027" class="nav-item ${activeKey === 'coverage' ? 'active' : ''}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-              Cities & Localities
             </a>
           </div>
 
@@ -412,7 +407,7 @@ const SEARCH_DATABASE = [
   { type: 'page', title: 'Settlements', sub: 'Orders · Completed Order Settlements', icon: '💰', url: 'partner_payouts.html?v=2032' },
   { type: 'page', title: 'Customer Directory', sub: 'Customers · User Profiles & Registered Riders', icon: '👤', url: 'customers.html?v=2027' },
   { type: 'page', title: 'Blocked / Flagged Customers', sub: 'Customers · Flagged Accounts', icon: '🚫', url: 'blocked_customers.html?v=2027' },
-  { type: 'page', title: 'Cities & Localities Coverage', sub: 'Coverage · Operational Areas', icon: '🗺️', url: 'coverage.html?v=2027' },
+  { type: 'page', title: 'Cities & Localities Coverage', sub: 'Analytics · Operational Areas', icon: '🗺️', url: 'coverage.html?v=2027' },
   { type: 'page', title: 'Revenue Analytics', sub: 'Analytics · GMV, Orders & Revenue Reports', icon: '💵', url: 'revenue.html?v=2030' },
   { type: 'page', title: 'Refunds Queue', sub: 'Finance · Customer Refund Processing', icon: '🔄', url: 'refunds.html?v=2027' },
   { type: 'page', title: 'Pages & Sitemap Inventory', sub: 'Content · All Public Website Pages & Health Check', icon: '📄', url: 'pages.html?v=2027' },
