@@ -139,6 +139,91 @@
     function vehicleName(order) { return String(order.bikeModel || order.vehicleModel || order.bikeName || 'Vehicle not recorded').replace(/\s*\([^)]*\bcc\b[^)]*\)\s*/gi,' ').replace(/\s{2,}/g,' ').trim(); }
     function serviceName(order) { return order.package || order.servicePackage || order.service || 'Service not recorded'; }
     function scheduleDate(order) { return order.rescheduled_date || order.rescheduledDate || order.bookingDate || order.preferredDate || null; }
+    function effectiveScheduleDate(order) {
+      const storedDate = scheduleDate(order);
+      const source = normalize(order?.source);
+      const bookingDate = String(order?.bookingDate || '').trim();
+      if (order?.rescheduled_date || order?.rescheduledDate || source !== 'app' || !/^2026-05-20(?:$|[T\s])/.test(bookingDate)) return storedDate;
+      const slotDate = String(order?.preferredSlot || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?=\s*\()/);
+      if (!slotDate) return storedDate;
+      const day = Number(slotDate[1]);
+      const month = Number(slotDate[2]);
+      const year = Number(slotDate[3]);
+      const candidate = new Date(Date.UTC(year, month - 1, day));
+      if (candidate.getUTCFullYear() !== year || candidate.getUTCMonth() !== month - 1 || candidate.getUTCDate() !== day) return storedDate;
+      return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    }
+    function preferredSlotStartMinutes(slot) {
+      const value = String(slot || '').trim();
+      const twelveHour = value.match(/(?:^|[\s(])(\d{1,2})(?::(\d{2}))?\s*(AM|PM)\b/i);
+      if (twelveHour) {
+        let hour = Number(twelveHour[1]) % 12;
+        const minute = Number(twelveHour[2] || 0);
+        if (twelveHour[3].toUpperCase() === 'PM') hour += 12;
+        return hour * 60 + minute;
+      }
+      const twentyFourHour = value.match(/(?:^|[\s(])([01]?\d|2[0-3]):([0-5]\d)\b/);
+      return twentyFourHour ? Number(twentyFourHour[1]) * 60 + Number(twentyFourHour[2]) : 0;
+    }
+    function scheduleDateStartTimestamp(rawDate) {
+      const value = String(rawDate || '').trim();
+      if (!value) return Number.NEGATIVE_INFINITY;
+      let year;
+      let month;
+      let day;
+      const isoDate = value.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+      const numericDate = value.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
+      if (isoDate && /[T\s]\d{1,2}:\d{2}/.test(value)) {
+        const normalized = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(value)
+          ? value
+          : value.replace(/^(\d{4}-\d{1,2}-\d{1,2})\s/, '$1T') + 'Z';
+        const parsed = new Date(normalized);
+        if (Number.isNaN(parsed.getTime())) return Number.NEGATIVE_INFINITY;
+        const parts = new Intl.DateTimeFormat('en-CA',{timeZone:IST,year:'numeric',month:'2-digit',day:'2-digit'})
+          .formatToParts(parsed)
+          .reduce((result, part) => ({...result,[part.type]:part.value}),{});
+        year = Number(parts.year);
+        month = Number(parts.month);
+        day = Number(parts.day);
+      } else if (isoDate) {
+        year = Number(isoDate[1]);
+        month = Number(isoDate[2]);
+        day = Number(isoDate[3]);
+      } else if (numericDate) {
+        const first = Number(numericDate[1]);
+        const second = Number(numericDate[2]);
+        year = Number(numericDate[3]);
+        if (second > 12) {
+          month = first;
+          day = second;
+        } else {
+          day = first;
+          month = second;
+        }
+      } else {
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) return Number.NEGATIVE_INFINITY;
+        year = parsed.getFullYear();
+        month = parsed.getMonth() + 1;
+        day = parsed.getDate();
+      }
+      const calendarCheck = new Date(Date.UTC(year, month - 1, day));
+      if (calendarCheck.getUTCFullYear() !== year || calendarCheck.getUTCMonth() !== month - 1 || calendarCheck.getUTCDate() !== day) return Number.NEGATIVE_INFINITY;
+      return Date.parse(`${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}T00:00:00+05:30`);
+    }
+    function scheduledServiceTimestamp(order) {
+      const dayStart = scheduleDateStartTimestamp(effectiveScheduleDate(order));
+      if (!Number.isFinite(dayStart)) return Number.NEGATIVE_INFINITY;
+      return dayStart + preferredSlotStartMinutes(order?.preferredSlot) * 60 * 1000;
+    }
+    function compareScheduledDescending(a,b) {
+      const scheduledA = scheduledServiceTimestamp(a);
+      const scheduledB = scheduledServiceTimestamp(b);
+      if (Number.isFinite(scheduledA) && !Number.isFinite(scheduledB)) return -1;
+      if (!Number.isFinite(scheduledA) && Number.isFinite(scheduledB)) return 1;
+      if (Number.isFinite(scheduledA) && Number.isFinite(scheduledB) && scheduledA !== scheduledB) return scheduledB - scheduledA;
+      return (parseBookingDate(b?.createdAt || b?.created_at)?.getTime() || 0) - (parseBookingDate(a?.createdAt || a?.created_at)?.getTime() || 0);
+    }
     function orderRef(order) { return order.bookingRef || order.id || '—'; }
     const statusOptions = [
       'Pending','In Progress - Mechanic on the way','Customer Not Response','Service Started',
@@ -233,7 +318,7 @@
           </div>`:''}
         </section>
         <section class="detail-section"><h3>Schedule &amp; assignment</h3><div class="detail-grid">
-          <div class="detail-field"><label>Service date</label><div class="detail-value">${escapeHtml(displayDate(scheduleDate(order)))}</div><div class="detail-muted">${escapeHtml(order.preferredSlot||'Anytime')}</div></div>
+          <div class="detail-field"><label>Service date</label><div class="detail-value">${escapeHtml(displayDate(effectiveScheduleDate(order)))}</div><div class="detail-muted">${escapeHtml(order.preferredSlot||'Anytime')}</div></div>
           <div class="detail-field"><label>Order created</label><div class="detail-value">${escapeHtml(displayDate(order.createdAt,true))}</div></div>
           <div class="detail-field full"><label>Schedule actions</label><div class="action-row">${!closed?`<button class="drawer-button warning" type="button" onclick="handleReschedule()">${originalSchedule?'Change date':'Reschedule'}</button>`:''}${!closed&&originalSchedule?'<button class="drawer-button" type="button" onclick="handleUndoReschedule()">Undo reschedule</button>':''}</div></div>
           <div class="detail-field full"><label for="today-mechanic">Assigned mechanic</label><select class="drawer-control" id="today-mechanic" onchange="handleMechanicChange(this)">${mechanicHtml}</select><div class="detail-muted">${escapeHtml(order.partner_source||'Assignment source not recorded')}</div></div>
@@ -388,7 +473,7 @@
         const orderCity = normalize(order.city);
         const orderSource = normalize(order.source);
         return (!term || haystack.includes(term)) && (!city || orderCity === city || (city === 'gurgaon' && orderCity === 'gurugram')) && (!source || orderSource.includes(source));
-      });
+      }).sort(compareScheduledDescending);
       const titles = {total:'Total orders today',pending:'Pending today',progress:'In progress today',completed:'Completed today',cancelled:'Cancelled today'};
       document.getElementById('viewTitle').textContent = titles[activeStatus];
       if (!visible.length) {
@@ -404,7 +489,7 @@
           <div><button class="ref" type="button" style="border:0;background:none;padding:0;cursor:pointer" data-order-ref="${escapeHtml(ref)}" onclick="openOrder(this.dataset.orderRef)">#${escapeHtml(ref)}</button><span class="secondary">${escapeHtml(formatDateTime(order.createdAt))}</span></div>
           <div class="customer"><span class="primary">${escapeHtml(order.customerName || 'Unknown customer')}</span><span class="secondary">${escapeHtml(order.city || 'City not recorded')}</span></div>
           <div class="vehicle"><span class="primary">${escapeHtml(vehicleName(order))}</span><span class="secondary">${escapeHtml(serviceName(order))}</span></div>
-          <div class="schedule"><span class="primary">${escapeHtml(formatDateTime(scheduleDate(order)))}</span><span class="secondary">${escapeHtml(order.preferredSlot || 'Slot not recorded')}</span></div>
+          <div class="schedule"><span class="primary">${escapeHtml(formatDateTime(effectiveScheduleDate(order)))}</span><span class="secondary">${escapeHtml(order.preferredSlot || 'Slot not recorded')}</span></div>
           <div class="mechanic"><span class="primary">${escapeHtml(mechanic)}</span><span class="secondary">${hasMechanic(order) ? 'Assigned' : 'Unassigned'}</span></div>
           <div class="status"><span class="badge ${state}">${displayStatus(order)}</span></div>
           <div class="payment"><span class="amount">₹${amount.toLocaleString('en-IN')}</span><span class="secondary">${escapeHtml(order.payment_settled || order.settlement || 'Pending')}</span></div>

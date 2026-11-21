@@ -2926,7 +2926,7 @@
       let totalJobMinutes = 0;
       let completedJobTimeCount = 0;
 
-      bookings.forEach(order => {
+      [...bookings].sort(compareByScheduledServiceDescending).forEach(order => {
         const orderDateFormatted = getISTISO(order.createdAt || order.created_at);
 
         const statusStr = ((order.order_status || '') + ' ' + (order.status || '')).toLowerCase();
@@ -3290,6 +3290,92 @@
 
       if (!isValidDate) return storedServiceDate;
       return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+
+    function getPreferredSlotStartMinutes(slot) {
+      const value = String(slot || '').trim();
+      const twelveHour = value.match(/(?:^|[\s(])(\d{1,2})(?::(\d{2}))?\s*(AM|PM)\b/i);
+      if (twelveHour) {
+        let hour = Number(twelveHour[1]) % 12;
+        const minute = Number(twelveHour[2] || 0);
+        if (twelveHour[3].toUpperCase() === 'PM') hour += 12;
+        return hour * 60 + minute;
+      }
+      const twentyFourHour = value.match(/(?:^|[\s(])([01]?\d|2[0-3]):([0-5]\d)\b/);
+      return twentyFourHour ? Number(twentyFourHour[1]) * 60 + Number(twentyFourHour[2]) : 0;
+    }
+
+    function getServiceDateStartTimestamp(rawDate) {
+      const value = String(rawDate || '').trim();
+      if (!value) return Number.NEGATIVE_INFINITY;
+
+      let year;
+      let month;
+      let day;
+      const isoDate = value.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+      const numericDate = value.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
+
+      if (isoDate && /[T\s]\d{1,2}:\d{2}/.test(value)) {
+        const normalized = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(value)
+          ? value
+          : value.replace(/^(\d{4}-\d{1,2}-\d{1,2})\s/, '$1T') + 'Z';
+        const parsed = new Date(normalized);
+        if (Number.isNaN(parsed.getTime())) return Number.NEGATIVE_INFINITY;
+        const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' })
+          .formatToParts(parsed)
+          .reduce((result, part) => ({ ...result, [part.type]: part.value }), {});
+        year = Number(parts.year);
+        month = Number(parts.month);
+        day = Number(parts.day);
+      } else if (isoDate) {
+        year = Number(isoDate[1]);
+        month = Number(isoDate[2]);
+        day = Number(isoDate[3]);
+      } else if (numericDate) {
+        const first = Number(numericDate[1]);
+        const second = Number(numericDate[2]);
+        year = Number(numericDate[3]);
+        if (second > 12) {
+          month = first;
+          day = second;
+        } else {
+          day = first;
+          month = second;
+        }
+      } else {
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) return Number.NEGATIVE_INFINITY;
+        year = parsed.getFullYear();
+        month = parsed.getMonth() + 1;
+        day = parsed.getDate();
+      }
+
+      const calendarCheck = new Date(Date.UTC(year, month - 1, day));
+      if (calendarCheck.getUTCFullYear() !== year || calendarCheck.getUTCMonth() !== month - 1 || calendarCheck.getUTCDate() !== day) {
+        return Number.NEGATIVE_INFINITY;
+      }
+      return Date.parse(`${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T00:00:00+05:30`);
+    }
+
+    function getScheduledServiceTimestamp(order) {
+      // Sort by the same normalized date that the Schedule column displays.
+      // Rescheduling updates bookingDate in this dashboard; some older rows also
+      // retain a non-ISO rescheduled_date marker that must not override it here.
+      const rawDate = getEffectiveServiceDate(order);
+      const dayStart = getServiceDateStartTimestamp(rawDate);
+      if (!Number.isFinite(dayStart)) return Number.NEGATIVE_INFINITY;
+      return dayStart + getPreferredSlotStartMinutes(order?.preferredSlot) * 60 * 1000;
+    }
+
+    function compareByScheduledServiceDescending(a, b) {
+      const scheduledA = getScheduledServiceTimestamp(a);
+      const scheduledB = getScheduledServiceTimestamp(b);
+      if (Number.isFinite(scheduledA) && !Number.isFinite(scheduledB)) return -1;
+      if (!Number.isFinite(scheduledA) && Number.isFinite(scheduledB)) return 1;
+      if (Number.isFinite(scheduledA) && Number.isFinite(scheduledB) && scheduledA !== scheduledB) return scheduledB - scheduledA;
+      const createdA = Date.parse(a?.createdAt || a?.created_at || '') || 0;
+      const createdB = Date.parse(b?.createdAt || b?.created_at || '') || 0;
+      return createdB - createdA;
     }
 
     function getEffectiveOrderStatus(order) {
