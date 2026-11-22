@@ -1695,6 +1695,36 @@
       };
       const todayISO = getISTISO(new Date());
 
+      const getStatusEventRaw = (booking, type) => {
+        const bookingDate = String(booking.bookingDate || '').trim();
+        const source = String(booking.source || '').trim().toLowerCase();
+        const legacySlotDate = source === 'app' && /^2026-05-20(?:$|[T\s])/.test(bookingDate)
+          ? String(booking.preferredSlot || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?=\s*\()/)
+          : null;
+        const serviceDate = booking.rescheduled_date || booking.rescheduledDate || (legacySlotDate
+          ? `${legacySlotDate[3]}-${String(legacySlotDate[2]).padStart(2, '0')}-${String(legacySlotDate[1]).padStart(2, '0')}`
+          : (booking.bookingDate || booking.preferredDate));
+        if (serviceDate) return serviceDate;
+
+        const reference = booking.bookingRef || booking.id;
+        const storedEvent = reference
+          ? localStorage.getItem(`fixwheel_${type === 'completed' ? 'finished' : 'cancelled'}_${reference}`)
+          : null;
+        const explicitEvent = type === 'completed'
+          ? (booking.finished_at || booking.order_finished_date || storedEvent)
+          : (booking.cancelled_at || booking.canceled_at || booking.cancellation_date || booking.cancel_date || storedEvent);
+        if (explicitEvent) return explicitEvent;
+
+        const lastUpdated = booking.status_updated_at || booking.updated_at || booking.updatedAt;
+        if (lastUpdated) return lastUpdated;
+
+        // Older rows did not always record status timestamps.
+        if (getISTISO(booking.createdAt || booking.created_at) === todayISO) {
+          return booking.createdAt || booking.created_at;
+        }
+        return null;
+      };
+
       const [istYear, istMonth, istDay] = todayISO.split('-').map(Number);
       const previousMonthDate = new Date(Date.UTC(istYear, istMonth - 2, 1));
       const previousMonthYear = previousMonthDate.getUTCFullYear();
@@ -1746,10 +1776,14 @@
         const isDisputed = statusStr.includes('disput');
         const amount = Number(b.Final_Amount) || Number(b.price) || 0;
 
-        // Completion date ISO
-        const rawFinished = b.finished_at || b.order_finished_date || (b.bookingRef ? localStorage.getItem('fixwheel_finished_' + b.bookingRef) : null) || (b.id ? localStorage.getItem('fixwheel_finished_' + b.id) : null) || b.createdAt;
+        // Operational "today" is based on the scheduled service date, not on
+        // when the booking was originally created.
+        const rawFinished = getStatusEventRaw(b, 'completed');
         const finishISO = getISTISO(rawFinished);
-        const isFinishedToday = finishISO === todayISO;
+        const isFinishedToday = isCompleted && finishISO === todayISO;
+        const rawCanceled = getStatusEventRaw(b, 'cancelled');
+        const canceledISO = getISTISO(rawCanceled);
+        const isCanceledToday = isCanceled && canceledISO === todayISO;
 
         // Created date ISO
         const createdISO = getISTISO(b.createdAt);
@@ -1762,16 +1796,17 @@
 
         if (isCreatedToday) {
           todayTotalOrdersCount++;
-          if (isCanceled) todayCanceledOrdersCount++;
           const phone = (b.phone || b.customerName || '').trim();
           if (phone && customerPhoneCounts[phone] === 1) todayNewCustomersCount++;
         }
+
+        if (isCanceledToday) todayCanceledOrdersCount++;
 
         if (isCompleted) {
           totalCompleted++;
           totalEarnings += amount;
 
-          if (isFinishedToday || isCreatedToday) {
+          if (isFinishedToday) {
             todayEarnings += amount;
             todayCompletedOrdersCount++;
             todayRevenueSum += amount;

@@ -224,6 +224,22 @@
       if (Number.isFinite(scheduledA) && Number.isFinite(scheduledB) && scheduledA !== scheduledB) return scheduledB - scheduledA;
       return (parseBookingDate(b?.createdAt || b?.created_at)?.getTime() || 0) - (parseBookingDate(a?.createdAt || a?.created_at)?.getTime() || 0);
     }
+    function statusEventDateKey(order, state) {
+      const serviceDate = dateKey(effectiveScheduleDate(order));
+      if (serviceDate) return serviceDate;
+      const ref = order.bookingRef || order.id;
+      const storedEvent = ref
+        ? localStorage.getItem(`fixwheel_${state === 'completed' ? 'finished' : 'cancelled'}_${ref}`)
+        : null;
+      const explicitEvent = state === 'completed'
+        ? (order.finished_at || order.order_finished_date || storedEvent)
+        : (order.cancelled_at || order.canceled_at || order.cancellation_date || order.cancel_date || storedEvent);
+      if (explicitEvent) return dateKey(explicitEvent);
+      const lastUpdated = order.status_updated_at || order.updated_at || order.updatedAt;
+      if (lastUpdated) return dateKey(lastUpdated);
+      if (dateKey(order.createdAt || order.created_at) === todayKey()) return todayKey();
+      return dateKey(effectiveScheduleDate(order));
+    }
     function orderRef(order) { return order.bookingRef || order.id || '—'; }
     const statusOptions = [
       'Pending','In Progress - Mechanic on the way','Customer Not Response','Service Started',
@@ -464,8 +480,18 @@
       const term = normalize(document.getElementById('searchInput').value);
       const city = normalize(document.getElementById('cityFilter').value);
       const source = normalize(document.getElementById('sourceFilter').value);
-      const buckets = {total:[...todayOrders],pending:[],progress:[],completed:[],cancelled:[]};
-      todayOrders.forEach(order => buckets[orderState(order)].push(order));
+      const receivedToday = todayOrders.filter(order => dateKey(order.createdAt || order.created_at) === todayKey());
+      const buckets = {total:receivedToday,pending:[],progress:[],completed:[],cancelled:[]};
+      receivedToday.forEach(order => {
+        const state = orderState(order);
+        if (state === 'pending' || state === 'progress') buckets[state].push(order);
+      });
+      todayOrders.forEach(order => {
+        const state = orderState(order);
+        if ((state === 'completed' || state === 'cancelled') && statusEventDateKey(order, state) === todayKey()) {
+          buckets[state].push(order);
+        }
+      });
       Object.keys(buckets).forEach(key => document.getElementById(`count-${key}`).textContent = buckets[key].length);
 
       const visible = buckets[activeStatus].filter(order => {
@@ -514,10 +540,17 @@
         const {data:partners,error:partnerError}=await db.from('Partner').select('*');
         if(partnerError) throw partnerError;
         activeMechanics=(partners||[]).filter(item => item.partner_status==='Active - Working with FixWheel' || item.status==='Active - Working with FixWheel');
-        todayOrders = rows.filter(order => !isTest(order) && dateKey(order.createdAt) === todayKey());
+        todayOrders = rows.filter(order => {
+          if (isTest(order)) return false;
+          const state = orderState(order);
+          const receivedToday = dateKey(order.createdAt || order.created_at) === todayKey();
+          const closedToday = (state === 'completed' || state === 'cancelled') && statusEventDateKey(order, state) === todayKey();
+          return receivedToday || closedToday;
+        });
         populateCities();
         render();
-        document.getElementById('syncState').textContent = `${todayOrders.length} orders received today`;
+        const receivedTodayCount = todayOrders.filter(order => dateKey(order.createdAt || order.created_at) === todayKey()).length;
+        document.getElementById('syncState').textContent = `${receivedTodayCount} orders received today`;
       } catch (error) {
         document.getElementById('syncState').textContent = 'Data unavailable';
         document.getElementById('ordersList').innerHTML = `<div class="state"><h3>Could not load today's orders</h3><p>${escapeHtml(error.message || 'Refresh and try again.')}</p></div>`;
