@@ -25,6 +25,7 @@
   <script src="sidebar.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
+  <script src="fixwheel_analytics_core.js?v=2036"></script>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
   <style>
@@ -993,16 +994,9 @@
       }
 
       // Keep one clean source list, then derive completed revenue transactions from it.
-      rawBookings = (bookings || []).filter(b => {
-        const st = (b.order_status || b.status || '').toLowerCase();
-        const isTest = b.is_test_order === true || b.is_test_order === 'true' || st.includes('test order') || st.includes('sandbox');
-        return !isTest;
-      });
+      rawBookings = (bookings || []).filter(b => !FixWheelAnalytics.isTestBooking(b));
 
-      rawCompletedBookings = rawBookings.filter(b => {
-        const st = (b.order_status || b.status || '').toLowerCase();
-        return st.includes('completed') || st.includes('payment received');
-      });
+      rawCompletedBookings = rawBookings.filter(b => FixWheelAnalytics.isCompletedBooking(b));
 
       calculateAndRender();
     }
@@ -1075,7 +1069,7 @@
     }
 
     function getBookingDate(b) {
-      const finished = b.finished_at || b.order_finished_date || b.createdAt;
+      const finished = FixWheelAnalytics.getCompletionTimestamp(b);
       if (!finished) return 0;
       return new Date(finished.endsWith('Z') || finished.includes('+') ? finished : finished + 'Z').getTime();
     }
@@ -1182,8 +1176,8 @@
       currentPreviousCompletedBookings = previousCompletedList;
       currentPreviousReceivedBookings = previousReceivedList;
 
-      const totalGmv = activeList.reduce((sum, b) => sum + (Number(b.Final_Amount) || Number(b.price) || 0), 0);
-      const previousGmv = previousCompletedList.reduce((sum, b) => sum + (Number(b.Final_Amount) || Number(b.price) || 0), 0);
+      const totalGmv = activeList.reduce((sum, b) => sum + FixWheelAnalytics.getRevenueAmount(b), 0);
+      const previousGmv = previousCompletedList.reduce((sum, b) => sum + FixWheelAnalytics.getRevenueAmount(b), 0);
 
       const completedCount = activeList.length;
       const averageOrderValue = completedCount ? totalGmv / completedCount : 0;
@@ -1248,8 +1242,9 @@
           heading: 'Service',
           title: 'Service performance',
           groupLabel: 'services',
-          include: booking => !isMultiServicePackage(booking),
-          getValue: booking => getPackageLabel(booking) || 'Unspecified service'
+          getValue: booking => isMultiServicePackage(booking)
+            ? 'Multi-service package'
+            : (getPackageLabel(booking) || 'Unspecified service')
         },
         package: {
           heading: 'Package',
@@ -1297,7 +1292,7 @@
       matchingBookings.forEach(booking => {
         const label = config.getValue(booking);
         const groupKey = label.toLocaleLowerCase('en-IN');
-        const amount = Number(booking.Final_Amount) || Number(booking.price) || 0;
+        const amount = FixWheelAnalytics.getRevenueAmount(booking);
         const existing = groups.get(groupKey) || { label, orders: 0, revenue: 0, average: 0 };
         existing.orders += 1;
         existing.revenue += amount;
@@ -1393,10 +1388,10 @@
 
     function exportRevenueReport() {
       const comparisonMode = isComparisonWindow();
-      const totalRevenue = currentActiveCompletedBookings.reduce((sum, booking) => sum + (Number(booking.Final_Amount) || Number(booking.price) || 0), 0);
+      const totalRevenue = currentActiveCompletedBookings.reduce((sum, booking) => sum + FixWheelAnalytics.getRevenueAmount(booking), 0);
       const completedOrders = currentActiveCompletedBookings.length;
       const averageOrderValue = completedOrders ? totalRevenue / completedOrders : 0;
-      const previousTotalRevenue = currentPreviousCompletedBookings.reduce((sum, booking) => sum + (Number(booking.Final_Amount) || Number(booking.price) || 0), 0);
+      const previousTotalRevenue = currentPreviousCompletedBookings.reduce((sum, booking) => sum + FixWheelAnalytics.getRevenueAmount(booking), 0);
       const previousCompletedOrders = currentPreviousCompletedBookings.length;
       const previousAverageOrderValue = previousCompletedOrders ? previousTotalRevenue / previousCompletedOrders : 0;
       const generatedAt = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' });
@@ -1505,7 +1500,7 @@
           return t >= start && t < end;
         });
         trendCategories.push(label);
-        const bucketRevenue = completedBucket.reduce((sum, b) => sum + (Number(b.Final_Amount) || Number(b.price) || 0), 0);
+        const bucketRevenue = completedBucket.reduce((sum, b) => sum + FixWheelAnalytics.getRevenueAmount(b), 0);
         periodGmv.push(bucketRevenue);
         periodOrders.push(completedBucket.length);
         periodReceived.push(receivedBucket.length);
@@ -1519,7 +1514,7 @@
             const t = getCreatedDate(b);
             return t >= start - comparisonOffset && t < end - comparisonOffset;
           });
-          const previousRevenue = previousCompletedBucket.reduce((sum, b) => sum + (Number(b.Final_Amount) || Number(b.price) || 0), 0);
+          const previousRevenue = previousCompletedBucket.reduce((sum, b) => sum + FixWheelAnalytics.getRevenueAmount(b), 0);
           previousPeriodGmv.push(previousRevenue);
           previousPeriodOrders.push(previousCompletedBucket.length);
           previousPeriodReceived.push(previousReceivedBucket.length);

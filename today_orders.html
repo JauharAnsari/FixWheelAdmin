@@ -224,6 +224,14 @@
       if (Number.isFinite(scheduledA) && Number.isFinite(scheduledB) && scheduledA !== scheduledB) return scheduledB - scheduledA;
       return (parseBookingDate(b?.createdAt || b?.created_at)?.getTime() || 0) - (parseBookingDate(a?.createdAt || a?.created_at)?.getTime() || 0);
     }
+    function compareScheduledAscending(a,b) {
+      const scheduledA = scheduledServiceTimestamp(a);
+      const scheduledB = scheduledServiceTimestamp(b);
+      if (Number.isFinite(scheduledA) && !Number.isFinite(scheduledB)) return -1;
+      if (!Number.isFinite(scheduledA) && Number.isFinite(scheduledB)) return 1;
+      if (Number.isFinite(scheduledA) && Number.isFinite(scheduledB) && scheduledA !== scheduledB) return scheduledA - scheduledB;
+      return (parseBookingDate(a?.createdAt || a?.created_at)?.getTime() || 0) - (parseBookingDate(b?.createdAt || b?.created_at)?.getTime() || 0);
+    }
     function statusEventDateKey(order, state) {
       const serviceDate = dateKey(effectiveScheduleDate(order));
       if (serviceDate) return serviceDate;
@@ -499,7 +507,7 @@
         const orderCity = normalize(order.city);
         const orderSource = normalize(order.source);
         return (!term || haystack.includes(term)) && (!city || orderCity === city || (city === 'gurgaon' && orderCity === 'gurugram')) && (!source || orderSource.includes(source));
-      }).sort(compareScheduledDescending);
+      }).sort(activeStatus === 'pending' || activeStatus === 'progress' ? compareScheduledAscending : compareScheduledDescending);
       const titles = {total:'Total orders today',pending:'Pending today',progress:'In progress today',completed:'Completed today',cancelled:'Cancelled today'};
       document.getElementById('viewTitle').textContent = titles[activeStatus];
       if (!visible.length) {

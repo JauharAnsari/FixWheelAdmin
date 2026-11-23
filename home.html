@@ -1552,6 +1552,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
+  <script src="fixwheel_analytics_core.js?v=2036"></script>
   <script>
     // Theme logic
     const savedTheme = localStorage.getItem('theme') || 'dark';
@@ -1652,11 +1653,7 @@
       const currentYear = today.getFullYear();
 
       // Filter out explicit test orders for production counts
-      const productionBookings = (bookings || []).filter(b => {
-        const statusStr = (b.order_status || b.status || '').toLowerCase();
-        const isExplicitTest = b.is_test_order === true || b.is_test_order === 'true' || statusStr.includes('test order') || statusStr.includes('sandbox');
-        return !isExplicitTest;
-      });
+      const productionBookings = (bookings || []).filter(b => !FixWheelAnalytics.isTestBooking(b));
 
       let totalOrders = productionBookings.length;
 
@@ -1696,33 +1693,23 @@
       const todayISO = getISTISO(new Date());
 
       const getStatusEventRaw = (booking, type) => {
-        const bookingDate = String(booking.bookingDate || '').trim();
-        const source = String(booking.source || '').trim().toLowerCase();
-        const legacySlotDate = source === 'app' && /^2026-05-20(?:$|[T\s])/.test(bookingDate)
-          ? String(booking.preferredSlot || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?=\s*\()/)
-          : null;
-        const serviceDate = booking.rescheduled_date || booking.rescheduledDate || (legacySlotDate
-          ? `${legacySlotDate[3]}-${String(legacySlotDate[2]).padStart(2, '0')}-${String(legacySlotDate[1]).padStart(2, '0')}`
-          : (booking.bookingDate || booking.preferredDate));
-        if (serviceDate) return serviceDate;
+        if (type === 'completed') return FixWheelAnalytics.getCompletionTimestamp(booking);
 
         const reference = booking.bookingRef || booking.id;
         const storedEvent = reference
           ? localStorage.getItem(`fixwheel_${type === 'completed' ? 'finished' : 'cancelled'}_${reference}`)
           : null;
-        const explicitEvent = type === 'completed'
-          ? (booking.finished_at || booking.order_finished_date || storedEvent)
-          : (booking.cancelled_at || booking.canceled_at || booking.cancellation_date || booking.cancel_date || storedEvent);
+        const explicitEvent = booking.cancelled_at || booking.canceled_at || booking.cancellation_date || booking.cancel_date || storedEvent;
         if (explicitEvent) return explicitEvent;
 
         const lastUpdated = booking.status_updated_at || booking.updated_at || booking.updatedAt;
         if (lastUpdated) return lastUpdated;
 
-        // Older rows did not always record status timestamps.
-        if (getISTISO(booking.createdAt || booking.created_at) === todayISO) {
-          return booking.createdAt || booking.created_at;
-        }
-        return null;
+        // Match Revenue Analytics for legacy rows that predate explicit status
+        // timestamps. Never use the scheduled service date as the completion
+        // date: reschedules and future slots otherwise move completed revenue
+        // into the wrong reporting period.
+        return booking.createdAt || booking.created_at || null;
       };
 
       const [istYear, istMonth, istDay] = todayISO.split('-').map(Number);
@@ -1770,11 +1757,11 @@
 
       // Process Production Bookings
       productionBookings.forEach(b => {
-        const statusStr = ((b.order_status || '') + ' ' + (b.status || '')).toLowerCase();
-        const isCompleted = statusStr.includes('completed') || statusStr.includes('payment received');
+        const statusStr = FixWheelAnalytics.statusText(b);
+        const isCompleted = FixWheelAnalytics.isCompletedBooking(b);
         const isCanceled = statusStr.includes('cancel');
         const isDisputed = statusStr.includes('disput');
-        const amount = Number(b.Final_Amount) || Number(b.price) || 0;
+        const amount = FixWheelAnalytics.getRevenueAmount(b);
 
         // Operational "today" is based on the scheduled service date, not on
         // when the booking was originally created.
@@ -2093,7 +2080,7 @@
       if (!topPartnersContainer) return;
 
       const partnerJobs = {};
-      bookings.filter(b => (b.order_status || b.status || '').toLowerCase().includes('completed')).forEach(b => {
+      bookings.filter(b => FixWheelAnalytics.isCompletedBooking(b)).forEach(b => {
         const mech = b['Assign Mechanic'] || b.mechanic;
         if (mech && mech !== 'Unassigned') {
           partnerJobs[mech] = (partnerJobs[mech] || 0) + 1;
@@ -2291,15 +2278,10 @@
       try {
         const dailyMap = {};
         bookings.forEach(b => {
-          const st = ((b.order_status || '') + ' ' + (b.status || '')).toLowerCase();
-          const isTest = b.is_test_order === true || b.is_test_order === 'true' || st.includes('test order') || st.includes('sandbox');
-          if (isTest) return;
+          if (FixWheelAnalytics.isTestBooking(b) || !FixWheelAnalytics.isCompletedBooking(b)) return;
 
-          const isCompleted = st.includes('completed') || st.includes('payment received');
-          if (!isCompleted) return;
-
-          const amt = Number(b.Final_Amount) || Number(b.price) || 0;
-          const rawFinished = b.finished_at || b.order_finished_date || b.createdAt;
+          const amt = FixWheelAnalytics.getRevenueAmount(b);
+          const rawFinished = FixWheelAnalytics.getCompletionTimestamp(b);
           const dateISO = getDashboardISTISO(rawFinished);
           if (!dateISO) return;
 

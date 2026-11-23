@@ -2843,6 +2843,8 @@
 
       let pendingHtml = '';
       let inProgressHtml = '';
+      const pendingRows = [];
+      const inProgressRows = [];
       let todayHtml = '';
       let completedHtml = '';
       let cancelledHtml = '';
@@ -3086,7 +3088,7 @@
             const matchInProgressSource = inProgressSourceFilter === 'all' || orderSource === inProgressSourceFilter;
 
             if (matchInProgressSearch && matchInProgressStatus && matchInProgressCity && matchInProgressDate && matchInProgressSource && matchesSettlementFilters(order, 'in-progress')) {
-              inProgressHtml += row;
+              inProgressRows.push({ order, row });
               visibleInProgressCount++;
               if (inProgressDateFrom || inProgressDateTo) {
                 inProgressSummaryOrders++;
@@ -3105,7 +3107,7 @@
             const matchPendingSource = pendingSourceFilter === 'all' || orderSource === pendingSourceFilter;
 
             if (matchSearch && matchStatus && matchCity && matchVehicle && matchPendingDate && matchPendingSource && matchesSettlementFilters(order, 'pending')) {
-              pendingHtml += row;
+              pendingRows.push({ order, row });
               visiblePendingCount++;
               if (pendingDateFrom || pendingDateTo) {
                 pendingSummaryOrders++;
@@ -3115,6 +3117,15 @@
           }
         }
       });
+
+      pendingHtml = pendingRows
+        .sort((a, b) => compareByScheduledServiceAscending(a.order, b.order))
+        .map(item => item.row)
+        .join('');
+      inProgressHtml = inProgressRows
+        .sort((a, b) => compareByScheduledServiceAscending(a.order, b.order))
+        .map(item => item.row)
+        .join('');
 
       const activeSectionId = document.querySelector('.order-section.active')?.id || 'pending-section';
       if (activeSectionId === 'pending-section') pendingTable.innerHTML = pendingHtml || '<tr class="empty-row"><td colspan="8" style="text-align:center; padding:36px; color:var(--text-3); font-family:var(--mono);">No unassigned orders.</td></tr>';
@@ -3387,6 +3398,17 @@
       const createdA = Date.parse(a?.createdAt || a?.created_at || '') || 0;
       const createdB = Date.parse(b?.createdAt || b?.created_at || '') || 0;
       return createdB - createdA;
+    }
+
+    function compareByScheduledServiceAscending(a, b) {
+      const scheduledA = getScheduledServiceTimestamp(a);
+      const scheduledB = getScheduledServiceTimestamp(b);
+      if (Number.isFinite(scheduledA) && !Number.isFinite(scheduledB)) return -1;
+      if (!Number.isFinite(scheduledA) && Number.isFinite(scheduledB)) return 1;
+      if (Number.isFinite(scheduledA) && Number.isFinite(scheduledB) && scheduledA !== scheduledB) return scheduledA - scheduledB;
+      const createdA = Date.parse(a?.createdAt || a?.created_at || '') || 0;
+      const createdB = Date.parse(b?.createdAt || b?.created_at || '') || 0;
+      return createdA - createdB;
     }
 
     function getEffectiveOrderStatus(order) {
