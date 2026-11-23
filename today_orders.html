@@ -138,7 +138,11 @@
     }
     function vehicleName(order) { return String(order.bikeModel || order.vehicleModel || order.bikeName || 'Vehicle not recorded').replace(/\s*\([^)]*\bcc\b[^)]*\)\s*/gi,' ').replace(/\s{2,}/g,' ').trim(); }
     function serviceName(order) { return order.package || order.servicePackage || order.service || 'Service not recorded'; }
-    function scheduleDate(order) { return order.rescheduled_date || order.rescheduledDate || order.bookingDate || order.preferredDate || null; }
+    function scheduleDate(order) {
+      const rescheduledDate = order?.rescheduled_date || order?.rescheduledDate;
+      if (rescheduledDate && Number.isFinite(scheduleDateStartTimestamp(rescheduledDate))) return rescheduledDate;
+      return order?.bookingDate || order?.preferredDate || null;
+    }
     function effectiveScheduleDate(order) {
       const storedDate = scheduleDate(order);
       const source = normalize(order?.source);
@@ -507,7 +511,7 @@
         const orderCity = normalize(order.city);
         const orderSource = normalize(order.source);
         return (!term || haystack.includes(term)) && (!city || orderCity === city || (city === 'gurgaon' && orderCity === 'gurugram')) && (!source || orderSource.includes(source));
-      }).sort(activeStatus === 'pending' || activeStatus === 'progress' ? compareScheduledAscending : compareScheduledDescending);
+      }).sort(activeStatus === 'pending' ? compareScheduledAscending : compareScheduledDescending);
       const titles = {total:'Total orders today',pending:'Pending today',progress:'In progress today',completed:'Completed today',cancelled:'Cancelled today'};
       document.getElementById('viewTitle').textContent = titles[activeStatus];
       if (!visible.length) {
