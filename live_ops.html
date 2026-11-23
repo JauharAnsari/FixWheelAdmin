@@ -560,10 +560,11 @@
 
     // Main Live Ops Data Fetcher
     async function fetchLiveOpsData() {
-      const [{ data: partners, error: partnersErr }, { data: bookings, error: bookingsErr }] = await Promise.all([
+      const [{ data: partners, error: partnersErr }, bookingResult] = await Promise.all([
         supabaseClient.from('Partner').select('*'),
-        supabaseClient.from('Booking').select('*').order('createdAt', { ascending: false })
+        fetchAllBookingRows(supabaseClient).then(data => ({ data, error: null })).catch(error => ({ data: [], error }))
       ]);
+      const { data: bookings, error: bookingsErr } = bookingResult;
 
       if (partnersErr) console.error('Partners fetch error:', partnersErr);
       if (bookingsErr) console.error('Bookings fetch error:', bookingsErr);

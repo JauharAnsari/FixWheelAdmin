@@ -148,7 +148,7 @@
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script>
+  <script src="config.js?v=2036"></script>
   <script>
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     let settlementOrders = [];
@@ -176,10 +176,38 @@
       expandedOrderKey = null;
       renderSettlements();
     }
+    async function fetchAllSettlementBookings() {
+      if (typeof window.fetchAllBookingRows === 'function') {
+        return window.fetchAllBookingRows(supabaseClient);
+      }
+
+      // Keep settlements available even when a browser has an older config.js cached.
+      // Supabase caps a single response at 1,000 rows, so load every page explicitly.
+      const rows = [];
+      const pageSize = 1000;
+      for (let from = 0; ; from += pageSize) {
+        const { data, error } = await supabaseClient
+          .from('Booking')
+          .select('*')
+          .order('createdAt', { ascending: false, nullsFirst: false })
+          .order('id', { ascending: false })
+          .range(from, from + pageSize - 1);
+        if (error) throw error;
+        const page = data || [];
+        rows.push(...page);
+        if (page.length < pageSize) break;
+      }
+      return rows;
+    }
     async function fetchSettlements() {
-      const { data, error } = await supabaseClient.from('Booking').select('*').order('createdAt', { ascending: false });
-      if (error) { document.getElementById('settlement-body').innerHTML = `<tr><td colspan="9" class="empty">Could not load settlements: ${escapeText(error.message)}</td></tr>`; return; }
-      settlementOrders = (data || []).filter(isComplete);
+      let data;
+      try {
+        data = await fetchAllSettlementBookings();
+      } catch (error) {
+        document.getElementById('settlement-body').innerHTML = `<tr><td colspan="9" class="empty">Could not load settlements: ${escapeText(error.message)}</td></tr>`;
+        return;
+      }
+      settlementOrders = data.filter(isComplete);
       renderSettlements();
     }
     function renderSettlements() {

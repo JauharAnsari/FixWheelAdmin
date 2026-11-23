@@ -122,8 +122,10 @@
       const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       
       async function loadTestOrders() {
-        const { data: bookings, error } = await supabaseClient.from('Booking').select('*');
-        if (error) {
+        let bookings;
+        try {
+          bookings = await fetchAllBookingRows(supabaseClient);
+        } catch (error) {
           console.error(error);
           return;
         }

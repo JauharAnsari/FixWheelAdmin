@@ -588,10 +588,11 @@
     ];
 
     async function fetchCustomers() {
-      const [{ data: userProfiles, error: userError }, { data: bookings, error: bookingError }] = await Promise.all([
+      const [{ data: userProfiles, error: userError }, bookingResult] = await Promise.all([
         supabaseClient.from('User_Profile').select('*').order('created_at', { ascending: false }),
-        supabaseClient.from('Booking').select('*')
+        fetchAllBookingRows(supabaseClient).then(data => ({ data, error: null })).catch(error => ({ data: [], error }))
       ]);
+      const { data: bookings, error: bookingError } = bookingResult;
 
       if (userError) {
         console.error('Error fetching User_Profile table:', userError);

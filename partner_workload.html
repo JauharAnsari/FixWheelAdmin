@@ -379,10 +379,11 @@
     });
 
     async function fetchWorkloadData() {
-      const [{ data: partners, error: pErr }, { data: bookings, error: bErr }] = await Promise.all([
+      const [{ data: partners, error: pErr }, bookingResult] = await Promise.all([
         supabaseClient.from('Partner').select('*'),
-        supabaseClient.from('Booking').select('*').order('createdAt', { ascending: false })
+        fetchAllBookingRows(supabaseClient).then(data => ({ data, error: null })).catch(error => ({ data: [], error }))
       ]);
+      const { data: bookings, error: bErr } = bookingResult;
 
       if (pErr || bErr) {
         console.error('Error fetching workload data:', pErr || bErr);

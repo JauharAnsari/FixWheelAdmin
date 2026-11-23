@@ -2633,10 +2633,11 @@
         let bookings = [];
 
         try {
-          const [{ data: pData, error: partnersError }, { data: bData, error: bookingsError }] = await Promise.all([
+          const [{ data: pData, error: partnersError }, bookingResult] = await Promise.all([
             supabaseClient.from('Partner').select('*'),
-            supabaseClient.from('Booking').select('*').order('createdAt', { ascending: false })
+            fetchAllBookingRows(supabaseClient).then(data => ({ data, error: null })).catch(error => ({ data: null, error }))
           ]);
+          const { data: bData, error: bookingsError } = bookingResult;
 
           if (partnersError) console.error('Error fetching partners from Supabase client:', partnersError);
           else partners = pData || [];
@@ -2650,12 +2651,22 @@
         // Direct REST API fallbacks if client queries returned empty array or failed
         if (!bookings || bookings.length === 0) {
           try {
-            const resB = await fetch(SUPABASE_URL + '/rest/v1/Booking?select=*&order=createdAt.desc', {
-              headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
-            });
-            if (resB.ok) {
-              bookings = await resB.json();
+            const fallbackRows = [];
+            const pageSize = 1000;
+            for (let from = 0; ; from += pageSize) {
+              const resB = await fetch(SUPABASE_URL + '/rest/v1/Booking?select=*&order=createdAt.desc,id.desc', {
+                headers: {
+                  'apikey': SUPABASE_ANON_KEY,
+                  'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                  'Range': `${from}-${from + pageSize - 1}`
+                }
+              });
+              if (!resB.ok) throw new Error(`Booking fallback failed (${resB.status})`);
+              const page = await resB.json();
+              fallbackRows.push(...page);
+              if (page.length < pageSize) break;
             }
+            bookings = fallbackRows;
           } catch(e) {
             console.error('Fallback REST fetch for Booking failed:', e);
           }
