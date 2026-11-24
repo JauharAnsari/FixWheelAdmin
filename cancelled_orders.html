@@ -37,7 +37,7 @@
     .panel{border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden}.panel-header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:18px 22px;border-bottom:1px solid var(--border)}.panel-header h2{font-size:18px}.panel-header p{margin-top:5px;color:var(--text-3);font:10px/1.5 var(--mono)}.count{padding:5px 9px;border-radius:999px;background:var(--blue-soft);color:var(--blue);font:10px var(--mono);white-space:nowrap}
     .dimension-tabs{display:flex;overflow-x:auto;border-bottom:1px solid var(--border);scrollbar-width:none}.dimension-tabs::-webkit-scrollbar{display:none}.dimension-tab{position:relative;flex:1 0 125px;min-height:48px;border:0;background:transparent;color:var(--text-2);font-size:12px;font-weight:600;cursor:pointer}.dimension-tab:hover{background:var(--surface-2);color:var(--text-1)}.dimension-tab.active{color:var(--text-1)}.dimension-tab.active::after{content:'';position:absolute;left:20px;right:20px;bottom:0;height:2px;background:var(--red)}
     .table-wrap{overflow-x:auto}.data-table{width:100%;border-collapse:collapse;text-align:left}.data-table th{padding:11px 20px;background:var(--surface-2);color:var(--text-3);font:9px var(--mono);letter-spacing:.08em;text-transform:uppercase}.data-table td{padding:13px 20px;border-top:1px solid var(--border);font-size:12px;vertical-align:middle}.data-table tbody tr:hover{background:var(--surface-2)}.data-table th:not(:first-child),.data-table td:not(:first-child){text-align:right}.category{font-weight:600}.bar-cell{display:flex;align-items:center;justify-content:flex-end;gap:10px}.bar-track{width:110px;height:5px;border-radius:999px;background:var(--surface-3);overflow:hidden}.bar-fill{height:100%;border-radius:999px;background:var(--red)}.number{color:var(--red);font:600 12px var(--mono)}.share{color:var(--text-2);font:11px var(--mono)}
-    .orders-table{min-width:1040px}.orders-table th:not(:first-child),.orders-table td:not(:first-child){text-align:left}.orders-table td{padding-top:14px;padding-bottom:14px}.order-ref{color:var(--text-1);font:600 11px var(--mono)}.muted{color:var(--text-3);font:10px var(--mono)}.reason{color:var(--red);font-weight:600}.state{padding:46px 22px;text-align:center}.state h3{font-size:15px}.state p{max-width:520px;margin:7px auto 0;color:var(--text-3);font:10px/1.6 var(--mono)}.spinner{width:23px;height:23px;margin:0 auto 13px;border:2px solid var(--surface-3);border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+    .orders-table{min-width:1240px}.orders-table th:not(:first-child),.orders-table td:not(:first-child){text-align:left}.orders-table td{padding-top:14px;padding-bottom:14px}.order-ref{color:var(--text-1);font:600 11px var(--mono)}.muted{color:var(--text-3);font:10px var(--mono)}.reason{color:var(--red);font-weight:600}.cancel-date-editor{display:flex;align-items:center;gap:7px}.cancel-date-editor .control{width:138px;height:32px;padding:0 8px;font:10px var(--mono)}.save-date{height:32px;padding:0 10px;border:1px solid var(--border-hi);border-radius:6px;background:var(--surface-2);color:var(--text-1);font:600 10px var(--mono);cursor:pointer}.save-date:hover{border-color:var(--blue);color:var(--blue)}.save-date:disabled{cursor:wait;opacity:.55}.state{padding:46px 22px;text-align:center}.state h3{font-size:15px}.state p{max-width:520px;margin:7px auto 0;color:var(--text-3);font:10px/1.6 var(--mono)}.spinner{width:23px;height:23px;margin:0 auto 13px;border:2px solid var(--surface-3);border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
     .footnote{padding:12px 20px;border-top:1px solid var(--border);color:var(--text-3);font:10px/1.5 var(--mono)}
     @media(max-width:1100px){.summary-strip{grid-template-columns:repeat(3,1fr)}.summary:nth-child(3){border-right:0}.summary:nth-child(-n+3){border-bottom:1px solid var(--border)}.summary:nth-child(4){grid-column:span 2}}
     @media(max-width:800px){.topbar{height:58px;padding:0 14px 0 64px}.topbar-brand em{display:none}.page{padding:22px 14px 34px;gap:16px}.sync-state{text-align:left}.filter-top{align-items:flex-start;flex-direction:column}.custom-range{display:grid;grid-template-columns:1fr 1fr}.apply{grid-column:1/-1}.summary-strip{grid-template-columns:1fr 1fr}.summary:nth-child(3){border-right:1px solid var(--border)}.summary:nth-child(2n){border-right:0}.summary:nth-child(4){grid-column:auto}.summary:nth-child(-n+4){border-bottom:1px solid var(--border)}.summary:last-child{grid-column:1/-1}.summary{min-height:95px;padding:16px}.panel-header{padding:16px}.data-table th,.data-table td{padding-left:14px;padding-right:14px}.bar-track{width:72px}}
@@ -101,11 +101,11 @@
         <div class="panel-header"><h2>Cancelled order list</h2><span class="count" id="orderCount">—</span></div>
         <div class="table-wrap">
           <table class="data-table orders-table">
-            <thead><tr><th>Order</th><th>Created</th><th>Reason</th><th>Location</th><th>Service</th><th>Brand</th><th>Mechanic</th></tr></thead>
-            <tbody id="ordersBody"><tr><td colspan="7"><div class="state"><div class="spinner"></div><h3>Loading cancelled orders</h3></div></td></tr></tbody>
+            <thead><tr><th>Order</th><th>Created</th><th>Cancelled on</th><th>Reason</th><th>Location</th><th>Service</th><th>Brand</th><th>Mechanic</th></tr></thead>
+            <tbody id="ordersBody"><tr><td colspan="8"><div class="state"><div class="spinner"></div><h3>Loading cancelled orders</h3></div></td></tr></tbody>
           </table>
         </div>
-        <div class="footnote">The Booking table has no separate cancellation timestamp. All date ranges therefore use the order-created date. Test and sandbox orders are excluded.</div>
+        <div class="footnote">Date ranges use the saved cancellation date. Historical rows without one temporarily fall back to their order-created date until an admin updates them. Test and sandbox orders are excluded.</div>
       </section>
     </main>
   </div>
@@ -133,6 +133,12 @@
       const parsed = new Date(raw);
       return Number.isNaN(parsed.getTime()) ? null : parsed;
     }
+    function cancellationDate(order) {
+      const raw = order.cancellation_date || order.cancelled_at || order.canceled_at;
+      if (!raw) return createdDate(order);
+      const parsed = new Date(raw);
+      return Number.isNaN(parsed.getTime()) ? createdDate(order) : parsed;
+    }
     function normalizeCity(value) {
       const city = String(value || '').trim();
       if (/^(gurgaon|gurugram)$/i.test(city)) return 'Gurugram';
@@ -151,8 +157,14 @@
       const match = multiWord.find(brand => model.toLowerCase().startsWith(brand.toLowerCase()));
       return match || model.split(/\s+/)[0];
     }
+    function canonicalServiceLabel(value) {
+      const label = String(value || '').trim().replace(/\s+/g, ' ');
+      if (/^jump\s*start$/i.test(label)) return 'Jump start';
+      if (/^engine\s*full$/i.test(label)) return 'Engine full';
+      return label;
+    }
     function serviceValues(order) {
-      const values = String(order.package || '').split(',').map(value => value.trim()).filter(Boolean);
+      const values = String(order.package || '').split(',').map(canonicalServiceLabel).filter(Boolean);
       return values.length ? values : ['Unspecified service'];
     }
     function mechanicValue(order) { return String(order['Assign Mechanic'] || order.mechanic || '').trim() || 'Unassigned'; }
@@ -231,14 +243,17 @@
     function renderOrders() {
       $('orderCount').textContent = `${filteredOrders.length} ${filteredOrders.length === 1 ? 'order' : 'orders'}`;
       if (!filteredOrders.length) {
-        $('ordersBody').innerHTML = `<tr><td colspan="7"><div class="state"><h3>No cancelled orders in this period</h3><p>Select another range to inspect earlier cancellations.</p></div></td></tr>`;
+        $('ordersBody').innerHTML = `<tr><td colspan="8"><div class="state"><h3>No cancelled orders in this period</h3><p>Select another range to inspect earlier cancellations.</p></div></td></tr>`;
         return;
       }
-      $('ordersBody').innerHTML = filteredOrders.slice().sort((a,b) => (createdDate(b)?.getTime() || 0) - (createdDate(a)?.getTime() || 0)).map(order => {
+      $('ordersBody').innerHTML = filteredOrders.slice().sort((a,b) => (cancellationDate(b)?.getTime() || 0) - (cancellationDate(a)?.getTime() || 0)).map(order => {
         const date = createdDate(order);
+        const cancelledOn = cancellationDate(order);
+        const dateInput = cancelledOn ? toInputDate(cancelledOn) : '';
         return `<tr>
           <td><span class="order-ref">#${escapeHtml(order.bookingRef || order.id || 'Unknown')}</span><div class="muted">${escapeHtml(order.customerName || 'Unknown customer')}</div></td>
           <td><span class="muted">${date ? escapeHtml(date.toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})) : '—'}</span></td>
+          <td><div class="cancel-date-editor"><input class="control cancellation-date-input" type="date" value="${escapeHtml(dateInput)}" aria-label="Cancellation date for ${escapeHtml(order.bookingRef || order.id || 'order')}"><button class="save-date" type="button" data-booking-ref="${escapeHtml(order.bookingRef || '')}">Save</button></div></td>
           <td><span class="reason">${escapeHtml(cancellationReason(order))}</span></td>
           <td>${escapeHtml(normalizeCity(order.city))}</td>
           <td>${escapeHtml(serviceValues(order).join(', '))}</td>
@@ -247,11 +262,39 @@
         </tr>`;
       }).join('');
     }
+    async function updateCancellationDate(button) {
+      const bookingRef = button.dataset.bookingRef;
+      const input = button.closest('.cancel-date-editor')?.querySelector('.cancellation-date-input');
+      if (!bookingRef || !input?.value) return;
+      const previousText = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Saving…';
+      try {
+        const cancellationTimestamp = new Date(`${input.value}T12:00:00+05:30`).toISOString();
+        const { data, error } = await supabaseClient
+          .from('Booking')
+          .update({ cancellation_date: cancellationTimestamp, updated_by: 'Admin' })
+          .eq('bookingRef', bookingRef)
+          .select('bookingRef,cancellation_date');
+        if (error) throw error;
+        if (!data?.length) throw new Error('The booking could not be updated.');
+        const order = cancelledOrders.find(item => String(item.bookingRef) === String(bookingRef));
+        if (order) order.cancellation_date = cancellationTimestamp;
+        $('syncState').textContent = `CANCELLATION DATE SAVED · ${bookingRef}`;
+        renderReport(currentRange.from, currentRange.to);
+      } catch (error) {
+        console.error('Cancellation date update failed:', error);
+        button.disabled = false;
+        button.textContent = previousText;
+        $('filterError').textContent = error.message || 'Could not save the cancellation date.';
+        $('filterError').classList.add('visible');
+      }
+    }
     function renderReport(from,to) {
       $('filterError').classList.remove('visible');
       currentRange = {from:new Date(from),to:new Date(to)};
       receivedOrders = allProductionOrders.filter(order => { const date = createdDate(order); return date && date >= from && date <= to; });
-      filteredOrders = receivedOrders.filter(order => isCancelled(order));
+      filteredOrders = cancelledOrders.filter(order => { const date = cancellationDate(order); return date && date >= from && date <= to; });
       const reasons = aggregate('reason');
       const locations = aggregate('location');
       const rate = receivedOrders.length ? filteredOrders.length / receivedOrders.length * 100 : 0;
@@ -295,13 +338,15 @@
         breakdownRows(dimension).forEach(row => rows.push([row.label, row.received, row.count, formatPercent(row.rate)]));
         rows.push([]);
       });
-      rows.push(['Cancelled order details'], ['Order', 'Customer', 'Created', 'Reason', 'Location', 'Service', 'Brand', 'Mechanic', 'Source', 'Status', 'Phone', 'Bike model', 'Quoted amount', 'Final amount']);
-      filteredOrders.slice().sort((a,b) => (createdDate(b)?.getTime() || 0) - (createdDate(a)?.getTime() || 0)).forEach(order => {
+      rows.push(['Cancelled order details'], ['Order', 'Customer', 'Created', 'Cancelled on', 'Reason', 'Location', 'Service', 'Brand', 'Mechanic', 'Source', 'Status', 'Phone', 'Bike model', 'Quoted amount', 'Final amount']);
+      filteredOrders.slice().sort((a,b) => (cancellationDate(b)?.getTime() || 0) - (cancellationDate(a)?.getTime() || 0)).forEach(order => {
         const date = createdDate(order);
+        const cancelledOn = cancellationDate(order);
         rows.push([
           order.bookingRef || order.id || 'Unknown',
           order.customerName || 'Unknown customer',
           date ? date.toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '',
+          cancelledOn ? cancelledOn.toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '',
           cancellationReason(order),
           normalizeCity(order.city),
           serviceValues(order).join(', '),
@@ -350,7 +395,7 @@
         console.error('Cancelled orders load failed:', error);
         $('syncState').textContent = 'DATA CONNECTION FAILED';
         $('breakdownBody').innerHTML = `<tr><td colspan="3"><div class="state"><h3>Could not load cancellation data</h3><p>${escapeHtml(error.message || 'Check the Supabase connection and try again.')}</p><button class="apply" style="margin-top:14px" onclick="loadData()">Retry</button></div></td></tr>`;
-        $('ordersBody').innerHTML = `<tr><td colspan="7"><div class="state"><h3>Cancelled orders are unavailable</h3></div></td></tr>`;
+        $('ordersBody').innerHTML = `<tr><td colspan="8"><div class="state"><h3>Cancelled orders are unavailable</h3></div></td></tr>`;
       }
     }
 
@@ -365,6 +410,10 @@
       ['dateFrom','dateTo'].forEach(id => $(id).addEventListener('change', () => document.querySelectorAll('.preset').forEach(button => button.classList.remove('active'))));
       $('applyCustom').addEventListener('click', applyCustomRange);
       $('exportReport').addEventListener('click', exportCancellationReport);
+      $('ordersBody').addEventListener('click', event => {
+        const button = event.target.closest('.save-date');
+        if (button) updateCancellationDate(button);
+      });
       loadData();
     });
   </script>

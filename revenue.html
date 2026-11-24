@@ -1236,6 +1236,15 @@
       return getPackageLabel(booking).includes(',');
     }
 
+    function getAnalyticsCity(booking) {
+      const city = String(booking?.city || '').trim();
+      const address = String(booking?.address || '').trim();
+      if (/^gur(?:gaon|ugram)$/i.test(city)) return 'Gurugram';
+      // Some app bookings stored the Delhi locality in the city field.
+      if (/^raja vihar$/i.test(city) || (!city && /\braja vihar\b/i.test(address))) return 'Delhi';
+      return city || 'Unspecified city';
+    }
+
     function getBreakdownConfigs() {
       return {
         service: {
@@ -1257,11 +1266,7 @@
           heading: 'City',
           title: 'City performance',
           groupLabel: 'cities',
-          getValue: booking => {
-            const city = String(booking.city || '').trim();
-            if (/^gur(?:gaon|ugram)$/i.test(city)) return 'Gurugram';
-            return city || 'Unspecified city';
-          }
+          getValue: booking => getAnalyticsCity(booking)
         },
         partner: {
           heading: 'Partner',
@@ -1305,60 +1310,78 @@
     }
 
     function renderBreakdown(list, previousList = []) {
-      const { config, matchingBookings, rows } = buildBreakdownData(list, currentBreakdownDimension);
-      const previousData = buildBreakdownData(previousList, currentBreakdownDimension);
+      const completedData = buildBreakdownData(list, currentBreakdownDimension);
+      const previousCompletedData = buildBreakdownData(previousList, currentBreakdownDimension);
+      const receivedData = buildBreakdownData(currentActiveReceivedBookings, currentBreakdownDimension);
+      const previousReceivedData = buildBreakdownData(currentPreviousReceivedBookings, currentBreakdownDimension);
+      const { config, matchingBookings } = completedData;
       const comparisonMode = isComparisonWindow();
-      const currentMap = new Map(rows.map(row => [row.label.toLocaleLowerCase('en-IN'), row]));
-      const previousMap = new Map(previousData.rows.map(row => [row.label.toLocaleLowerCase('en-IN'), row]));
-      const comparisonRows = [...new Set([...currentMap.keys(), ...previousMap.keys()])].map(key => ({
-        label: currentMap.get(key)?.label || previousMap.get(key)?.label || key,
-        current: currentMap.get(key) || { orders: 0, revenue: 0, average: 0 },
-        previous: previousMap.get(key) || { orders: 0, revenue: 0, average: 0 }
-      })).sort((a, b) => b.current.orders - a.current.orders || b.previous.orders - a.previous.orders || b.current.revenue - a.current.revenue || a.label.localeCompare(b.label));
-      currentBreakdownRows = comparisonMode ? comparisonRows : rows;
+      const emptyMetric = { orders: 0, revenue: 0, average: 0 };
+      const toMap = data => new Map(data.rows.map(row => [row.label.toLocaleLowerCase('en-IN'), row]));
+      const maps = {
+        completed: toMap(completedData),
+        previousCompleted: toMap(previousCompletedData),
+        received: toMap(receivedData),
+        previousReceived: toMap(previousReceivedData)
+      };
+      const keys = [...new Set([
+        ...maps.completed.keys(),
+        ...maps.previousCompleted.keys(),
+        ...maps.received.keys(),
+        ...maps.previousReceived.keys()
+      ])];
+      const breakdownRows = keys.map(key => ({
+        label: maps.completed.get(key)?.label || maps.received.get(key)?.label || maps.previousCompleted.get(key)?.label || maps.previousReceived.get(key)?.label || key,
+        current: maps.completed.get(key) || emptyMetric,
+        previous: maps.previousCompleted.get(key) || emptyMetric,
+        currentReceived: maps.received.get(key)?.orders || 0,
+        previousReceived: maps.previousReceived.get(key)?.orders || 0
+      })).sort((a, b) =>
+        b.currentReceived - a.currentReceived ||
+        b.current.orders - a.current.orders ||
+        b.current.revenue - a.current.revenue ||
+        a.label.localeCompare(b.label)
+      );
+      currentBreakdownRows = breakdownRows;
       currentBreakdownMeta = { heading: config.heading, title: config.title };
       document.getElementById('breakdown-title').textContent = config.title;
       document.getElementById('breakdown-count').textContent = comparisonMode
-        ? `${comparisonRows.length} ${config.groupLabel} · ${matchingBookings.length.toLocaleString('en-IN')} current / ${previousData.matchingBookings.length.toLocaleString('en-IN')} past orders`
-        : `${rows.length} ${config.groupLabel} · ${matchingBookings.length.toLocaleString('en-IN')} completed orders`;
+        ? `${breakdownRows.length} ${config.groupLabel} · ${matchingBookings.length.toLocaleString('en-IN')} current / ${previousCompletedData.matchingBookings.length.toLocaleString('en-IN')} past completed`
+        : `${breakdownRows.length} ${config.groupLabel} · ${matchingBookings.length.toLocaleString('en-IN')} completed orders`;
 
       const tbody = document.getElementById('breakdown-table-body');
       const table = document.querySelector('.breakdown-table');
       const head = document.getElementById('breakdown-table-head');
       table.classList.toggle('comparison-table', comparisonMode);
-      head.innerHTML = comparisonMode
-        ? `<th>${escapeHtml(config.heading)}</th><th>Current orders</th><th>Past orders</th><th>Current revenue</th><th>Past revenue</th><th>Current avg.</th><th>Past avg.</th><th>Revenue change</th>`
-        : `<th>${escapeHtml(config.heading)}</th><th>Orders</th><th>Revenue</th><th>Avg. order</th>`;
+      const metricMeta = {
+        revenue: { label: 'Revenue', className: 'breakdown-revenue', value: row => row.current.revenue, previous: row => row.previous.revenue, format: value => `₹${Math.round(value).toLocaleString('en-IN')}` },
+        completed: { label: 'Completed orders', className: 'breakdown-orders', value: row => row.current.orders, previous: row => row.previous.orders, format: value => Number(value).toLocaleString('en-IN') },
+        received: { label: 'Orders received', className: 'breakdown-orders', value: row => row.currentReceived, previous: row => row.previousReceived, format: value => Number(value).toLocaleString('en-IN') },
+        average: { label: 'Avg. order', className: 'breakdown-average', value: row => row.current.average, previous: row => row.previous.average, format: value => `₹${Math.round(value).toLocaleString('en-IN')}` }
+      };
+      const activeMetrics = ['revenue', 'completed', 'received', 'average']
+        .filter(metric => selectedTrendMetrics.has(metric))
+        .map(metric => metricMeta[metric]);
+      document.getElementById('breakdown-subtitle').textContent = 'This table shows only the metrics currently selected in the graph.';
+      const metricHeadings = activeMetrics.flatMap(metric => comparisonMode
+        ? [`<th>Current ${escapeHtml(metric.label)}</th>`, `<th>Past ${escapeHtml(metric.label)}</th>`]
+        : [`<th>${escapeHtml(metric.label)}</th>`]);
+      head.innerHTML = `<th>${escapeHtml(config.heading)}</th>${metricHeadings.join('')}`;
 
-      const visibleRows = comparisonMode ? comparisonRows : rows;
-      if (visibleRows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${comparisonMode ? 8 : 4}" style="padding:28px 16px; text-align:center; color:var(--text-3); font-family:var(--mono);">No completed orders in the selected period.</td></tr>`;
+      if (breakdownRows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${1 + activeMetrics.length * (comparisonMode ? 2 : 1)}" style="padding:28px 16px; text-align:center; color:var(--text-3); font-family:var(--mono);">No matching orders in the selected period.</td></tr>`;
         return;
       }
 
-      if (comparisonMode) {
-        tbody.innerHTML = comparisonRows.map(row => {
-          const change = percentChange(row.current.revenue, row.previous.revenue);
-          return `<tr>
-            <td><span class="breakdown-dimension-value">${escapeHtml(row.label)}</span></td>
-            <td><span class="breakdown-orders">${row.current.orders.toLocaleString('en-IN')}</span></td>
-            <td><span class="breakdown-orders">${row.previous.orders.toLocaleString('en-IN')}</span></td>
-            <td><span class="breakdown-revenue">₹${row.current.revenue.toLocaleString('en-IN')}</span></td>
-            <td><span class="breakdown-revenue">₹${row.previous.revenue.toLocaleString('en-IN')}</span></td>
-            <td><span class="breakdown-average">₹${Math.round(row.current.average).toLocaleString('en-IN')}</span></td>
-            <td><span class="breakdown-average">₹${Math.round(row.previous.average).toLocaleString('en-IN')}</span></td>
-            <td><span class="breakdown-change ${change > 0 ? 'up' : change < 0 ? 'down' : 'neutral'}">${change > 0 ? '+' : ''}${change}%</span></td>
-          </tr>`;
-        }).join('');
-        return;
-      }
-
-      tbody.innerHTML = rows.map(row => `<tr>
-        <td><span class="breakdown-dimension-value">${escapeHtml(row.label)}</span></td>
-        <td><span class="breakdown-orders">${row.orders.toLocaleString('en-IN')}</span></td>
-        <td><span class="breakdown-revenue">₹${row.revenue.toLocaleString('en-IN')}</span></td>
-        <td><span class="breakdown-average">₹${Math.round(row.average).toLocaleString('en-IN')}</span></td>
-      </tr>`).join('');
+      tbody.innerHTML = breakdownRows.map(row => {
+        const metricCells = activeMetrics.flatMap(metric => comparisonMode
+          ? [
+              `<td><span class="${metric.className}">${metric.format(metric.value(row))}</span></td>`,
+              `<td><span class="${metric.className}">${metric.format(metric.previous(row))}</span></td>`
+            ]
+          : [`<td><span class="${metric.className}">${metric.format(metric.value(row))}</span></td>`]);
+        return `<tr><td><span class="breakdown-dimension-value">${escapeHtml(row.label)}</span></td>${metricCells.join('')}</tr>`;
+      }).join('');
     }
 
     function getReportPeriodLabel() {
