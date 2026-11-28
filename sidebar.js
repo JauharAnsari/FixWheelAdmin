@@ -181,6 +181,14 @@ function renderSidebar(activeKey) {
               Test Orders
             </a>
           </div>
+
+          <div class="nav-group">
+            <div class="nav-group-title">Access</div>
+            <a href="access.html?v=2041" class="nav-item ${activeKey === 'access' ? 'active' : ''}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="8" cy="15" r="4"></circle><path d="m11 12 8-8M15 4h4v4"></path><path d="M4 21h8"></path></svg>
+              Access
+            </a>
+          </div>
         `;
       }
 

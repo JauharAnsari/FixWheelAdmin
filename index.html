@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="sidebar.css?v=2028">
   <script src="auth_guard.js?v=2028"></script>
-  <script src="sidebar.js?v=2033"></script>
+  <script src="sidebar.js?v=2041"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -735,6 +735,8 @@
     .order-detail-value { color: var(--text-1); font-size: 12.5px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
     .order-detail-muted { color: var(--text-2); font-family: var(--mono); font-size: 10.5px; line-height: 1.35; overflow-wrap: anywhere; }
     .order-detail-section .fw-select { width: 100%; max-width: none !important; min-height: 34px; padding-top: 6px; padding-bottom: 6px; }
+    .tab-trigger[hidden],.order-section[hidden]{display:none!important}
+    .sort-head{display:inline-flex;align-items:center;gap:5px;border:0;background:transparent;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer}.sort-head:hover,.sort-head.active{color:var(--text-1)}.sort-head:focus-visible{outline:2px solid var(--red);outline-offset:3px;border-radius:3px}.sort-head svg{width:11px;height:11px;transition:transform .16s ease}.sort-head[data-direction="desc"] svg{transform:rotate(180deg)}
     .order-detail-section .remark-input { width: 100% !important; min-height: 60px !important; padding: 7px 9px !important; }
     .drawer-actions { display: flex; flex-wrap: wrap; gap: 6px; }
     .drawer-edit-form[hidden], .drawer-customer-view[hidden] { display: none; }
@@ -1680,7 +1682,12 @@
           Completed Orders
           <span class="tab-count" id="completed-tab-count">0</span>
         </button>
-        <button class="tab-trigger" onclick="switchTab('test_order')">
+        <button class="tab-trigger" onclick="switchTab('outside')">
+          <span class="fw-badge fw-badge-warning" style="padding: 2px 8px; font-size:10px;">Outside</span>
+          Outside Orders
+          <span class="tab-count" id="outside-tab-count">0</span>
+        </button>
+        <button class="tab-trigger" onclick="switchTab('test_order')" hidden aria-hidden="true">
           <span class="fw-badge fw-badge-info" style="padding: 2px 8px; font-size:10px;">🧪 Test</span>
           Test Orders
           <span class="tab-count" id="test-order-tab-count">0</span>
@@ -1691,6 +1698,22 @@
           <span class="tab-count" id="total-tab-count">0</span>
         </button>
       </div>
+
+    <div id="outside-section" class="order-section">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="section-tag" style="color:#f59e0b;border-color:rgba(245,158,11,.45);background:rgba(245,158,11,.08);">Outside</span>
+          <h2>Outside Orders</h2>
+        </div>
+        <span class="count-badge" id="outside-header-count">0 orders outside the five service cities</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr class="compact-order-head"><th>Order / Date</th><th>Customer</th><th>Vehicle / Service</th><th>Requested schedule</th><th>Location</th><th>Status</th><th>Amount</th><th><span class="sr-only">Open</span></th></tr></thead>
+          <tbody id="outside-table-body"><tr class="empty-row"><td colspan="8" style="text-align:center;padding:36px;color:var(--text-3);font-family:var(--mono);">Loading outside orders…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
 
     <!-- PENDING ORDERS -->
     <div id="pending-section" class="order-section active">
@@ -2125,7 +2148,7 @@
     </div> <!-- End Cancelled Section -->
 
     <!-- TEST ORDERS -->
-    <div id="test_order-section" class="order-section">
+    <div id="test_order-section" class="order-section" hidden aria-hidden="true">
       <div class="section-header">
         <div class="section-title">
           <span class="section-tag"
@@ -2350,9 +2373,12 @@
           <span class="order-drawer-label">Order details</span>
           <h2 id="order-drawer-title">Order</h2>
         </div>
-        <button type="button" id="order-drawer-close" class="order-drawer-close" onclick="closeOrderDetails()" aria-label="Close order details">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
-        </button>
+        <div class="order-drawer-nav" style="display:flex;align-items:center;gap:8px;">
+          <button type="button" class="order-drawer-close" onclick="navigateOrderDetails(-1)" aria-label="Previous order" title="Previous order"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"></path></svg></button>
+          <span id="order-drawer-position" style="min-width:54px;text-align:center;color:var(--text-3);font:10px var(--mono);">—</span>
+          <button type="button" class="order-drawer-close" onclick="navigateOrderDetails(1)" aria-label="Next order" title="Next order"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg></button>
+          <button type="button" id="order-drawer-close" class="order-drawer-close" onclick="closeOrderDetails()" aria-label="Close order details"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+        </div>
       </header>
       <div id="order-drawer-body" class="order-drawer-body"></div>
     </aside>
@@ -2424,8 +2450,8 @@
   </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script>
-  <script src="cancellation_dialog.js?v=2038"></script>
+  <script src="config.js?v=2042"></script>
+  <script src="cancellation_dialog.js?v=2041"></script>
   <script>
     // Initialize Supabase
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -2561,6 +2587,8 @@
       const embeddedCc = model.match(/\b\d+\s*(?:to|[-–])\s*\d+\s*cc\b/i) || model.match(/\b\d+\s*cc\b/i);
       if (embeddedCc) return embeddedCc[0];
 
+      if (/electric|\bev\b/i.test(`${order?.bikeType || ''} ${model}`)) return 'Not applicable (electric)';
+
       // Older website deployments omitted Booking.cc. Recover only a plausible
       // engine displacement embedded in the model name (for example RayZR 125).
       if (String(order?.source || '').toLowerCase() === 'website' && !/electric|\bev\b/i.test(`${order?.bikeType || ''} ${model}`)) {
@@ -2580,6 +2608,7 @@
     function formatVehicleCc(value) {
       const raw = String(value || '').trim();
       if (!raw) return '';
+      if (raw.startsWith('Not applicable')) return raw;
       const withUnit = /\bcc\b/i.test(raw) ? raw : `${raw} CC`;
       return withUnit
         .replace(/\s+(?:to|-)\s+/gi, '–')
@@ -2631,11 +2660,13 @@
       try {
         let partners = [];
         let bookings = [];
+        let outsideOrders = [];
 
         try {
-          const [{ data: pData, error: partnersError }, bookingResult] = await Promise.all([
+          const [{ data: pData, error: partnersError }, bookingResult, outsideResult] = await Promise.all([
             supabaseClient.from('Partner').select('*'),
-            fetchAllBookingRows(supabaseClient).then(data => ({ data, error: null })).catch(error => ({ data: null, error }))
+            fetchAllBookingRows(supabaseClient).then(data => ({ data, error: null })).catch(error => ({ data: null, error })),
+            supabaseClient.from('Outside_Order').select('*').order('created_at', { ascending:false })
           ]);
           const { data: bData, error: bookingsError } = bookingResult;
 
@@ -2644,6 +2675,8 @@
 
           if (bookingsError) console.error('Error fetching bookings from Supabase client:', bookingsError);
           else bookings = bData || [];
+          if (outsideResult.error) console.error('Error fetching outside orders:', outsideResult.error);
+          else outsideOrders = outsideResult.data || [];
         } catch (e) {
           console.error('Supabase client fetch exception:', e);
         }
@@ -2687,11 +2720,79 @@
 
         window.activeMechanics = (partners || []).filter(p => (p.partner_status === 'Active - Working with FixWheel' || p.status === 'Active - Working with FixWheel'));
         window.allBookings = bookings || [];
+        window.outsideOrders = outsideOrders || [];
+        renderOutsideOrders(window.outsideOrders);
         renderDashboard(window.allBookings);
       } catch(err) {
         console.error('fetchBookings exception:', err);
       }
     }
+
+    function renderOutsideOrders(rows) {
+      const body = document.getElementById('outside-table-body');
+      const count = Array.isArray(rows) ? rows.length : 0;
+      document.getElementById('outside-tab-count').textContent = count;
+      document.getElementById('outside-header-count').textContent = `${count} order${count === 1 ? '' : 's'} outside the five service cities`;
+      if (!body) return;
+      body.innerHTML = count ? rows.map(order => {
+        const ref = order.order_ref || order.id || '—';
+        const vehicle = order.bike_model || 'Vehicle not recorded';
+        const service = order.package_name || 'Service request';
+        const location = [order.custom_city || order.city, order.state].filter(Boolean).join(', ') || 'Outside service area';
+        const date = order.preferred_date || order.created_at;
+        return `<tr><td><div class="order-id">#${escapeOrderText(ref)}</div><div class="date">${getOrderDisplayDate(order.created_at,true)}</div></td><td><div class="customer-name">${escapeOrderText(order.customer_name||'Unknown customer')}</div><div class="customer-city">${escapeOrderText(order.phone||'No phone')}</div></td><td><div class="vehicle-name">${escapeOrderText(vehicle)}</div><div class="service-type">${escapeOrderText(service)}</div></td><td><div class="schedule-date">${getOrderDisplayDate(date)}</div><div class="schedule-slot">${escapeOrderText(order.preferred_slot||'Anytime')}</div></td><td><div class="customer-name">${escapeOrderText(location)}</div><div class="customer-city">${escapeOrderText(order.address||'Address not recorded')}</div></td><td><span class="compact-status pending">${escapeOrderText(order.status||'Requested')}</span></td><td><div class="price">₹${Number(order.estimated_price||0).toLocaleString('en-IN')}</div></td><td></td></tr>`;
+      }).join('') : '<tr class="empty-row"><td colspan="8" style="text-align:center;padding:36px;color:var(--text-3);font-family:var(--mono);">No outside orders found.</td></tr>';
+    }
+    let orderTableSort = { key: 'schedule', direction: 'desc' };
+
+    function orderSortValue(order, key) {
+      if (key === 'order') return Date.parse(order?.createdAt || order?.created_at || order?.bookingDate || '') || Number.NEGATIVE_INFINITY;
+      if (key === 'payment') return Number(order?.Final_Amount ?? order?.final_amount ?? order?.finalAmount ?? order?.price ?? 0) || 0;
+      return getScheduledServiceTimestamp(order);
+    }
+
+    function compareOrdersByActiveSort(a, b) {
+      const aValue = orderSortValue(a, orderTableSort.key);
+      const bValue = orderSortValue(b, orderTableSort.key);
+      const aValid = Number.isFinite(aValue);
+      const bValid = Number.isFinite(bValue);
+      if (aValid && !bValid) return -1;
+      if (!aValid && bValid) return 1;
+      if (aValue !== bValue) return orderTableSort.direction === 'asc' ? aValue - bValue : bValue - aValue;
+      return (Date.parse(b?.createdAt || b?.created_at || '') || 0) - (Date.parse(a?.createdAt || a?.created_at || '') || 0);
+    }
+
+    function updateOrderSortButtons() {
+      document.querySelectorAll('.sort-head').forEach(button => {
+        const active = button.dataset.sortKey === orderTableSort.key;
+        button.classList.toggle('active', active);
+        button.dataset.direction = active ? orderTableSort.direction : 'none';
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        button.setAttribute('aria-label', `${button.dataset.label}: ${active ? orderTableSort.direction === 'asc' ? 'ascending' : 'descending' : 'not sorted'}`);
+      });
+    }
+
+    function toggleOrderTableSort(key) {
+      orderTableSort = orderTableSort.key === key
+        ? { key, direction: orderTableSort.direction === 'asc' ? 'desc' : 'asc' }
+        : { key, direction: 'asc' };
+      updateOrderSortButtons();
+      if (window.allBookings) renderDashboard(window.allBookings);
+    }
+
+    function initializeSortableOrderHeaders() {
+      const sortableColumns = { 0: ['order', 'Order / Date'], 3: ['schedule', 'Schedule'], 6: ['payment', 'Payment'] };
+      document.querySelectorAll('.compact-order-head').forEach(row => {
+        Object.entries(sortableColumns).forEach(([index, config]) => {
+          const cell = row.children[Number(index)];
+          if (!cell || cell.querySelector('.sort-head')) return;
+          const [key, label] = config;
+          cell.innerHTML = `<button class="sort-head" type="button" data-sort-key="${key}" data-label="${label}" onclick="toggleOrderTableSort('${key}')"><span>${label}</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m4 6 4-4 4 4M8 2v12"/></svg></button>`;
+        });
+      });
+      updateOrderSortButtons();
+    }
+
     function renderDashboard(bookings) {
       const pendingTable = document.getElementById('pending-table-body');
       const inProgressTable = document.getElementById('in-progress-table-body');
@@ -2939,7 +3040,7 @@
       let totalJobMinutes = 0;
       let completedJobTimeCount = 0;
 
-      [...bookings].sort(compareByScheduledServiceDescending).forEach(order => {
+      [...bookings].sort(compareOrdersByActiveSort).forEach(order => {
         const orderDateFormatted = getISTISO(order.createdAt || order.created_at);
 
         const statusStr = ((order.order_status || '') + ' ' + (order.status || '')).toLowerCase();
@@ -3119,11 +3220,11 @@
       });
 
       pendingHtml = pendingRows
-        .sort((a, b) => compareByScheduledServiceAscending(a.order, b.order))
+        .sort((a, b) => compareOrdersByActiveSort(a.order, b.order))
         .map(item => item.row)
         .join('');
       inProgressHtml = inProgressRows
-        .sort((a, b) => compareByScheduledServiceDescending(a.order, b.order))
+        .sort((a, b) => compareOrdersByActiveSort(a.order, b.order))
         .map(item => item.row)
         .join('');
 
@@ -3518,8 +3619,8 @@
         "Customer Not Response",
         "Service Started",
         window.FIXWHEEL_CANCEL_STATUS,
-        "Completed - Payment received by FixWheel",
-        "Completed - Payment received by Mechanic",
+        window.FIXWHEEL_DUPLICATE_STATUS,
+        window.FIXWHEEL_PAYMENT_STATUS,
         "Test Order",
         "Reschedule Order"
       ];
@@ -3800,6 +3901,32 @@
       requestAnimationFrame(() => document.getElementById('order-drawer-close')?.focus());
     }
 
+    function getVisibleDrawerOrders() {
+      const activeBody = document.querySelector('.order-section.active tbody');
+      const ids = [...new Set([...(activeBody?.querySelectorAll('[data-order-id]') || [])].map(button => decodeURIComponent(button.dataset.orderId || '')).filter(Boolean))];
+      const source = ids.length ? ids : (window.allBookings || []).map(order => String(order.bookingRef || order.id));
+      return source.map(id => findOrderForDrawer(id)).filter(Boolean);
+    }
+
+    function updateDrawerPosition() {
+      const orders = getVisibleDrawerOrders();
+      const index = orders.findIndex(order => String(order.bookingRef || order.id) === String(activeOrderDrawerKey));
+      const label = document.getElementById('order-drawer-position');
+      if (label) label.textContent = index >= 0 ? `${index + 1} / ${orders.length}` : '—';
+    }
+
+    function navigateOrderDetails(direction) {
+      const orders = getVisibleDrawerOrders();
+      if (!orders.length) return;
+      let index = orders.findIndex(order => String(order.bookingRef || order.id) === String(activeOrderDrawerKey));
+      index = index < 0 ? 0 : (index + direction + orders.length) % orders.length;
+      const next = orders[index];
+      activeOrderDrawerKey = String(next.bookingRef || next.id);
+      activeOrderDrawerColumn = next.bookingRef ? 'bookingRef' : 'id';
+      renderOrderDrawer(next);
+      updateDrawerPosition();
+    }
+
     function closeOrderDetails() {
       const shell = document.getElementById('order-details-shell');
       shell.classList.remove('open');
@@ -3949,8 +4076,8 @@
         'Customer Not Response',
         'Service Started',
         window.FIXWHEEL_CANCEL_STATUS,
-        'Completed - Payment received by FixWheel',
-        'Completed - Payment received by Mechanic',
+        window.FIXWHEEL_DUPLICATE_STATUS,
+        window.FIXWHEEL_PAYMENT_STATUS,
         'Test Order',
         'Reschedule Order'
       ];
@@ -3970,7 +4097,8 @@
       const source = String(order.source || 'website').toLowerCase().includes('app') ? 'App' : 'Website';
       const service = order.package || order.servicePackage || order.service || 'Service';
       const vehicleCc = formatVehicleCc(getVehicleCc(order));
-      const vehicleMeta = [formatBikeTypeLabel(order.bikeType), vehicleCc ? `CC: ${vehicleCc}` : 'CC not recorded'].filter(Boolean).join(' · ');
+      const vehicleCcLabel = vehicleCc.startsWith('Not applicable') ? vehicleCc : (vehicleCc ? `CC: ${vehicleCc}` : 'CC not recorded');
+      const vehicleMeta = [formatBikeTypeLabel(order.bikeType), vehicleCcLabel].filter(Boolean).join(' · ');
       const serviceDate = getOrderDisplayDate(getEffectiveServiceDate(order));
       const finishedRaw = isCompletedOrder ? (order.finished_at || order.order_finished_date) : null;
       const finishedDate = getOrderDisplayDate(finishedRaw, true);
@@ -4075,6 +4203,7 @@
           </div>
         </section>
       `;
+      updateDrawerPosition();
     }
 
     function getStatusClass(status) {
@@ -4085,15 +4214,35 @@
       return 'waiting';
     }
 
-    // Helper: REST API fallback for Booking updates when RLS blocks
+    function showOrderUpdateError(error, fallbackMessage = 'Unable to update this order.') {
+      console.error('Order update failed', error);
+      if (error?.code === '42501' || /row-level security|permission denied/i.test(error?.message || '')) {
+        alert('Update not allowed for this account. Refresh the page and sign in again if your access was recently changed.');
+        return;
+      }
+      alert(`Update Failed: ${error?.message || fallbackMessage}`);
+    }
+
+    async function requireOrderUpdateSession() {
+      const token = await window.getFixWheelStaffAccessToken?.(supabaseClient);
+      if (token) return token;
+      window.clearFixWheelStaffSession?.();
+      alert('Your secure session has expired. Please sign in again before updating an order.');
+      window.location.replace('login.html?reason=session-expired');
+      return null;
+    }
+
+    // Authenticated REST fallback for transient client-query failures.
     async function restUpdateBooking(column, id, payload) {
       try {
+        const accessToken = await requireOrderUpdateSession();
+        if (!accessToken) return false;
         const restUrl = `${SUPABASE_URL}/rest/v1/Booking?${encodeURIComponent(column)}=eq.${encodeURIComponent(id)}`;
         const resp = await fetch(restUrl, {
           method: 'PATCH',
           headers: {
             'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
             'Prefer': 'return=minimal'
           },
@@ -4104,7 +4253,7 @@
           return true;
         }
         const errText = await resp.text();
-        console.error('REST fallback failed:', errText);
+        console.error('Authenticated REST fallback failed:', resp.status, errText);
         return false;
       } catch (e) {
         console.error('REST fallback error:', e);
@@ -4229,6 +4378,8 @@
 
       console.log(`Updating order ${id} via ${column} to ${updateColumn}: ${newStatus}`);
 
+      if (!await requireOrderUpdateSession()) return false;
+
       const existingOrder = (window.allBookings || []).find(b => String(b[column]) === String(id) || String(b.id) === String(id) || String(b.bookingRef) === String(id));
       const previousStatus = existingOrder ? (existingOrder.order_status || existingOrder.status || '') : '';
 
@@ -4276,23 +4427,6 @@
         if (existingOrder && existingOrder.id) localStorage.removeItem('fixwheel_finished_' + existingOrder.id);
       }
 
-      if (existingOrder) {
-        existingOrder[updateColumn] = newStatus;
-        existingOrder.order_status = newStatus;
-        existingOrder.status = newMainStatus;
-        if (updatePayload.payment_received_by) existingOrder.payment_received_by = updatePayload.payment_received_by;
-        if (updatePayload.settlement) existingOrder.settlement = updatePayload.settlement;
-        if (isNewCompleted) {
-          existingOrder.finished_at = nowIso;
-          existingOrder.order_finished_date = nowIso;
-        } else if (isPrevCompleted) {
-          existingOrder.finished_at = null;
-          existingOrder.order_finished_date = null;
-        }
-        existingOrder.updated_by = getCurrentUpdatedBy();
-      }
-      if (window.allBookings) renderDashboard(window.allBookings);
-
       const targetCol = (existingOrder && existingOrder.bookingRef) ? 'bookingRef' : (column || 'id');
       const targetVal = (existingOrder && existingOrder.bookingRef) ? existingOrder.bookingRef : id;
 
@@ -4307,15 +4441,16 @@
         .select();
 
       if (error) {
-        console.warn('Supabase client update failed (RLS), trying REST API fallback...', error.message);
-        // REST API fallback - bypass authenticated user RLS
+        console.warn('Supabase client update failed, trying authenticated REST fallback...', error);
         try {
+          const accessToken = await requireOrderUpdateSession();
+          if (!accessToken) return false;
           const restUrl = `${SUPABASE_URL}/rest/v1/Booking?${encodeURIComponent(targetCol)}=eq.${encodeURIComponent(targetVal)}`;
           const restResp = await fetch(restUrl, {
             method: 'PATCH',
             headers: {
               'apikey': SUPABASE_ANON_KEY,
-              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Authorization': `Bearer ${accessToken}`,
               'Content-Type': 'application/json',
               'Prefer': 'return=minimal'
             },
@@ -4327,26 +4462,32 @@
           } else {
             const errText = await restResp.text();
             console.error('REST API update failed:', errText);
-            alert('Update Failed: Unable to update order. Please contact admin.');
+            showOrderUpdateError({ message: errText, code: restResp.status === 403 ? '42501' : String(restResp.status) });
           }
         } catch (restErr) {
           console.error('REST fallback error:', restErr);
-          alert('Update Failed: Network error. Please try again.');
+          showOrderUpdateError(restErr, 'Network error. Please try again.');
         }
       } else {
         console.log('Update successful:', data);
         updateSuccess = true;
       }
 
-      if (updateSuccess) fetchBookings();
+      if (updateSuccess) {
+        if (existingOrder) Object.assign(existingOrder, updatePayload);
+        await fetchBookings();
+      } else if (window.allBookings) {
+        renderDashboard(window.allBookings);
+      }
       return updateSuccess;
     }
 
     function onStatusDropdownChange(selectEl, id, newStatus, column) {
-      if (newStatus === window.FIXWHEEL_CANCEL_STATUS) {
+      if (newStatus === window.FIXWHEEL_CANCEL_STATUS || newStatus === window.FIXWHEEL_PAYMENT_STATUS) {
         const order = (window.allBookings || []).find(b => String(b[column]) === String(id) || String(b.id) === String(id) || String(b.bookingRef) === String(id));
         const currentStatus = order ? getEffectiveOrderStatus(order) : 'Pending';
-        window.openCancellationReasonDialog({
+        window.openOrderChoiceDropdown({
+          kind: newStatus === window.FIXWHEEL_PAYMENT_STATUS ? 'payment' : 'cancel',
           currentStatus,
           trigger: selectEl,
           onConfirm: reason => updateOrderStatus(id, reason, column),
@@ -4355,102 +4496,6 @@
         return;
       }
       updateOrderStatus(id, newStatus, column);
-    }
-
-    function openPaymentReceiverModal(id, newStatus, column, selectEl) {
-      pendingPaymentOrderId = id;
-      pendingPaymentColumn = column;
-      pendingPaymentSelectEl = selectEl;
-
-      const order = (window.allBookings || []).find(b => String(b[column]) === String(id));
-      const orderRef = order ? (order.bookingRef || order.id) : id;
-      const custName = order ? (order.customerName || '') : '';
-
-      document.getElementById('pay-modal-order-ref').textContent = `Order #${orderRef} ${custName ? '— ' + custName : ''}`;
-      const modal = document.getElementById('payment-receiver-modal');
-      if (modal) modal.style.display = 'flex';
-    }
-
-    function closePaymentReceiverModal(isCancel = false) {
-      const modal = document.getElementById('payment-receiver-modal');
-      if (modal) modal.style.display = 'none';
-      if (isCancel && window.allBookings) {
-        renderDashboard(window.allBookings);
-      }
-      pendingPaymentOrderId = null;
-      pendingPaymentColumn = 'id';
-      pendingPaymentSelectEl = null;
-    }
-
-    async function confirmPaymentReceiver(receiver) {
-      if (!pendingPaymentOrderId) return;
-
-      const finalStatus = `Completed - Payment received by ${receiver}`;
-      const settlementVal = 'Pending';
-
-      const orderId = pendingPaymentOrderId;
-      const col = pendingPaymentColumn;
-
-      closePaymentReceiverModal(false);
-
-      const nowIso = new Date().toISOString();
-      const updatePayload = {
-        order_status: finalStatus,
-        status: 'Completed',
-        payment_received_by: receiver,
-        settlement: settlementVal,
-        bookingDate: nowIso,
-        finished_at: nowIso,
-        order_finished_date: nowIso
-      };
-
-      const existingOrder = (window.allBookings || []).find(b => String(b[col]) === String(orderId) || String(b.id) === String(orderId) || String(b.bookingRef) === String(orderId));
-      if (existingOrder) {
-        existingOrder.order_status = finalStatus;
-        existingOrder.status = 'Completed';
-        existingOrder.payment_received_by = receiver;
-        existingOrder.settlement = settlementVal;
-        if (existingOrder.bookingRef) localStorage.setItem('fixwheel_finished_' + existingOrder.bookingRef, nowIso);
-        if (existingOrder.id) localStorage.setItem('fixwheel_finished_' + existingOrder.id, nowIso);
-        existingOrder.updated_by = getCurrentUpdatedBy();
-      }
-      if (window.allBookings) renderDashboard(window.allBookings);
-
-      const targetCol = (existingOrder && existingOrder.bookingRef) ? 'bookingRef' : (col || 'id');
-      const targetVal = (existingOrder && existingOrder.bookingRef) ? existingOrder.bookingRef : orderId;
-
-      const { data, error } = await supabaseClient
-        .from('Booking')
-        .update(updatePayload)
-        .eq(targetCol, targetVal)
-        .select();
-
-      if (error) {
-        console.warn('Payment update failed (RLS), trying REST fallback...', error.message);
-        try {
-          const restUrl = `${SUPABASE_URL}/rest/v1/Booking?${encodeURIComponent(targetCol)}=eq.${encodeURIComponent(targetVal)}`;
-          const restResp = await fetch(restUrl, {
-            method: 'PATCH',
-            headers: {
-              'apikey': SUPABASE_ANON_KEY,
-              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-              'Content-Type': 'application/json',
-              'Prefer': 'return=minimal'
-            },
-            body: JSON.stringify(updatePayload)
-          });
-          if (!restResp.ok) {
-            const errText = await restResp.text();
-            console.error('REST payment update failed:', errText);
-            alert('Update Failed: Unable to update payment. Please contact admin.');
-          }
-        } catch (restErr) {
-          console.error('REST fallback error:', restErr);
-          alert('Update Failed: Network error.');
-        }
-      }
-
-      fetchBookings();
     }
 
     async function updateOrderRemark(id, newRemark, column = 'id') {
@@ -4594,6 +4639,8 @@
         fetchBookings();
       }
     }
+
+    initializeSortableOrderHeaders();
 
     // Initial fetch. A Today Orders row can deep-link directly into this drawer.
     fetchBookings().then(() => {
@@ -5053,42 +5100,6 @@
     </div>
   </div>
 
-  <!-- ─── Payment Collection Confirmation Popout Modal ─── -->
-  <div class="modal-overlay" id="payment-receiver-modal" style="z-index: 2100; display: none;">
-    <div class="modal-card" style="max-width: 520px;">
-      <div class="modal-header" style="background: var(--surface-2);">
-        <div>
-          <h3 style="font-size: 16px; font-weight: 700; color: var(--text-1);">Payment Collection Confirmation</h3>
-          <span id="pay-modal-order-ref" style="font-family: var(--mono); font-size: 12px; color: var(--text-3);">Order #--</span>
-        </div>
-        <button class="fw-btn-secondary" onclick="closePaymentReceiverModal(true)" style="padding:4px 10px;">✕</button>
-      </div>
-
-      <div class="modal-body" style="padding: 24px; display:flex; flex-direction:column; gap: 16px;">
-        <p style="font-size: 14px; font-weight: 600; color: var(--text-1);">Who received the payment for this completed order?</p>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-          <!-- Option 1: FixWheel -->
-          <div onclick="confirmPaymentReceiver('FixWheel')" style="background: var(--surface-2); border: 2px solid var(--border); border-radius: 12px; padding: 18px 14px; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; gap: 8px; text-align: center; align-items: center;" onmouseover="this.style.borderColor='#3b82f6'; this.style.background='rgba(59,130,246,0.08)';" onmouseout="this.style.borderColor='var(--border)'; this.style.background='var(--surface-2)';">
-            <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--blue-glow); border: 1px solid var(--blue-dim); display: flex; align-items: center; justify-content: center; color: #60a5fa; font-size: 20px;">🏢</div>
-            <div style="font-weight: 700; font-size: 14px; color: var(--text-1);">FixWheel</div>
-            <span style="font-family: var(--mono); font-size: 10.5px; color: var(--text-3); line-height: 1.3;">Online UPI / App Payment / Company Account</span>
-          </div>
-
-          <!-- Option 2: Mechanic -->
-          <div onclick="confirmPaymentReceiver('Mechanic')" style="background: var(--surface-2); border: 2px solid var(--border); border-radius: 12px; padding: 18px 14px; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; gap: 8px; text-align: center; align-items: center;" onmouseover="this.style.borderColor='#facc15'; this.style.background='rgba(234,179,8,0.08)';" onmouseout="this.style.borderColor='var(--border)'; this.style.background='var(--surface-2)';">
-            <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--yellow-glow); border: 1px solid var(--yellow-dim); display: flex; align-items: center; justify-content: center; color: #facc15; font-size: 20px;">🔧</div>
-            <div style="font-weight: 700; font-size: 14px; color: var(--text-1);">Mechanic</div>
-            <span style="font-family: var(--mono); font-size: 10.5px; color: var(--text-3); line-height: 1.3;">Cash Collected by Mechanic / Direct Garage Cash</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-footer" style="padding: 14px 24px; background: var(--surface-2); border-top: 1px solid var(--border); display:flex; justify-content: flex-end;">
-        <button class="fw-btn-secondary" onclick="closePaymentReceiverModal(true)">Cancel</button>
-      </div>
-    </div>
-  </div>
 </body>
 
 </html>

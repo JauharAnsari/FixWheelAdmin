@@ -35,3 +35,30 @@ async function fetchAllBookingRows(client, options = {}) {
 }
 
 window.fetchAllBookingRows = fetchAllBookingRows;
+
+/**
+ * Return a valid Supabase access token for dashboard mutations.
+ * Local/session storage flags are UI hints only; they must never be treated as
+ * database authentication because the Supabase session can expire separately.
+ */
+async function getFixWheelStaffAccessToken(client) {
+  if (!client?.auth) return null;
+  const { data, error } = await client.auth.getSession();
+  if (error) {
+    console.error('Unable to verify the staff session', error);
+    return null;
+  }
+  return data?.session?.access_token || null;
+}
+
+function clearFixWheelStaffSession() {
+  sessionStorage.removeItem('fixwheel_admin_logged_in');
+  localStorage.removeItem('fixwheel_admin_logged_in');
+  sessionStorage.removeItem('fixwheel_admin_session_v2');
+  localStorage.removeItem('fixwheel_admin_session_v2');
+  localStorage.removeItem('fixwheel_staff_role');
+  localStorage.removeItem('fixwheel_staff_user');
+}
+
+window.getFixWheelStaffAccessToken = getFixWheelStaffAccessToken;
+window.clearFixWheelStaffSession = clearFixWheelStaffSession;
